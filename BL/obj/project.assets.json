@@ -1,0 +1,116 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0": {
+      "DAL/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "DOM": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/DAL.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/DAL.dll": {}
+        }
+      },
+      "DOM/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/DOM.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/DOM.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "DAL/1.0.0": {
+      "type": "project",
+      "path": "../DAL/DAL.csproj",
+      "msbuildProject": "../DAL/DAL.csproj"
+    },
+    "DOM/1.0.0": {
+      "type": "project",
+      "path": "../DOM/DOM.csproj",
+      "msbuildProject": "../DOM/DOM.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net8.0": [
+      "DAL >= 1.0.0",
+      "DOM >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\SteffenV\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\stage\\culinary code repos\\backend\\BL\\BL.csproj",
+      "projectName": "BL",
+      "projectPath": "C:\\stage\\culinary code repos\\backend\\BL\\BL.csproj",
+      "packagesPath": "C:\\Users\\SteffenV\\.nuget\\packages\\",
+      "outputPath": "C:\\stage\\culinary code repos\\backend\\BL\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\SteffenV\\AppData\\Roaming\\NuGet\\NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "projectReferences": {
+            "C:\\stage\\culinary code repos\\backend\\DAL\\DAL.csproj": {
+              "projectPath": "C:\\stage\\culinary code repos\\backend\\DAL\\DAL.csproj"
+            },
+            "C:\\stage\\culinary code repos\\backend\\DOM\\DOM.csproj": {
+              "projectPath": "C:\\stage\\culinary code repos\\backend\\DOM\\DOM.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      }
+    },
+    "frameworks": {
+      "net8.0": {
+        "targetAlias": "net8.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Users\\SteffenV\\.dotnet\\sdk\\8.0.401/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
