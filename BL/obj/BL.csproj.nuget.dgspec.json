@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\stage\\culinary code repos\\backend\\BL\\BL.csproj": {}
+    "C:\\Users\\HannesC\\culinary-code\\backend\\BL\\BL.csproj": {}
   },
   "projects": {
-    "C:\\stage\\culinary code repos\\backend\\BL\\BL.csproj": {
+    "C:\\Users\\HannesC\\culinary-code\\backend\\BL\\BL.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\stage\\culinary code repos\\backend\\BL\\BL.csproj",
+        "projectUniqueName": "C:\\Users\\HannesC\\culinary-code\\backend\\BL\\BL.csproj",
         "projectName": "BL",
-        "projectPath": "C:\\stage\\culinary code repos\\backend\\BL\\BL.csproj",
-        "packagesPath": "C:\\Users\\SteffenV\\.nuget\\packages\\",
-        "outputPath": "C:\\stage\\culinary code repos\\backend\\BL\\obj\\",
+        "projectPath": "C:\\Users\\HannesC\\culinary-code\\backend\\BL\\BL.csproj",
+        "packagesPath": "C:\\Users\\HannesC\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\HannesC\\culinary-code\\backend\\BL\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\SteffenV\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\HannesC\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -26,11 +26,11 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\stage\\culinary code repos\\backend\\DAL\\DAL.csproj": {
-                "projectPath": "C:\\stage\\culinary code repos\\backend\\DAL\\DAL.csproj"
+              "C:\\Users\\HannesC\\culinary-code\\backend\\DAL\\DAL.csproj": {
+                "projectPath": "C:\\Users\\HannesC\\culinary-code\\backend\\DAL\\DAL.csproj"
               },
-              "C:\\stage\\culinary code repos\\backend\\DOM\\DOM.csproj": {
-                "projectPath": "C:\\stage\\culinary code repos\\backend\\DOM\\DOM.csproj"
+              "C:\\Users\\HannesC\\culinary-code\\backend\\DOM\\DOM.csproj": {
+                "projectPath": "C:\\Users\\HannesC\\culinary-code\\backend\\DOM\\DOM.csproj"
               }
             }
           }
@@ -49,6 +49,12 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.Extensions.Logging": {
+              "target": "Package",
+              "version": "[8.0.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -65,21 +71,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Users\\SteffenV\\.dotnet\\sdk\\8.0.401/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Users\\HannesC\\.dotnet\\sdk\\8.0.401/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\stage\\culinary code repos\\backend\\DAL\\DAL.csproj": {
+    "C:\\Users\\HannesC\\culinary-code\\backend\\DAL\\DAL.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\stage\\culinary code repos\\backend\\DAL\\DAL.csproj",
+        "projectUniqueName": "C:\\Users\\HannesC\\culinary-code\\backend\\DAL\\DAL.csproj",
         "projectName": "DAL",
-        "projectPath": "C:\\stage\\culinary code repos\\backend\\DAL\\DAL.csproj",
-        "packagesPath": "C:\\Users\\SteffenV\\.nuget\\packages\\",
-        "outputPath": "C:\\stage\\culinary code repos\\backend\\DAL\\obj\\",
+        "projectPath": "C:\\Users\\HannesC\\culinary-code\\backend\\DAL\\DAL.csproj",
+        "packagesPath": "C:\\Users\\HannesC\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\HannesC\\culinary-code\\backend\\DAL\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\SteffenV\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\HannesC\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -91,8 +97,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\stage\\culinary code repos\\backend\\DOM\\DOM.csproj": {
-                "projectPath": "C:\\stage\\culinary code repos\\backend\\DOM\\DOM.csproj"
+              "C:\\Users\\HannesC\\culinary-code\\backend\\DOM\\DOM.csproj": {
+                "projectPath": "C:\\Users\\HannesC\\culinary-code\\backend\\DOM\\DOM.csproj"
               }
             }
           }
@@ -111,6 +117,16 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.10, )"
+            },
+            "Microsoft.Extensions.Logging": {
+              "target": "Package",
+              "version": "[8.0.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -127,21 +143,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Users\\SteffenV\\.dotnet\\sdk\\8.0.401/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Users\\HannesC\\.dotnet\\sdk\\8.0.401/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\stage\\culinary code repos\\backend\\DOM\\DOM.csproj": {
+    "C:\\Users\\HannesC\\culinary-code\\backend\\DOM\\DOM.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\stage\\culinary code repos\\backend\\DOM\\DOM.csproj",
+        "projectUniqueName": "C:\\Users\\HannesC\\culinary-code\\backend\\DOM\\DOM.csproj",
         "projectName": "DOM",
-        "projectPath": "C:\\stage\\culinary code repos\\backend\\DOM\\DOM.csproj",
-        "packagesPath": "C:\\Users\\SteffenV\\.nuget\\packages\\",
-        "outputPath": "C:\\stage\\culinary code repos\\backend\\DOM\\obj\\",
+        "projectPath": "C:\\Users\\HannesC\\culinary-code\\backend\\DOM\\DOM.csproj",
+        "packagesPath": "C:\\Users\\HannesC\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\HannesC\\culinary-code\\backend\\DOM\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\SteffenV\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\HannesC\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -169,6 +185,12 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.Extensions.Logging": {
+              "target": "Package",
+              "version": "[8.0.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -185,7 +207,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Users\\SteffenV\\.dotnet\\sdk\\8.0.401/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Users\\HannesC\\.dotnet\\sdk\\8.0.401/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
