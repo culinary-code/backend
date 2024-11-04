@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using DOM.MealPlanning;
 
 namespace DOM.Recipes.Ingredients;
 
@@ -11,5 +12,6 @@ public class Ingredient
     public MeasurementType Measurement { get; set; }
     
     // navigation properties
-    private IEnumerable<Recipe> Recipes { get; set; } = new List<Recipe>();
+    public IEnumerable<IngredientQuantity> IngredientQuantities { get; set; } = new List<IngredientQuantity>();
+    
 }

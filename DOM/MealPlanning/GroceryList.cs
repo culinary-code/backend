@@ -7,9 +7,9 @@ namespace DOM.MealPlanning;
 public class GroceryList
 {
     public int GroceryListId { get; set; }
-    public Dictionary<string, int> Items { get; set; } = new();
-    public Dictionary<Ingredient, int> Ingredients { get; set; } = new();
+    public IEnumerable<ItemQuantity> Items { get; set; } = new List<ItemQuantity>();
+    public IEnumerable<IngredientQuantity> Ingredients { get; set; } = new List<IngredientQuantity>();
     
     // navigation properties
-    private Account? Accounts { get; set; } 
+    public Account? Account { get; set; } 
 }

@@ -11,5 +11,5 @@ public class FavoriteRecipe
     public DateTime CreatedAt { get; set; }
     
     // navigation properties
-    private Account? Account { get; set; }
+    public Account? Account { get; set; }
 }

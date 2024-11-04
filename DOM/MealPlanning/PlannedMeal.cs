@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
@@ -9,10 +10,10 @@ public class PlannedMeal
 {
     [Key] public int PlannedMealId { get; set; }
     public int AmountOfPeople { get; set; }
-    public Dictionary<Ingredient, int> Ingredients { get; set; } = new();
+    public IEnumerable<IngredientQuantity> Ingredients { get; set; } = new List<IngredientQuantity>();
     public Recipe? Recipe { get; set; }
     
     // navigation properties
-    private MealPlanner? NextWeekMealPlanner { get; set; }
-    private MealPlanner? HistoryMealPlanner { get; set; }
+    public MealPlanner? NextWeekMealPlanner { get; set; }
+    public MealPlanner? HistoryMealPlanner { get; set; }
 }

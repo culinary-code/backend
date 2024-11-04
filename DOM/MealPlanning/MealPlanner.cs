@@ -11,5 +11,5 @@ public class MealPlanner
     public IEnumerable<PlannedMeal> History { get; set; } = new List<PlannedMeal>();
     
     // navigation properties
-    private Account? Account { get; set; }
+    public Account? Account { get; set; }
 }

@@ -16,4 +16,8 @@ public class Account
     public int FamilySize { get; set; }
     public GroceryList? GroceryList { get; set; }
     public IEnumerable<Review> Reviews { get; set; } = new List<Review>();
+    
+    //navigation properties
+    public int? PlannerId { get; set; }
+    public int? GroceryListId { get; set; }
 }
