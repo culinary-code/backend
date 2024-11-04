@@ -1,3 +1,4 @@
+using BL.ExternalSources.ChatGPT;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,13 @@ public class WeatherForecastController : ControllerBase
     };
 
     private readonly ILogger<WeatherForecastController> _logger;
+    
+    private readonly AzureOpenAIService _azureOpenAIService;
 
-    public WeatherForecastController(ILogger<WeatherForecastController> logger)
+    public WeatherForecastController(ILogger<WeatherForecastController> logger, AzureOpenAIService azureOpenAiService)
     {
         _logger = logger;
+        _azureOpenAIService = azureOpenAiService;
     }
 
     [HttpGet(Name = "GetWeatherForecast")]
@@ -32,5 +36,12 @@ public class WeatherForecastController : ControllerBase
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             })
             .ToArray();
+    }
+
+    [HttpGet("getchat")]
+    public string GetChat()
+    {
+        var message = _azureOpenAIService.GetChatMessage("Geef mij een recept voor stoofvlees en frietjes.");
+        return message;
     }
 }

@@ -6,6 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using BL.ExternalSources.ChatGPT;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // set DbContext
@@ -27,6 +29,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<AzureOpenAIService>();
+
 
 var app = builder.Build();
 
