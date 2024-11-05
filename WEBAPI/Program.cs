@@ -1,5 +1,7 @@
+using BL.Recipes;
 using DAL;
 using DAL.EF;
+using DAL.Recipes;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,7 +22,7 @@ builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 
 
 // Managers
-
+builder.Services.AddScoped<IRecipeManager, RecipeManager>();
 
 
 builder.Services.AddControllers();
