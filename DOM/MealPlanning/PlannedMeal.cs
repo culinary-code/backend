@@ -16,8 +16,6 @@ public class PlannedMeal
     public Recipe? Recipe { get; set; }
     
     // navigation properties
-    [JsonIgnore]
     public MealPlanner? NextWeekMealPlanner { get; set; }
-    [JsonIgnore]
     public MealPlanner? HistoryMealPlanner { get; set; }
 }

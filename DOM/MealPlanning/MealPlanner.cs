@@ -13,6 +13,5 @@ public class MealPlanner
     public IEnumerable<PlannedMeal> History { get; set; } = new List<PlannedMeal>();
     
     // navigation properties
-    [JsonIgnore]
     public Account? Account { get; set; }
 }

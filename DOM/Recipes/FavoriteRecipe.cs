@@ -12,6 +12,5 @@ public class FavoriteRecipe
     public DateTime CreatedAt { get; set; }
     
     // navigation properties
-    [JsonIgnore]
     public Account? Account { get; set; }
 }

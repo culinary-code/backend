@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BL.Recipes;
+using BL.Managers.Recipes;
 using DOM.Exceptions;
 using DOM.Recipes;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +27,7 @@ public class RecipeController : ControllerBase
     {
         try
         {
-            var recipe = _recipeManager.GetRecipeById(id);
+            var recipe = _recipeManager.GetRecipeDtoById(id);
             return Ok(recipe);
         }
         catch (RecipeNotFoundException e)

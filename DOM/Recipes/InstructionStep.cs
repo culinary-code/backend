@@ -12,6 +12,5 @@ public class InstructionStep
     public string Instruction { get; set; } = "Default Instruction";
     
     // navigation properties
-    [JsonIgnore]
     public Recipe? Recipe { get; set; }
 }

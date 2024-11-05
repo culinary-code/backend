@@ -13,6 +13,5 @@ public class ItemQuantity
     public Ingredient? Ingredient { get; set; } 
     
     // navigation properties
-    [JsonIgnore]
     public GroceryList? GroceryList { get; set; }
 }

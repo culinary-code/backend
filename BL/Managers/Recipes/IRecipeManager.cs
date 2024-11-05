@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using BL.DTOs.Recipes;
 using DOM.Recipes;
 
-namespace BL.Recipes;
+namespace BL.Managers.Recipes;
 
 public interface IRecipeManager
 {
-    Recipe GetRecipeById(string id);
+    RecipeDto GetRecipeDtoById(string id);
     Recipe GetRecipeByName(string name);
     ICollection<Recipe> GetRecipesCollectionByName(string name);
 }

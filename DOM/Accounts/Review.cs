@@ -14,6 +14,5 @@ public class Review
     public DateTime CreatedAt { get; set; }
     
     // navigation properties
-    [JsonIgnore]
     public Recipe? Recipe { get; set; }
 }

@@ -14,6 +14,5 @@ public class GroceryList
     public IEnumerable<IngredientQuantity> Ingredients { get; set; } = new List<IngredientQuantity>();
     
     // navigation properties
-    [JsonIgnore]
     public Account? Account { get; set; } 
 }

@@ -25,8 +25,6 @@ public class Recipe
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
     
     // navigation properties
-    [JsonIgnore]
     public IEnumerable<PlannedMeal> PlannedMeals { get; set; } = new List<PlannedMeal>();
-    [JsonIgnore]
     public IEnumerable<FavoriteRecipe> FavoriteRecipes { get; set; } = new List<FavoriteRecipe>();
 }

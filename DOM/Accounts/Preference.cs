@@ -13,8 +13,6 @@ public class Preference
     public bool StandardPreference { get; set; }
     
     // navigation properties
-    [JsonIgnore]
     public IEnumerable<Recipe> Recipes { get; set; } = new List<Recipe>();
-    [JsonIgnore]
     public IEnumerable<Account> Accounts { get; set; } = new List<Account>();
 }

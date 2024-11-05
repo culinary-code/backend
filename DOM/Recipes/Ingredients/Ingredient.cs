@@ -14,7 +14,5 @@ public class Ingredient
     public MeasurementType Measurement { get; set; }
     
     // navigation properties
-    [JsonIgnore]
     public IEnumerable<IngredientQuantity> IngredientQuantities { get; set; } = new List<IngredientQuantity>();
-    
 }
