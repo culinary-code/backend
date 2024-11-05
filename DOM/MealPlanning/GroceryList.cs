@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using DOM.Accounts;
 using DOM.Recipes.Ingredients;
 
@@ -11,5 +12,6 @@ public class GroceryList
     public IEnumerable<IngredientQuantity> Ingredients { get; set; } = new List<IngredientQuantity>();
     
     // navigation properties
+    [JsonIgnore]
     public Account? Account { get; set; } 
 }

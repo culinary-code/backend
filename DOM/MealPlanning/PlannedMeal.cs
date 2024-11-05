@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
 
@@ -14,6 +15,8 @@ public class PlannedMeal
     public Recipe? Recipe { get; set; }
     
     // navigation properties
+    [JsonIgnore]
     public MealPlanner? NextWeekMealPlanner { get; set; }
+    [JsonIgnore]
     public MealPlanner? HistoryMealPlanner { get; set; }
 }

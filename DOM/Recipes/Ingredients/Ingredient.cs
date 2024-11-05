@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using DOM.MealPlanning;
 
 namespace DOM.Recipes.Ingredients;
@@ -12,6 +13,7 @@ public class Ingredient
     public MeasurementType Measurement { get; set; }
     
     // navigation properties
+    [JsonIgnore]
     public IEnumerable<IngredientQuantity> IngredientQuantities { get; set; } = new List<IngredientQuantity>();
     
 }

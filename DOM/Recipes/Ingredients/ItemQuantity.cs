@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using DOM.MealPlanning;
 
 namespace DOM.Recipes.Ingredients;
@@ -11,5 +12,6 @@ public class ItemQuantity
     public Ingredient? Ingredient { get; set; } 
     
     // navigation properties
+    [JsonIgnore]
     public GroceryList? GroceryList { get; set; }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using DOM.Accounts;
 
 namespace DOM.MealPlanning;
@@ -11,5 +12,6 @@ public class MealPlanner
     public IEnumerable<PlannedMeal> History { get; set; } = new List<PlannedMeal>();
     
     // navigation properties
+    [JsonIgnore]
     public Account? Account { get; set; }
 }

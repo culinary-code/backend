@@ -3,6 +3,7 @@ using System.Linq;
 using DAL.EF;
 using DOM.Exceptions;
 using DOM.Recipes;
+using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Recipes;
 
@@ -17,7 +18,13 @@ public class RecipeRepository : IRecipeRepository
 
     public Recipe ReadRecipeById(int id)
     {
-        Recipe? recipe = _ctx.Recipes.Find(id);
+        Recipe? recipe = _ctx.Recipes
+            .Include(r => r.Ingredients)
+            .ThenInclude(i => i.Ingredient)
+            .Include(r => r.Instructions)
+            .Include(r => r.Reviews)
+            .Include(r => r.Preferences)
+            .FirstOrDefault(r => r.RecipeId == id);
         if (recipe is null)
         {
             throw new RecipeNotFoundException($"No recipe found with id {id}");
