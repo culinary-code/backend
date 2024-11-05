@@ -1,5 +1,6 @@
 using BL.AutoMapper;
 using BL.Managers.Recipes;
+using BL.ExternalSources.Llm;
 using DAL;
 using DAL.EF;
 using DAL.Recipes;
@@ -8,8 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
-using BL.ExternalSources.ChatGPT;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,7 +35,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// External services
+builder.Services.AddSingleton<LlmSettingsService>();
 builder.Services.AddSingleton<AzureOpenAIService>();
+builder.Services.AddSingleton<LocalLlmService>();
 
 
 var app = builder.Build();
