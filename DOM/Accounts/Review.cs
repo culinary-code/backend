@@ -7,7 +7,7 @@ namespace DOM.Accounts;
 
 public class Review
 {
-    [Key] public int ReviewId { get; set; }
+    [Key] public Guid ReviewId { get; set; }
     public Account? Account { get; set; }
     public int AmountOfStars { get; set; }
     public string Description { get; set; } = "Default description";

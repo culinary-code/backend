@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
@@ -12,7 +11,7 @@ namespace DOM.Recipes;
 public class Recipe
 {
     [Key] 
-    public int RecipeId { get; set; }
+    public Guid RecipeId { get; set; }
     public string RecipeName { get; set; } = "Default Recipe Name";
     public ICollection<IngredientQuantity> Ingredients { get; set; } = new List<IngredientQuantity>();
     public ICollection<Preference> Preferences { get; set; } = new List<Preference>();

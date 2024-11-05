@@ -6,7 +6,7 @@ namespace BL.Recipes;
 
 public interface IRecipeManager
 {
-    Recipe GetRecipeById(int id);
+    Recipe GetRecipeById(string id);
     Recipe GetRecipeByName(string name);
     ICollection<Recipe> GetRecipesCollectionByName(string name);
 }

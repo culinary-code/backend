@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using DAL;
 using DAL.Recipes;
 using DOM.Recipes;
@@ -14,9 +15,10 @@ public class RecipeManager : IRecipeManager
         _repository = repository;
     }
 
-    public Recipe GetRecipeById(int id)
+    public Recipe GetRecipeById(string id)
     {
-        return _repository.ReadRecipeById(id);
+        Guid parsedGuid = Guid.Parse(id);
+        return _repository.ReadRecipeById(parsedGuid);
     }
 
     public Recipe GetRecipeByName(string name)

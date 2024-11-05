@@ -9,25 +9,32 @@ namespace DAL.EF;
 
 internal static class CulinaryCodeDbInitializer
 {
+    private static bool _hasRunDuringAppExecution = false;
+
     public static void Initialize(CulinaryCodeDbContext context, bool dropCreateDatabase = false)
     {
-        if (dropCreateDatabase)
-            context.Database.EnsureDeleted();
+        if (!_hasRunDuringAppExecution)
+        {
+            if (dropCreateDatabase)
+                context.Database.EnsureDeleted();
 
-        if (context.Database.EnsureCreated())
-            Seed(context);
+            if (context.Database.EnsureCreated())
+                Seed(context);
+            
+            _hasRunDuringAppExecution = true;
+        }
     }
 
     private static void Seed(CulinaryCodeDbContext context)
     {
         // Add objects here
-        
+
         // Ingredients
         Ingredient ingredient1 = new Ingredient()
         {
             IngredientName = "Wortel"
         };
-        
+
         Ingredient ingredient2 = new Ingredient()
         {
             IngredientName = "Appel"
@@ -39,7 +46,7 @@ internal static class CulinaryCodeDbInitializer
         context.Ingredients.Add(ingredient1);
         context.Ingredients.Add(ingredient2);
         context.Ingredients.Add(ingredient3);
-        
+
         //IngredientQuantities
         IngredientQuantity ingredientQuantity1 = new IngredientQuantity()
         {
@@ -77,7 +84,7 @@ internal static class CulinaryCodeDbInitializer
         context.IngredientQuantities.Add(ingredientQuantity4);
         context.IngredientQuantities.Add(ingredientQuantity5);
         context.IngredientQuantities.Add(ingredientQuantity6);
-        
+
         //Preferences
         Preference preference1 = new Preference()
         {
@@ -94,11 +101,11 @@ internal static class CulinaryCodeDbInitializer
             PreferenceName = "Noten allergie",
             StandardPreference = true
         };
-        
+
         context.Preferences.Add(preference1);
         context.Preferences.Add(preference2);
         context.Preferences.Add(preference3);
-        
+
         //Instructions
         InstructionStep instructionStep1 = new InstructionStep()
         {
@@ -140,7 +147,7 @@ internal static class CulinaryCodeDbInitializer
             Instruction = "Voeg de tomatensaus toe en laat 5 minuten sudderen",
             StepNumber = 8
         };
-        
+
         context.InstructionSteps.Add(instructionStep1);
         context.InstructionSteps.Add(instructionStep2);
         context.InstructionSteps.Add(instructionStep3);
@@ -149,7 +156,7 @@ internal static class CulinaryCodeDbInitializer
         context.InstructionSteps.Add(instructionStep6);
         context.InstructionSteps.Add(instructionStep7);
         context.InstructionSteps.Add(instructionStep8);
-        
+
         // Reviews
         Review review1 = new Review()
         {
@@ -179,7 +186,7 @@ internal static class CulinaryCodeDbInitializer
         context.Reviews.Add(review2);
         context.Reviews.Add(review3);
         context.Reviews.Add(review4);
-        
+
         // Recipes
         Recipe recipe1 = new Recipe()
         {
@@ -199,10 +206,10 @@ internal static class CulinaryCodeDbInitializer
         recipe1.Ingredients.Add(ingredientQuantity1);
         recipe1.Ingredients.Add(ingredientQuantity2);
         recipe1.Ingredients.Add(ingredientQuantity3);
-        
+
         recipe1.Preferences.Add(preference1);
         recipe1.Preferences.Add(preference2);
-        
+
         recipe1.Instructions.Add(instructionStep1);
         recipe1.Instructions.Add(instructionStep2);
         recipe1.Instructions.Add(instructionStep3);
@@ -210,11 +217,11 @@ internal static class CulinaryCodeDbInitializer
         recipe1.Instructions.Add(instructionStep5);
         recipe1.Instructions.Add(instructionStep6);
         recipe1.Instructions.Add(instructionStep7);
-        
+
         recipe1.Reviews.Add(review1);
         recipe1.Reviews.Add(review2);
         recipe1.Reviews.Add(review4);
-        
+
         Recipe recipe2 = new Recipe()
         {
             RecipeName = "Test Recept 2",
@@ -229,17 +236,16 @@ internal static class CulinaryCodeDbInitializer
             Instructions = [],
             Reviews = [],
         };
-        
+
         recipe2.Ingredients.Add(ingredientQuantity4);
-        
+
         recipe2.Preferences.Add(preference3);
 
         recipe2.Instructions.Add(instructionStep8);
-        
+
         recipe2.Reviews.Add(review3);
 
 
-        
         Recipe recipe3 = new Recipe()
         {
             RecipeName = "Test Recept 3",
@@ -257,13 +263,13 @@ internal static class CulinaryCodeDbInitializer
         context.Recipes.Add(recipe1);
         context.Recipes.Add(recipe2);
         context.Recipes.Add(recipe3);
-        
+
         // Save changes
         context.SaveChanges();
-        
+
         // Clear change-tracker for the data does not stay tracked all the time
         // and any requests will get it from the database instead of the change-tracker.
-        
+
         context.ChangeTracker.Clear();
     }
 }

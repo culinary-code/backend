@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using DAL.EF;
 using DOM.Exceptions;
@@ -16,7 +17,7 @@ public class RecipeRepository : IRecipeRepository
         _ctx = ctx;
     }
 
-    public Recipe ReadRecipeById(int id)
+    public Recipe ReadRecipeById(Guid id)
     {
         Recipe? recipe = _ctx.Recipes
             .Include(r => r.Ingredients)
@@ -24,7 +25,7 @@ public class RecipeRepository : IRecipeRepository
             .Include(r => r.Instructions)
             .Include(r => r.Reviews)
             .Include(r => r.Preferences)
-            .FirstOrDefault(r => r.RecipeId == id);
+            .FirstOrDefault(r => r.RecipeId == id );
         if (recipe is null)
         {
             throw new RecipeNotFoundException($"No recipe found with id {id}");
@@ -35,7 +36,8 @@ public class RecipeRepository : IRecipeRepository
     public Recipe ReadRecipeByName(string name)
     {
         string lowerName = name.ToLower();
-        Recipe? recipe = _ctx.Recipes.FirstOrDefault(r => r.RecipeName.ToLower().Contains(lowerName));
+        Recipe? recipe = _ctx.Recipes
+            .FirstOrDefault(r => r.RecipeName.ToLower().Contains(lowerName));
         if (recipe is null)
         {
             throw new RecipeNotFoundException($"No recipe found with name {name}");
