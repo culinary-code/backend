@@ -22,7 +22,7 @@ public class RecipeController : ControllerBase
         _recipeManager = recipeManager;
     }
     
-    [HttpGet( "/{id}")]
+    [HttpGet( "/{id:int}")]
     public IActionResult GetRecipeById(int id)
     {
         try
@@ -32,6 +32,7 @@ public class RecipeController : ControllerBase
         }
         catch (RecipeNotFoundException e)
         {
+            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
             return NotFound(e.Message);
         }
     }
@@ -46,6 +47,7 @@ public class RecipeController : ControllerBase
         }
         catch (RecipeNotFoundException e)
         {
+            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
             return NotFound(e.Message);
         }
         
@@ -61,6 +63,7 @@ public class RecipeController : ControllerBase
         }
         catch (RecipeNotFoundException e)
         {
+            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
             return NotFound(e.Message);
         }
     }
