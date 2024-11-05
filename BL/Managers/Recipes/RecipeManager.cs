@@ -25,13 +25,15 @@ public class RecipeManager : IRecipeManager
         return _mapper.Map<RecipeDto>(recipe);
     }
 
-    public Recipe GetRecipeByName(string name)
+    public RecipeDto GetRecipeDtoByName(string name)
     {
-        return _repository.ReadRecipeByName(name);
+        var recipe = _repository.ReadRecipeByName(name);
+        return _mapper.Map<RecipeDto>(recipe);
     }
     
-    public ICollection<Recipe> GetRecipesCollectionByName(string name)
+    public ICollection<RecipeDto> GetRecipesCollectionByName(string name)
     {
-        return _repository.ReadRecipesCollectionByName(name);
+        var recipes = _repository.ReadRecipesCollectionByName(name);
+        return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 }

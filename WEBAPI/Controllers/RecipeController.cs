@@ -42,7 +42,7 @@ public class RecipeController : ControllerBase
     {
         try
         {
-            var recipe = _recipeManager.GetRecipeByName(name);
+            var recipe = _recipeManager.GetRecipeDtoByName(name);
             return Ok(recipe);
         }
         catch (RecipeNotFoundException e)

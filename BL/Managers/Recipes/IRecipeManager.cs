@@ -7,6 +7,6 @@ namespace BL.Managers.Recipes;
 public interface IRecipeManager
 {
     RecipeDto GetRecipeDtoById(string id);
-    Recipe GetRecipeByName(string name);
-    ICollection<Recipe> GetRecipesCollectionByName(string name);
+    RecipeDto GetRecipeDtoByName(string name);
+    ICollection<RecipeDto> GetRecipesCollectionByName(string name);
 }
