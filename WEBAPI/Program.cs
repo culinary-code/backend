@@ -1,5 +1,8 @@
+using BL.AutoMapper;
+using BL.Managers.Recipes;
 using DAL;
 using DAL.EF;
+using DAL.Recipes;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,9 +23,12 @@ builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 
 
 // Managers
+builder.Services.AddScoped<IRecipeManager, RecipeManager>();
 
+// Automapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-
+// Controllers
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

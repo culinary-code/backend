@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using DOM.MealPlanning;
 
 namespace DOM.Recipes.Ingredients;
@@ -6,7 +8,7 @@ namespace DOM.Recipes.Ingredients;
 public class ItemQuantity
 {
     [Key]
-    public int IngredientQuantityId { get; set; }
+    public Guid IngredientQuantityId { get; set; }
     public int Quantity { get; set; }
     public Ingredient? Ingredient { get; set; } 
     
