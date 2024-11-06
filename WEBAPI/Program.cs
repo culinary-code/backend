@@ -1,5 +1,6 @@
 using BL.AutoMapper;
 using BL.Managers.Recipes;
+using BL.Services;
 using DAL;
 using DAL.EF;
 using DAL.Recipes;
@@ -25,6 +26,10 @@ builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 // Managers
 builder.Services.AddScoped<IRecipeManager, RecipeManager>();
 
+// Services
+builder.Services.AddHttpClient<IIdentityProviderService, KeyCloakService>();
+builder.Services.AddScoped<IIdentityProviderService, KeyCloakService>();
+
 // Automapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -33,6 +38,17 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins",
+        corsBuilder =>
+        {
+            corsBuilder.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+});
 
 var app = builder.Build();
 
@@ -50,6 +66,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors("AllowAllOrigins");
 }
 
 app.UseHttpsRedirection();
