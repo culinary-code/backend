@@ -15,6 +15,17 @@ public class LlmSettingsService
                                "properties": {
                                    "recipeName": { "type": "string" },
                                    "description": { "type": "string" },
+                                   "diet": { "type": "string" },
+                               "recipeType": {
+                                   "type": "string",
+                                   "enum": ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"]
+                               },
+                               "cookingTime": { "type": "integer" },
+                               "difficulty": {
+                                   "type": "string",
+                                   "enum": ["NotAvailable", "Easy", "Intermediate", "Difficult"]
+                               },
+                                "amount_of_people": { "type": "number" },
                                    "ingredients": {
                                        "type": "array",
                                        "items": {
@@ -30,17 +41,6 @@ public class LlmSettingsService
                                            "required": ["name", "amount", "measurementType"]
                                        }
                                    },
-                                   "diet": { "type": "string" },
-                                   "recipeType": {
-                                       "type": "string",
-                                       "enum": ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"]
-                                   },
-                                   "cookingTime": { "type": "integer" },
-                                   "difficulty": {
-                                       "type": "string",
-                                       "enum": ["NotAvailable", "Easy", "Intermediate", "Difficult"]
-                                   },
-                                   "amount_of_people": { "type": "number" },
                                    "recipeSteps": {
                                        "type": "array",
                                        "items": {

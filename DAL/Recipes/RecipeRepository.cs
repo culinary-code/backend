@@ -56,4 +56,16 @@ public class RecipeRepository : IRecipeRepository
         }
         return recipes;
     }
+
+    public void CreateRecipe(Recipe recipe)
+    {
+        _ctx.Recipes.Add(recipe);
+        _ctx.SaveChanges();
+    }
+
+    public void UpdateRecipe(Recipe recipe)
+    {
+        _ctx.Recipes.Update(recipe);
+        _ctx.SaveChanges();
+    }
 }

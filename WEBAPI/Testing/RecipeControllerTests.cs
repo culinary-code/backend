@@ -1,14 +1,12 @@
-﻿using System;
-using BL.DTOs.Recipes;
+﻿using BL.DTOs.Recipes;
 using BL.Managers.Recipes;
 using DOM.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Moq;
-using WebApplication3.Controllers;
+using WEBAPI.Controllers;
 using Xunit;
 
-namespace WebApplication3.Testing;
+namespace WEBAPI.Testing;
 
 public class RecipeControllerTests
 {

@@ -1,8 +1,8 @@
 using BL.ExternalSources.Llm;
 using Microsoft.AspNetCore.Mvc;
-using WebApplication3.Controllers.Dto;
+using WEBAPI.Controllers.Dto;
 
-namespace WebApplication3.Controllers;
+namespace WEBAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
@@ -23,21 +23,21 @@ public class ChatController : ControllerBase
     [HttpPost("getchat")]
     public string GetChat([FromBody] ChatRequestDto request)
     {
-        var message = _azureOpenAIService.GetChatMessage(request.Prompt);
+        var message = _azureOpenAIService.GenerateRecipe(request.Prompt);
         return message;
     }
     
     [HttpPost("getimage")]
     public string GetImage([FromBody] ChatRequestDto request)
     {
-        var imageUri = _azureOpenAIService.GetImage(request.Prompt);
+        var imageUri = _azureOpenAIService.GenerateRecipeImage(request.Prompt);
         return imageUri?.ToString() ?? "Something went wrong";
     }
     
     [HttpPost("getlocalchat")]
     public string GetLocalChat([FromBody] ChatRequestDto request)
     {
-        var message = _localLlmService.GetChatMessage(request.Prompt);
+        var message = _localLlmService.GenerateRecipe(request.Prompt);
         return message;
     }
 }

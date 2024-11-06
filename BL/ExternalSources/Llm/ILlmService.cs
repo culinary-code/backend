@@ -2,6 +2,6 @@
 
 public interface ILlmService
 {
-    public string GetChatMessage(string message);
-    public Uri? GetImage(string recipePrompt);
+    public string GenerateRecipe(string message);
+    public Uri? GenerateRecipeImage(string recipePrompt);
 }

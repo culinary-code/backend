@@ -11,7 +11,7 @@ public class LocalLlmService : ILlmService
    
     private static readonly HttpClient Client = new HttpClient();
     
-    public string GetChatMessage(string message)
+    public string GenerateRecipe(string message)
     {
         
         
@@ -66,7 +66,7 @@ public class LocalLlmService : ILlmService
         return "Sorry, I couldn't process your request. Please try again later.";
     }
 
-    public Uri? GetImage(string recipePrompt)
+    public Uri? GenerateRecipeImage(string recipePrompt)
     {
         throw new NotImplementedException();
     }

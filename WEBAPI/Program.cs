@@ -21,6 +21,8 @@ builder.Services.AddDbContext<CulinaryCodeDbContext>(optionsBuilder =>
 
 // Repositories
 builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
+builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
+builder.Services.AddScoped<IPreferenceRepository, PreferenceRepository>();
 
 
 // Managers
@@ -40,8 +42,10 @@ builder.Services.AddLogging();
 
 // External services
 builder.Services.AddSingleton<LlmSettingsService>();
-builder.Services.AddSingleton<AzureOpenAIService>();
-builder.Services.AddSingleton<LocalLlmService>();
+
+// swap comment to switch between local and azure service
+builder.Services.AddSingleton<ILlmService, AzureOpenAIService>(); 
+//builder.Services.AddSingleton<ILlmService, LocalLlmService>();
 
 
 var app = builder.Build();

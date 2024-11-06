@@ -42,7 +42,7 @@ public class AzureOpenAIService : ILlmService
         _imageClient = _azureClient.GetImageClient("dall-e-3");
     }
 
-    public string GetChatMessage(string message)
+    public string GenerateRecipe(string message)
     {
         var systemPrompt = LlmSettingsService.SystemPrompt;
         var exampleJson = LlmSettingsService.ExampleJson;
@@ -83,7 +83,7 @@ public class AzureOpenAIService : ILlmService
         return response;
     }
 
-    public Uri? GetImage(string recipePrompt)
+    public Uri? GenerateRecipeImage(string recipePrompt)
     {
         ChatCompletionOptions completionOptions = new ChatCompletionOptions
         {
