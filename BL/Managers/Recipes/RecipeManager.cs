@@ -65,7 +65,12 @@ public class RecipeManager : IRecipeManager
                 {
                     var generatedRecipeJson = _llmService.GenerateRecipe(name);
 
-                    if (!RecipeValidation(generatedRecipeJson)) throw new Exception("Recipe validation failed");
+                    if (!RecipeValidation(generatedRecipeJson))
+                    {
+                        _logger.LogError("Recipe validation failed");
+                        throw new Exception("Recipe validation failed");
+                    }
+                        
 
                     var recipe = ConvertGeneratedRecipe(generatedRecipeJson);
 
@@ -96,10 +101,17 @@ public class RecipeManager : IRecipeManager
         var jsonSchema = LlmSettingsService.RecipeJsonSchema;
         JSchema schema = JSchema.Parse(jsonSchema);
         JObject recipe = JObject.Parse(recipeJson);
+        
+        IList<String> validationErrors = new List<String>();
 
-        if (recipe.IsValid(schema))
+        if (recipe.IsValid(schema, out validationErrors))
         {
             return true;
+        }
+        
+        foreach (var error in validationErrors)
+        {
+            _logger.LogError("Recipe validation error: {Error}", error);
         }
 
         return false;

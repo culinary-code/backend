@@ -61,9 +61,9 @@ public class AzureOpenAIService : ILlmService
         [
             new SystemChatMessage(systemPrompt),
 
-            new UserChatMessage("Stoofvlees met frietjes"),
+            //new UserChatMessage("Stoofvlees met frietjes"),
 
-            new SystemChatMessage(exampleJson),
+            //new SystemChatMessage(exampleJson),
 
             new UserChatMessage(message),
         ], completionOptions);

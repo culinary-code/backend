@@ -105,7 +105,9 @@ public class LlmSettingsService
                           
                        This is the JSON schema:
 
-                       """ + RecipeJsonSchema;
+                       """ + RecipeJsonSchema + """
+                       ALWAYS ADHERE TO THE JSON SCHEMA FORMAT, AND ENSURE YOUR RESPONSE IS IN A VALID JSON FORMAT. Do not change any field names or the structure of the schema. Do not add any extra characters like underscores in the keys.
+                       """;
 
         ExampleJson = """
                         {
