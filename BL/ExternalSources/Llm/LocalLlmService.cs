@@ -66,7 +66,7 @@ public class LocalLlmService : ILlmService
         return "Sorry, I couldn't process your request. Please try again later.";
     }
 
-    public Uri GetImage(string recipePrompt)
+    public Uri? GetImage(string recipePrompt)
     {
         throw new NotImplementedException();
     }

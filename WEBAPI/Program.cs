@@ -35,6 +35,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Logging
+builder.Services.AddLogging();
+
 // External services
 builder.Services.AddSingleton<LlmSettingsService>();
 builder.Services.AddSingleton<AzureOpenAIService>();

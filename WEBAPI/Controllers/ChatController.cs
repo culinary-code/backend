@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using BL.ExternalSources.Llm;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using WEBAPI.Controllers.Dto;
+using WebApplication3.Controllers.Dto;
 
-namespace WEBAPI.Controllers;
+namespace WebApplication3.Controllers;
 
 [ApiController]
 [Route("[controller]")]
@@ -35,7 +31,7 @@ public class ChatController : ControllerBase
     public string GetImage([FromBody] ChatRequestDto request)
     {
         var imageUri = _azureOpenAIService.GetImage(request.Prompt);
-        return imageUri.ToString();
+        return imageUri?.ToString() ?? "Something went wrong";
     }
     
     [HttpPost("getlocalchat")]

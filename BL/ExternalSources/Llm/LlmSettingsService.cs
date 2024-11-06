@@ -4,6 +4,7 @@ public class LlmSettingsService
 {
     public static string SystemPrompt { get; private set; }
     public static string RecipeJsonSchema { get; private set; }
+    public static string ExampleJson { get; private set; }
 
     static LlmSettingsService()
     {
@@ -21,52 +22,175 @@ public class LlmSettingsService
                                            "properties": {
                                                "name": { "type": "string" },
                                                "amount": { "type": "number" },
-                                               "measurementType": { "type": "string" }
+                                               "measurementType": {
+                                                   "type": "string",
+                                                   "enum": ["Kilogram", "Litre", "Pound", "Ounce", "Teaspoon", "Tablespoon", "Piece", "Millilitre", "Gram", "Pinch", "ToTaste"]
+                                               }
                                            },
-                                           "required": [ "name", "amount", "measurementType" ]
+                                           "required": ["name", "amount", "measurementType"]
                                        }
                                    },
                                    "diet": { "type": "string" },
-                                   "mealType": { "type": "string" },
-                                   "cookingTime": { "type": "string" },
-                                   "difficultyLevel": { "type": "string" },
+                                   "recipeType": {
+                                       "type": "string",
+                                       "enum": ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"]
+                                   },
+                                   "cookingTime": { "type": "integer" },
+                                   "difficulty": {
+                                       "type": "string",
+                                       "enum": ["NotAvailable", "Easy", "Intermediate", "Difficult"]
+                                   },
                                    "amount_of_people": { "type": "number" },
                                    "recipeSteps": {
                                        "type": "array",
-                                       "items": { "type": "string" }
+                                       "items": {
+                                           "type": "object",
+                                           "properties": {
+                                               "stepNumber": { "type": "number" },
+                                               "instruction": { "type": "string" }
+                                           },
+                                           "required": ["stepNumber", "instruction"]
+                                       }
                                    }
                                },
-                               "required": [ 
-                                   "recipeName", 
-                                   "description", 
-                                   "ingredients", 
-                                   "diet", 
-                                   "mealType", 
-                                   "cookingTime", 
-                                   "difficultyLevel", 
-                                   "recipeSteps" 
+                               "required": [
+                                   "recipeName",
+                                   "description",
+                                   "ingredients",
+                                   "diet",
+                                   "recipeType",
+                                   "cookingTime",
+                                   "difficulty",
+                                   "recipeSteps"
                                ]
                            }
                            """;
 
         SystemPrompt = """
-                       
-                           You are a star chef that provides detailed recipes for curious users looking for a tasty meal.
-                           You provide all the recipes in a JSON format. Return only the JSON formatted recipes and not any other text.
-                           Users will either provide a name of the recipe they wish to cook or a list of ingredients they have.
-                           A user might also just want to get a random recipe.
-                           If the user provides a list of ingredients, those are not the only ones that can be used, you can add more ingredients to the recipe.
-                           If the user gives a huge amount of ingredients, you should return a recipe that uses the most common ingredients.
-                           If the user has an ingredient with a huge quantity, you should return a recipe that uses the most logical quantity.
-                           If the user gives a huge measurement amount, you should return a recipe that uses the most reasonable measurement amount.
-                           You will only give a recipe if all of the ingredients provided by the user are actually edible.
-                           If even one of the ingredients given is not edible, you should return "NOT_POSSIBLE with this reason {reason}" instead of a JSON format.
-                           If the recipe name asked for is not edible, you should return "NOT_POSSIBLE with this reason {reason}" instead of a JSON format.
-                           All ingredients, measurement types, diet, mealType, cookingTime, difficultyLevel and recipeSteps must be in the same language as the user's prompt.
-                           Use only proper quotation marks for the JSON format. Escape any character that needs to be escaped.
-                           Make sure there's always a value for every required field in the JSON format. Diet should never be empty, if nothing is provided, use "None".
-                           Adhere to the following JSON schema: 
+                           You are a star chef providing detailed and precise recipes in a structured JSON format based on the JSON schema below. Your role is to respond only with the JSON recipe data adhering to the JSON schema, without any additional text.
+
+                       1. **User Requests a Specific Recipe**: 
+                          - If the user asks for a specific recipe by name, provide the recipe in JSON format.
+                          - If the recipe name is not available or the recipe is not edible, respond with `"NOT_POSSIBLE with this reason {reason}"`.
+                          - Return the values of the recipe in the language in which the user requested it.
+                          
+                       2. **User Provides Ingredients**: 
+                          - If the user lists ingredients, generate a recipe that utilizes those ingredients. Feel free to add more ingredients to complete the recipe, but always prioritize the user's listed ingredients.
+                          - For large quantities of ingredients, use logical or reasonable amounts.
+                          - If the list of ingredients contains any non-edible item, return `"NOT_POSSIBLE with this reason {reason}"`.
+                          - If the user provides an excessive number of ingredients, focus on the most common ones for the recipe.
+
+                       3. **Random Recipe**: 
+                          - If the user requests a random recipe, provide a relevant and delicious recipe in JSON format.
+
+                       4. **JSON Schema**: Ensure the recipe is always provided in this JSON format, with the following fields:
+                          - `"recipeName"`: The name of the recipe.
+                          - `"ingredients"`: A list of ingredients with their measurements.
+                          - `"measurementUnits"`: The units of measurement for each ingredient.
+                          - `"diet"`: The type of diet the recipe is suitable for. If no specific diet is mentioned, use `"None"`.
+                          - `"recipeType"`: Type of recipe (e.g., "Main Course", "Dessert").
+                          - `"cookingTime"`: Estimated cooking time (in minutes). Return only the numerical value.
+                          - `"difficulty"`: Difficulty level (e.g., "Easy", "Medium", "Hard").
+                          - `"recipeSteps"`: Step-by-step instructions for preparing the dish.
+
+                       5. **Handling Invalid Ingredients or Recipes**:
+                          - If any ingredient or recipe is deemed non-edible, return `"NOT_POSSIBLE with this reason {reason}"`.
+                          - If a user requests an impractical or illogical combination of ingredients, the recipe should also be rejected with `"NOT_POSSIBLE with this reason {reason}"`.
+
+                       6. **General Rules**:
+                          - Make sure to provide values for all required fields in the JSON schema.
+                          - Use only proper quotation marks for JSON and escape any necessary characters (like quotes within strings). 
+                          - Never add any additional text or information outside the JSON format, or comments within the JSON.
+                          - Never add any dots or slashes in the measurementType enum values.
+                          
+                       This is the JSON schema:
 
                        """ + RecipeJsonSchema;
+
+        ExampleJson = """
+                        {
+                          "recipeName": "Stoofvlees met frietjes",
+                          "description": "Een klassiek Belgisch gerecht van langzaam gegaard rundvlees in een rijke saus, geserveerd met knapperige frietjes.",
+                          "ingredients": [
+                              {
+                                  "name": "rundvlees",
+                                  "amount": 1.5,
+                                  "measurementType": "Kilogram"
+                              },
+                              {
+                                  "name": "uien",
+                                  "amount": 3,
+                                  "measurementType": "Piece"
+                              },
+                              {
+                                  "name": "wortelen",
+                                  "amount": 2,
+                                  "measurementType": "Piece"
+                              },
+                              {
+                                  "name": "bier",
+                                  "amount": 500,
+                                  "measurementType": "Millilitre"
+                              },
+                              {
+                                  "name": "runderbouillon",
+                                  "amount": 500,
+                                  "measurementType": "Millilitre"
+                              },
+                              {
+                                  "name": "laurierblaadjes",
+                                  "amount": 2,
+                                  "measurementType": "Piece"
+                              },
+                              {
+                                  "name": "peterselie",
+                                  "amount": 10,
+                                  "measurementType": "Gram"
+                              },
+                              {
+                                  "name": "zout",
+                                  "amount": 1,
+                                  "measurementType": "Teaspoon"
+                              },
+                              {
+                                  "name": "peper",
+                                  "amount": 1,
+                                  "measurementType": "Teaspoon"
+                              }
+                          ],
+                          "diet": "None",
+                          "recipeType": "Dinner",
+                          "cookingTime": "180",
+                          "difficulty": "Intermediate",
+                          "amount_of_people": 4,
+                          "recipeSteps": [
+                              {
+                                  "stepNumber": 1,
+                                  "instruction": "Snijd het rundvlees in blokjes en kruid met zout en peper."
+                              },
+                              {
+                                  "stepNumber": 2,
+                                  "instruction": "Verhit een grote pan en bak het vlees aan alle kanten bruin."
+                              },
+                              {
+                                  "stepNumber": 3,
+                                  "instruction": "Voeg de gesneden uien en wortelen toe en bak deze tot ze zacht zijn."
+                              },
+                              {
+                                  "stepNumber": 4,
+                                  "instruction": "Voeg het bier, de runderbouillon en laurierblaadjes toe. Breng aan de kook."
+                              },
+                              {
+                                  "stepNumber": 5,
+                                  "instruction": "Zet het vuur laag en laat het stoofvlees minstens twee uur sudderen tot het vlees mals is."
+                              },
+                              {
+                                  "stepNumber": 6,
+                                  "instruction": "Serveer met frietjes en garneer met verse peterselie."
+                              }
+                          ]
+                      }
+
+                      """;
     }
 }

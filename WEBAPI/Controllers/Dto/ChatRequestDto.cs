@@ -1,4 +1,4 @@
-﻿namespace WEBAPI.Controllers.Dto;
+﻿namespace WebApplication3.Controllers.Dto;
 
 public class ChatRequestDto
 {
