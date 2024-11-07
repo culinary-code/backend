@@ -32,18 +32,21 @@ public class KeyCloakController : ControllerBase, IIdentityProviderController
             var password = request.Password;
             if (string.IsNullOrEmpty(password))
             {
+                _logger.LogWarning("RegisterUser input missing: Password is empty");
                 return BadRequest("Password is required.");
             }
 
             var email = request.Email;
             if (email == null)
             {
+                _logger.LogWarning("RegisterUser input missing: Email is empty");
                 return BadRequest("Email is required.");
             }
 
             var username = request.Username;
             if (username == null)
             {
+                _logger.LogWarning("RegisterUser input missing: Username is empty");
                 return BadRequest("Username is required.");
             }
 
@@ -57,10 +60,17 @@ public class KeyCloakController : ControllerBase, IIdentityProviderController
 
             return Ok("User created successfully.");
         }
-        catch (Exception ex) when (ex is LoginException or RegisterUserException or ArgumentNullException)
+        // exceptions directly readable for end user
+        catch (Exception e) when (e is RegisterUserException)
         {
-            _logger.LogError($"Error: {ex.Message}");
-            return BadRequest($"Error: {ex.Message}");
+            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
+            return BadRequest($"Error: {e.Message}");
+        }
+        // exceptions made for dev purposes, translate to readable string for end user
+        catch (Exception e) when (e is ArgumentNullException or LoginAdminException)
+        {
+            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
+            return BadRequest($"Could not register new user. Try again later.");
         }
     }
 }

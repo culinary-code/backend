@@ -22,11 +22,17 @@ public class KeyCloakService : IIdentityProviderService
     public KeyCloakService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
-        _baseUrl = configuration["Keycloak:BaseUrl"] ?? throw new ArgumentNullException("Keycloak:BaseUrl");
-        _clientId = configuration["Keycloak:ClientId"] ?? throw new ArgumentNullException("Keycloak:ClientId");
-        _realm = configuration["Keycloak:Realm"] ?? throw new ArgumentNullException("Keycloak:Realm");
-        _adminUsername = configuration["Keycloak:AdminUsername"] ?? throw new ArgumentNullException("Keycloak:AdminUsername");
-        _adminPassword = configuration["Keycloak:AdminPassword"] ?? throw new ArgumentNullException("Keycloak:AdminPassword");
+        _baseUrl = configuration["Keycloak:BaseUrl"] 
+                   ?? throw new ArgumentNullException(nameof(configuration), "Keycloak:BaseUrl configuration is missing.");
+        _clientId = configuration["Keycloak:ClientId"] 
+                    ?? throw new ArgumentNullException(nameof(configuration), "Keycloak:ClientId configuration is missing.");
+        _realm = configuration["Keycloak:Realm"] 
+                 ?? throw new ArgumentNullException(nameof(configuration), "Keycloak:Realm configuration is missing.");
+        _adminUsername = configuration["Keycloak:AdminUsername"] 
+                         ?? throw new ArgumentNullException(nameof(configuration), "Keycloak:AdminUsername configuration is missing.");
+        _adminPassword = configuration["Keycloak:AdminPassword"] 
+                         ?? throw new ArgumentNullException(nameof(configuration), "Keycloak:AdminPassword configuration is missing.");
+
     }
 
     // Login as admin and store the access token
@@ -43,7 +49,7 @@ public class KeyCloakService : IIdentityProviderService
         var response = await _httpClient.PostAsync($"{_baseUrl}/realms/{_realm}/protocol/openid-connect/token", content);
         
         if (!response.IsSuccessStatusCode)
-            throw new LoginException("Failed to log in as admin");
+            throw new LoginAdminException("Failed to log in as admin when registering a new user");
 
         var responseBody = await response.Content.ReadAsStringAsync();
         var jsonDocument = JsonDocument.Parse(responseBody);
@@ -55,6 +61,9 @@ public class KeyCloakService : IIdentityProviderService
     {
         var accessToken = await LoginAsync(_adminUsername, _adminPassword);
 
+        if (string.IsNullOrEmpty(accessToken))
+            throw new LoginAdminException("Failed to read admin accesstoken when registering a new user");
+        
         var userPayload = new
         {
             username,
