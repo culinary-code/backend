@@ -1,6 +1,7 @@
 ﻿using System.ClientModel;
 using Azure.AI.OpenAI;
 using Azure.Storage.Blobs;
+using DOM.Exceptions;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
 using OpenAI.Images;
@@ -24,16 +25,15 @@ public class AzureOpenAIService : ILlmService
     {
         DotNetEnv.Env.Load("../.env");
         
-        // TODO: change to custom exception when available
         _apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY") ??
-                  throw new Exception("AZURE_OPENAI_API_KEY environment variable is not set.");
+                  throw new EnvironmentVariableNotAvailableException("AZURE_OPENAI_API_KEY environment variable is not set.");
         _endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ??
-                    throw new Exception("AZURE_OPENAI_ENDPOINT environment variable is not set.");
+                    throw new EnvironmentVariableNotAvailableException("AZURE_OPENAI_ENDPOINT environment variable is not set.");
         _blobConnectionString =
             Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING") ??
-            throw new Exception("AZURE_STORAGE_CONNECTION_STRING environment variable is not set.");
+            throw new EnvironmentVariableNotAvailableException("AZURE_STORAGE_CONNECTION_STRING environment variable is not set.");
         _blobContainerName = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONTAINER_NAME") ??
-                             throw new Exception("AZURE_STORAGE_CONTAINER_NAME environment variable is not set.");
+                             throw new EnvironmentVariableNotAvailableException("AZURE_STORAGE_CONTAINER_NAME environment variable is not set.");
 
         
         _logger = logger;
