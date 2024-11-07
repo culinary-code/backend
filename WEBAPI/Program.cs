@@ -11,6 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
+// load environment variables
+DotNetEnv.Env.Load("../.env");
+
 var builder = WebApplication.CreateBuilder(args);
 
 // set DbContext
