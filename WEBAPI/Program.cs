@@ -10,6 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+// load environment variables
+DotNetEnv.Env.Load("../.env");
+
 var builder = WebApplication.CreateBuilder(args);
 
 // set DbContext
