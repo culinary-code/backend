@@ -54,6 +54,13 @@ builder.Services.AddCors(options =>
                 .AllowAnyMethod()
                 .AllowAnyHeader();
         });
+    options.AddPolicy("localWebOrigin",
+        corsBuilder =>
+    {
+        corsBuilder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
 });
 
 var baseUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? throw new EnvironmentException("KEYCLOAK_BASE_URL environment variable is not set.");
@@ -95,7 +102,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseCors("AllowAllOrigins");
+    app.UseCors("localWebOrigin");
+    // app.UseCors("AllowAllOrigins");
+    // TODO: when deploying to a real backend instead of a docker container, check if it works with mobile.
 }
 
 app.UseHttpsRedirection();
