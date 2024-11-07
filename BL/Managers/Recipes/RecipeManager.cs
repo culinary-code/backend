@@ -70,7 +70,8 @@ public class RecipeManager : IRecipeManager
                         _logger.LogError("Recipe validation failed");
                         throw new Exception("Recipe validation failed");
                     }
-                        
+                    
+                    // TODO: remove as many catches as possible to debug easier
 
                     var recipe = ConvertGeneratedRecipe(generatedRecipeJson);
 
@@ -205,6 +206,8 @@ public class RecipeManager : IRecipeManager
                 StepNumber = stepNumber,
                 Instruction = instructionText
             };
+            // TODO: save in own repository
+            // TODO: .env file bekijken
             instructionSteps.Add(instructionStep);
         }
 

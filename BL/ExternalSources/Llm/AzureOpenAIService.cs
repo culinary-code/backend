@@ -28,7 +28,7 @@ public class AzureOpenAIService : ILlmService
     private readonly AzureOpenAIClient _azureClient;
     private readonly ChatClient _chatClient;
     private readonly ImageClient _imageClient;
-    
+
     private readonly ILogger<AzureOpenAIService> _logger;
 
     public AzureOpenAIService(ILogger<AzureOpenAIService> logger)
@@ -46,28 +46,23 @@ public class AzureOpenAIService : ILlmService
     {
         var systemPrompt = LlmSettingsService.SystemPrompt;
         var exampleJson = LlmSettingsService.ExampleJson;
+        var jsonSchema = LlmSettingsService.RecipeJsonSchema;
 
         ChatCompletionOptions completionOptions = new ChatCompletionOptions
         {
-            Temperature = (float?)0.8,
+            Temperature = (float?)0.6,
             TopP = (float?)0.9,
-            PresencePenalty = 0.5f,
-            FrequencyPenalty = 0.5f,
         };
-        
+
         _logger.LogInformation("Sending chat completion request to Azure OpenAI API");
 
         ChatCompletion completion = _chatClient.CompleteChat(
         [
             new SystemChatMessage(systemPrompt),
 
-            //new UserChatMessage("Stoofvlees met frietjes"),
-
-            //new SystemChatMessage(exampleJson),
-
             new UserChatMessage(message),
         ], completionOptions);
-
+        
         var response = completion.Content[0].Text;
         response = response.Replace("```json", "");
         response = response.Replace("```", "");
@@ -103,14 +98,14 @@ public class AzureOpenAIService : ILlmService
                             """;
 
         _logger.LogInformation("Sending chat completion request for image prompt to Azure OpenAI API");
-        
+
         ChatCompletion completion = _chatClient.CompleteChat(
         [
             new SystemChatMessage(systemPrompt),
 
             new UserChatMessage(recipePrompt),
         ], completionOptions);
-        
+
         _logger.LogInformation("Received chat completion response for image prompt from Azure OpenAI API");
         _logger.LogInformation($"{completion.Content[0].Text}");
 
@@ -120,13 +115,13 @@ public class AzureOpenAIService : ILlmService
         };
 
         _logger.LogInformation("Sending image generation request to Azure OpenAI API");
-        
+
         var response = _imageClient.GenerateImage(completion.Content[0].Text, options);
 
         Uri imageUri_old = response.Value.ImageUri;
         HttpClient client = new HttpClient();
         var imageBytes = client.GetByteArrayAsync(imageUri_old).Result;
-        
+
         _logger.LogInformation($"Generated image: {imageUri_old}");
         _logger.LogInformation($"Generated image bytes: {imageBytes.Length}");
 
@@ -146,7 +141,7 @@ public class AzureOpenAIService : ILlmService
             var blobContainerClient = blobServiceClient.GetBlobContainerClient(_blobContainerName);
 
             var imageName = $"{DateTime.Now:yyyy-MM-dd-HH-mm-ss}-{new Random().Next(100000, 999999)}.jpg";
-            
+
             var blobClient = blobContainerClient.GetBlobClient(imageName);
 
             using (MemoryStream stream = new MemoryStream(imageBytes))

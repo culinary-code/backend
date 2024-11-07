@@ -10,7 +10,6 @@ public class LlmSettingsService
     {
         RecipeJsonSchema = """
                            {
-                               "$schema": "http://json-schema.org/draft-07/schema#",
                                "type": "object",
                                "properties": {
                                    "recipeName": { "type": "string" },
@@ -107,7 +106,7 @@ public class LlmSettingsService
 
                        """ + RecipeJsonSchema + """
                        ALWAYS ADHERE TO THE JSON SCHEMA FORMAT, AND ENSURE YOUR RESPONSE IS IN A VALID JSON FORMAT. Do not change any field names or the structure of the schema. Do not add any extra characters like underscores in the keys.
-                       """;
+                       """; 
 
         ExampleJson = """
                         {
