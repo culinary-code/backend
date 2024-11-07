@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations;
 using DOM.Accounts;
 using DOM.MealPlanning;
 using DOM.Recipes.Ingredients;
@@ -18,6 +15,7 @@ public class Recipe
     public RecipeType RecipeType { get; set; }
     public string Description { get; set; } = "Default Description";
     public int CookingTime { get; set; }
+    public int AmountOfPeople { get; set; }
     public Difficulty Difficulty { get; set; }
     public string ImagePath { get; set; } = String.Empty;
     public DateTime CreatedAt { get; set; }

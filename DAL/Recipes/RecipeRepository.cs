@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using DAL.EF;
+﻿using DAL.EF;
 using DOM.Exceptions;
 using DOM.Recipes;
 using Microsoft.EntityFrameworkCore;
@@ -55,5 +52,17 @@ public class RecipeRepository : IRecipeRepository
             throw new RecipeNotFoundException($"No recipes found with name {name}");
         }
         return recipes;
+    }
+
+    public void CreateRecipe(Recipe recipe)
+    {
+        _ctx.Recipes.Add(recipe);
+        _ctx.SaveChanges();
+    }
+
+    public void UpdateRecipe(Recipe recipe)
+    {
+        _ctx.Recipes.Update(recipe);
+        _ctx.SaveChanges();
     }
 }

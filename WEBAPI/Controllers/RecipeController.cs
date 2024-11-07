@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using BL.Managers.Recipes;
+﻿using BL.Managers.Recipes;
 using DOM.Exceptions;
-using DOM.Recipes;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using WEBAPI.Controllers.Dto;
 
-namespace WebApplication3.Controllers;
+namespace WEBAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
@@ -21,8 +17,8 @@ public class RecipeController : ControllerBase
         _logger = logger;
         _recipeManager = recipeManager;
     }
-    
-    [HttpGet( "/{id}")]
+
+    [HttpGet("/{id}")]
     public IActionResult GetRecipeById(string id)
     {
         try
@@ -36,7 +32,7 @@ public class RecipeController : ControllerBase
             return NotFound(e.Message);
         }
     }
-    
+
     [HttpGet("ByName/{name}")]
     public IActionResult GetRecipeByName(string name)
     {
@@ -50,9 +46,8 @@ public class RecipeController : ControllerBase
             _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
             return NotFound(e.Message);
         }
-        
     }
-    
+
     [HttpGet("/Collection/ByName/{name}")]
     public IActionResult GetRecipeCollectionByName(string name)
     {
@@ -65,6 +60,27 @@ public class RecipeController : ControllerBase
         {
             _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
             return NotFound(e.Message);
+        }
+    }
+
+    [HttpPost("/Create")]
+    public IActionResult CreateRecipe([FromBody] CreateRecipeDto createRecipeDto)
+    {
+        try
+        {
+            var recipe = _recipeManager.CreateRecipe(createRecipeDto.Name);
+
+            if (recipe is null)
+            {
+                _logger.LogError("An error occurred while creating recipe");
+                return BadRequest();
+            }
+
+            return Ok(recipe);
+        }
+        catch (RecipeNotAllowedException ex)
+        {
+            return BadRequest(ex.ReasonMessage);
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BL.DTOs.Accounts;
+﻿namespace BL.DTOs.Accounts;
 
 public class ReviewDto
 {

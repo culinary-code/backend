@@ -1,0 +1,24 @@
+@WebApplication3_HostAddress = http://localhost:5000
+
+###
+
+POST {{WebApplication3_HostAddress}}/Chat/getchat
+Content-Type: application/json
+Accept: application/json
+
+{
+  "prompt": "Geef mij een recept voor stoofvlees met frietjes."
+}
+
+###
+
+POST {{WebApplication3_HostAddress}}/Chat/getimage
+Content-Type: application/json
+Accept: application/json
+
+{
+    "prompt": "Stoofvlees met frietjes."
+}
+
+###
+

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BL.DTOs.MealPlanning;
+﻿namespace BL.DTOs.MealPlanning;
 
 public class MealPlannerDto
 {

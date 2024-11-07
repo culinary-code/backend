@@ -1,9 +1,6 @@
-﻿using System;
-using System.Linq;
-using DOM.Accounts;
+﻿using DOM.Accounts;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
-using Microsoft.EntityFrameworkCore;
 
 namespace DAL.EF;
 
@@ -197,6 +194,7 @@ internal static class CulinaryCodeDbInitializer
             Description = "Dit is een test recept voor een snack.",
             CookingTime = 5,
             Difficulty = Difficulty.Easy,
+            AmountOfPeople = 1,
             ImagePath = "https://picsum.photos/200/300",
             CreatedAt = DateTime.UtcNow,
             Instructions = [],
@@ -231,6 +229,7 @@ internal static class CulinaryCodeDbInitializer
             Description = "Dit is een testrecept voor een ontbijt.",
             CookingTime = 20,
             Difficulty = Difficulty.Intermediate,
+            AmountOfPeople = 1,
             ImagePath = "https://picsum.photos/200/300",
             CreatedAt = DateTime.UtcNow,
             Instructions = [],
@@ -255,6 +254,7 @@ internal static class CulinaryCodeDbInitializer
             Description = "Dit is een testrecept voor een avondmaal.",
             CookingTime = 120,
             Difficulty = Difficulty.Difficult,
+            AmountOfPeople = 4,
             ImagePath = "https://picsum.photos/200/300",
             CreatedAt = DateTime.UtcNow,
             Instructions = [],

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
-using System.Threading.Tasks;
 using DOM.Exceptions;
 
 namespace BL.Services;
@@ -22,11 +18,11 @@ public class KeyCloakService : IIdentityProviderService
     public KeyCloakService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient; 
-        _baseUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? throw new EnvironmentException("KEYCLOAK_BASE_URL environment variable is not set.");
-        _clientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID") ?? throw new EnvironmentException("KEYCLOAK_CLIENT_ID environment variable is not set.");
-        _realm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? throw new EnvironmentException("KEYCLOAK_REALM environment variable is not set.");
-        _adminUsername = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_USERNAME") ?? throw new EnvironmentException("KEYCLOAK_ADMIN_USERNAME environment variable is not set.");
-        _adminPassword = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD") ?? throw new EnvironmentException("KEYCLOAK_ADMIN_PASSWORD environment variable is not set.");
+        _baseUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_BASE_URL environment variable is not set.");
+        _clientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_CLIENT_ID environment variable is not set.");
+        _realm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_REALM environment variable is not set.");
+        _adminUsername = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_USERNAME") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_ADMIN_USERNAME environment variable is not set.");
+        _adminPassword = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_ADMIN_PASSWORD environment variable is not set.");
     }
 
     // Login as admin and store the access token

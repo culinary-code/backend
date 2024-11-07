@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using BL.DTOs.Accounts;
+﻿using BL.DTOs.Accounts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApplication3.Controllers;

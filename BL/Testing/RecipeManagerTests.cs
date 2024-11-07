@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using AutoMapper;
+﻿using AutoMapper;
 using BL.DTOs.Recipes;
+using BL.ExternalSources.Llm;
 using BL.Managers.Recipes;
 using DAL.Recipes;
 using DOM.Accounts;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -17,14 +17,29 @@ public class RecipeManagerTests
     private readonly Mock<IRecipeRepository> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
     private readonly RecipeManager _recipeManager;
+    private readonly Mock<ILlmService> _mockLlmService;
+    private readonly Mock<IPreferenceRepository> _mockPreferenceRepository;
+    private readonly Mock<IIngredientRepository> _mockIngredientRepository;
+    private readonly Mock<ILogger<RecipeManager>> _loggerMock;
 
     public RecipeManagerTests()
     {
         _mockRepository = new Mock<IRecipeRepository>();
         _mockMapper = new Mock<IMapper>();
-        _recipeManager = new RecipeManager(_mockRepository.Object, _mockMapper.Object);
+        _mockLlmService = new Mock<ILlmService>();
+        _mockPreferenceRepository = new Mock<IPreferenceRepository>();
+        _mockIngredientRepository = new Mock<IIngredientRepository>();
+        _loggerMock = new Mock<ILogger<RecipeManager>>();
+        _recipeManager = new RecipeManager(
+            _mockRepository.Object,
+            _mockMapper.Object,
+            _mockLlmService.Object,
+            _mockPreferenceRepository.Object,
+            _mockIngredientRepository.Object,
+            _loggerMock.Object
+        );
     }
-    
+
     private static Recipe CreateRecipe(
         string recipeName,
         RecipeType recipeType,
@@ -33,6 +48,7 @@ public class RecipeManagerTests
         string imagePath,
         DateTime createdAt,
         Difficulty difficulty,
+        int amountOfPeople,
         List<IngredientQuantity> ingredientQuantities,
         List<Preference> preferences,
         List<InstructionStep> instructions,
@@ -47,6 +63,7 @@ public class RecipeManagerTests
             Description = description,
             CookingTime = cookingTime,
             Difficulty = difficulty,
+            AmountOfPeople = amountOfPeople,
             ImagePath = imagePath,
             CreatedAt = createdAt,
             Instructions = instructions,
@@ -87,6 +104,7 @@ public class RecipeManagerTests
             description: "Dit is een voorbeeld recept.",
             cookingTime: 10,
             difficulty: Difficulty.Easy,
+            amountOfPeople: 4,
             imagePath: "https://picsum.photos/200/300",
             createdAt: DateTime.UtcNow,
             ingredientQuantities: ingredientQuantities,
@@ -150,7 +168,8 @@ public class RecipeManagerTests
         // Arrange
         var sampleRecipe = CreateSampleRecipe();
         var sampleRecipes = new List<Recipe> { sampleRecipe };
-        var recipeDtos = new List<RecipeDto> { new RecipeDto { RecipeId = sampleRecipe.RecipeId, RecipeName = sampleRecipe.RecipeName } };
+        var recipeDtos = new List<RecipeDto>
+            { new RecipeDto { RecipeId = sampleRecipe.RecipeId, RecipeName = sampleRecipe.RecipeName } };
 
         _mockRepository
             .Setup(repo => repo.ReadRecipesCollectionByName(sampleRecipe.RecipeName))
