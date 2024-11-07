@@ -67,6 +67,11 @@ public class RecipeController : ControllerBase
     public IActionResult CreateRecipe([FromBody] CreateRecipeDto createRecipeDto)
     {
         var recipe = _recipeManager.CreateRecipe(createRecipeDto.Name);
+        if (recipe is null)
+        {
+            _logger.LogError("An error occurred while creating recipe");
+            return BadRequest();
+        }
         return Ok(recipe);
     }
 }

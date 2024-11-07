@@ -1,4 +1,5 @@
 ﻿using DAL.EF;
+using DOM.Exceptions;
 using DOM.Recipes.Ingredients;
 
 namespace DAL.Recipes;
@@ -17,7 +18,7 @@ public class IngredientRepository : IIngredientRepository
         Ingredient? ingredient = _ctx.Ingredients.Find(id);
         if (ingredient is null)
         {
-            throw new Exception($"No ingredient found with id {id}");
+            throw new IngredientNotFoundException($"No ingredient found with id {id}");
         }
         return ingredient;
     }
@@ -27,7 +28,18 @@ public class IngredientRepository : IIngredientRepository
         Ingredient? ingredient = _ctx.Ingredients.FirstOrDefault(i => i.IngredientName == name);
         if (ingredient is null)
         {
-            throw new Exception($"No ingredient found with name {name}");
+            throw new IngredientNotFoundException($"No ingredient found with name {name}");
+        }
+        return ingredient;
+    }
+
+    public Ingredient ReadIngredientByNameAndMeasurementType(string name, MeasurementType measurementType)
+    {
+        Ingredient? ingredient = _ctx.Ingredients.FirstOrDefault(i =>
+            i.IngredientName == name && i.Measurement == measurementType);
+        if (ingredient is null)
+        {
+            throw new IngredientNotFoundException($"No ingredient found with name {name} and measurement type {measurementType}");
         }
         return ingredient;
     }

@@ -1,8 +1,6 @@
 ﻿using System.ClientModel;
-using System.Net;
 using Azure.AI.OpenAI;
 using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
 using OpenAI.Images;
@@ -11,19 +9,10 @@ namespace BL.ExternalSources.Llm;
 
 public class AzureOpenAIService : ILlmService
 {
-    private readonly string _apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY") ??
-                                      throw new Exception("AZURE_OPENAI_API_KEY environment variable is not set.");
-
-    private readonly string _endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ??
-                                        throw new Exception("AZURE_OPENAI_ENDPOINT environment variable is not set.");
-
-    private readonly string _blobConnectionString =
-        Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING") ??
-        throw new Exception("AZURE_STORAGE_CONNECTION_STRING environment variable is not set.");
-
-    private readonly string _blobContainerName = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONTAINER_NAME") ??
-                                                 throw new Exception(
-                                                     "AZURE_STORAGE_CONTAINER_NAME environment variable is not set.");
+    private readonly string _apiKey;
+    private readonly string _endpoint;
+    private readonly string _blobConnectionString;
+    private readonly string _blobContainerName;
 
     private readonly AzureOpenAIClient _azureClient;
     private readonly ChatClient _chatClient;
@@ -33,6 +22,20 @@ public class AzureOpenAIService : ILlmService
 
     public AzureOpenAIService(ILogger<AzureOpenAIService> logger)
     {
+        DotNetEnv.Env.Load("../.env");
+        
+        // TODO: change to custom exception when available
+        _apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY") ??
+                  throw new Exception("AZURE_OPENAI_API_KEY environment variable is not set.");
+        _endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ??
+                    throw new Exception("AZURE_OPENAI_ENDPOINT environment variable is not set.");
+        _blobConnectionString =
+            Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING") ??
+            throw new Exception("AZURE_STORAGE_CONNECTION_STRING environment variable is not set.");
+        _blobContainerName = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONTAINER_NAME") ??
+                             throw new Exception("AZURE_STORAGE_CONTAINER_NAME environment variable is not set.");
+
+        
         _logger = logger;
         _azureClient = new AzureOpenAIClient(
             new Uri(_endpoint),
@@ -45,8 +48,6 @@ public class AzureOpenAIService : ILlmService
     public string GenerateRecipe(string message)
     {
         var systemPrompt = LlmSettingsService.SystemPrompt;
-        var exampleJson = LlmSettingsService.ExampleJson;
-        var jsonSchema = LlmSettingsService.RecipeJsonSchema;
 
         ChatCompletionOptions completionOptions = new ChatCompletionOptions
         {
@@ -62,15 +63,8 @@ public class AzureOpenAIService : ILlmService
 
             new UserChatMessage(message),
         ], completionOptions);
-        
+
         var response = completion.Content[0].Text;
-        response = response.Replace("```json", "");
-        response = response.Replace("```", "");
-        response = response.Replace("`", "'");
-        response = response.Replace("‘", "'");
-        response = response.Replace("’", "'");
-        response = response.Replace('“', '"');
-        response = response.Replace('”', '"');
 
         _logger.LogInformation("Received chat completion response from Azure OpenAI API");
         _logger.LogInformation(response);
@@ -118,12 +112,12 @@ public class AzureOpenAIService : ILlmService
 
         var response = _imageClient.GenerateImage(completion.Content[0].Text, options);
 
-        Uri imageUri_old = response.Value.ImageUri;
+        Uri azureImageUri = response.Value.ImageUri;
         HttpClient client = new HttpClient();
-        var imageBytes = client.GetByteArrayAsync(imageUri_old).Result;
+        var imageBytes = client.GetByteArrayAsync(azureImageUri).Result;
 
-        _logger.LogInformation($"Generated image: {imageUri_old}");
-        _logger.LogInformation($"Generated image bytes: {imageBytes.Length}");
+        _logger.LogInformation($"Generated image: {azureImageUri}");
+        _logger.LogInformation($"Generated image bytes length: {imageBytes.Length}");
 
         Task<Uri?> result = UploadImage(imageBytes.ToArray());
         Uri? imageUri = result.Result;
