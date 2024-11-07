@@ -3,6 +3,7 @@ using BL.Managers.Recipes;
 using BL.Services;
 using DAL.EF;
 using DAL.Recipes;
+using DOM.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -43,6 +44,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Authorization / Authentication
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",
@@ -54,11 +56,19 @@ builder.Services.AddCors(options =>
         });
 });
 
+var baseUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? throw new EnvironmentException("KEYCLOAK_BASE_URL environment variable is not set.");
+var clientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID") ?? throw new EnvironmentException("KEYCLOAK_CLIENT_ID environment variable is not set.");
+var realm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? throw new EnvironmentException("KEYCLOAK_REALM environment variable is not set.");
+
+var authority = baseUrl + "/auth/realms/" + realm;
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = "https://your-keycloak-server/auth/realms/your-realm";
-        options.Audience = "your-client-id";
+        options.Authority = authority;
+        options.Audience = clientId;
+        
+        options.RequireHttpsMetadata = false;
         
         // Optionally configure token validation parameters
         options.TokenValidationParameters = new TokenValidationParameters
@@ -91,6 +101,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.UseAuthentication();
 
 app.MapControllers();
 

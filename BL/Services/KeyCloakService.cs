@@ -21,18 +21,12 @@ public class KeyCloakService : IIdentityProviderService
 
     public KeyCloakService(HttpClient httpClient, IConfiguration configuration)
     {
-        _httpClient = httpClient;
-        _baseUrl = configuration["Keycloak:BaseUrl"] 
-                   ?? throw new ArgumentNullException(nameof(configuration), "Keycloak:BaseUrl configuration is missing.");
-        _clientId = configuration["Keycloak:ClientId"] 
-                    ?? throw new ArgumentNullException(nameof(configuration), "Keycloak:ClientId configuration is missing.");
-        _realm = configuration["Keycloak:Realm"] 
-                 ?? throw new ArgumentNullException(nameof(configuration), "Keycloak:Realm configuration is missing.");
-        _adminUsername = configuration["Keycloak:AdminUsername"] 
-                         ?? throw new ArgumentNullException(nameof(configuration), "Keycloak:AdminUsername configuration is missing.");
-        _adminPassword = configuration["Keycloak:AdminPassword"] 
-                         ?? throw new ArgumentNullException(nameof(configuration), "Keycloak:AdminPassword configuration is missing.");
-
+        _httpClient = httpClient; 
+        _baseUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? throw new EnvironmentException("KEYCLOAK_BASE_URL environment variable is not set.");
+        _clientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID") ?? throw new EnvironmentException("KEYCLOAK_CLIENT_ID environment variable is not set.");
+        _realm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? throw new EnvironmentException("KEYCLOAK_REALM environment variable is not set.");
+        _adminUsername = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_USERNAME") ?? throw new EnvironmentException("KEYCLOAK_ADMIN_USERNAME environment variable is not set.");
+        _adminPassword = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD") ?? throw new EnvironmentException("KEYCLOAK_ADMIN_PASSWORD environment variable is not set.");
     }
 
     // Login as admin and store the access token
