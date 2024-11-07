@@ -4,7 +4,7 @@ public class ItemQuantityDto
 {
     public Guid IngredientQuantityId { get; set; }
     
-    public int Quantity { get; set; }
+    public float Quantity { get; set; }
 
     public IngredientDto? Ingredient { get; set; } // Include IngredientDto for referencing the ingredient if needed
 

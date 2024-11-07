@@ -7,7 +7,7 @@ public class ItemQuantity
 {
     [Key]
     public Guid IngredientQuantityId { get; set; }
-    public int Quantity { get; set; }
+    public float Quantity { get; set; }
     public Ingredient? Ingredient { get; set; } 
     
     // navigation properties
