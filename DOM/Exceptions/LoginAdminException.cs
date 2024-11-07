@@ -1,4 +1,6 @@
-﻿namespace DOM.Exceptions;
+﻿using System;
+
+namespace DOM.Exceptions;
 
 public class LoginAdminException : Exception
 {
