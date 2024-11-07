@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BL.DTOs.Recipes;
+﻿namespace BL.DTOs.Recipes;
 
 public class InstructionStepDto
 {

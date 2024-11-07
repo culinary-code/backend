@@ -1,5 +1,4 @@
-﻿using System;
-using DOM.Recipes.Ingredients;
+﻿using DOM.Recipes.Ingredients;
 
 namespace BL.DTOs.Recipes.Ingredients;
 

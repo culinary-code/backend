@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BL.DTOs.Recipes.Ingredients;
+﻿namespace BL.DTOs.Recipes.Ingredients;
 
 public class IngredientQuantityDto
 {
