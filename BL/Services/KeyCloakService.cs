@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
-using System.Threading.Tasks;
 using DOM.Exceptions;
 
 namespace BL.Services;

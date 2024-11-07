@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BL.DTOs.Accounts;
+﻿namespace BL.DTOs.Accounts;
 
 public class UserRegistrationRequestDto
 {

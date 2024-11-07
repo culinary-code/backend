@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace BL.Services;
+﻿namespace BL.Services;
 
 public interface IIdentityProviderService
 { 

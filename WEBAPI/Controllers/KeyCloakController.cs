@@ -1,11 +1,7 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using BL.DTOs.Accounts;
+﻿using BL.DTOs.Accounts;
 using BL.Services;
 using DOM.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace WebApplication3.Controllers;
 
