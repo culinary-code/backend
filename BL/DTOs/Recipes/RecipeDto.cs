@@ -21,6 +21,8 @@ public class RecipeDto
     public int CookingTime { get; set; }
 
     public Difficulty Difficulty { get; set; }
+    
+    public int AmountOfPeople { get; set; }
 
     public string ImagePath { get; set; } = string.Empty;
 

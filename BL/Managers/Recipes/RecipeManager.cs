@@ -122,8 +122,7 @@ public class RecipeManager : IRecipeManager
         generatedRecipeJson.TryGetValue("diet", out var diet);
         generatedRecipeJson.TryGetValue("cookingTime", out var cookingTime);
         generatedRecipeJson.TryGetValue("difficulty", out var difficulty);
-        generatedRecipeJson.TryGetValue("amountOfPeople", out var amountOfPeople);
-        // TODO: amount_of_people not in Recipe class?
+        generatedRecipeJson.TryGetValue("amount_of_people", out var amountOfPeople);
 
         generatedRecipeJson.TryGetValue("ingredients", out var ingredients);
         generatedRecipeJson.TryGetValue("recipeSteps", out var instructions);
@@ -146,6 +145,7 @@ public class RecipeManager : IRecipeManager
             CookingTime = int.Parse(cookingTime!.ToString()),
             Difficulty = difficultyEnum,
             CreatedAt = DateTime.UtcNow,
+            AmountOfPeople = int.Parse(amountOfPeople!.ToString()),
 
             Ingredients = ingredientQuantities,
             Instructions = instructionSteps
