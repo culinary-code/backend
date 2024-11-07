@@ -66,12 +66,21 @@ public class RecipeController : ControllerBase
     [HttpPost("/Create")]
     public IActionResult CreateRecipe([FromBody] CreateRecipeDto createRecipeDto)
     {
-        var recipe = _recipeManager.CreateRecipe(createRecipeDto.Name);
-        if (recipe is null)
+        try
         {
-            _logger.LogError("An error occurred while creating recipe");
-            return BadRequest();
+            var recipe = _recipeManager.CreateRecipe(createRecipeDto.Name);
+
+            if (recipe is null)
+            {
+                _logger.LogError("An error occurred while creating recipe");
+                return BadRequest();
+            }
+
+            return Ok(recipe);
         }
-        return Ok(recipe);
+        catch (RecipeNotAllowedException ex)
+        {
+            return BadRequest(ex.ReasonMessage);
+        }
     }
 }

@@ -79,6 +79,11 @@ public class RecipeManager : IRecipeManager
             {
                 break;
             }
+            catch (RecipeNotAllowedException ex)
+            {
+                _logger.LogError("Recipe not allowed: {ErrorMessage}", ex.ReasonMessage);
+                throw new RecipeNotAllowedException(reasonMessage: ex.ReasonMessage);
+            }
             catch (RecipeValidationFailException ex)
             {
                 _logger.LogError("Failed to create recipe: {ErrorMessage}", ex.Message);
@@ -94,6 +99,13 @@ public class RecipeManager : IRecipeManager
 
     private bool RecipeValidation(string recipeJson)
     {
+        if (recipeJson.StartsWith("NOT_POSSIBLE"))
+        {
+            var errorMessage = recipeJson.Substring(24);
+            _logger.LogError("Recipe generation failed: {ErrorMessage}", errorMessage);
+            throw new RecipeNotAllowedException(reasonMessage: errorMessage);
+        }
+        
         var jsonSchema = LlmSettingsService.RecipeJsonSchema;
         JSchema schema = JSchema.Parse(jsonSchema);
         JObject recipe = JObject.Parse(recipeJson);
@@ -158,11 +170,12 @@ public class RecipeManager : IRecipeManager
     {
         Preference dietPreference = null;
         ICollection<Preference> standardPreferences = _preferenceRepository.ReadStandardPreferences();
+        string dietString = diet?.ToString()!;
         if (diet is not null)
         {
             foreach (var preference in standardPreferences)
             {
-                if (preference.PreferenceName == diet.ToString())
+                if (string.Equals(preference.PreferenceName, dietString, StringComparison.InvariantCultureIgnoreCase))
                 {
                     dietPreference = preference;
                     break;
@@ -174,7 +187,7 @@ public class RecipeManager : IRecipeManager
         {
             dietPreference = new Preference()
             {
-                PreferenceName = diet.ToString(),
+                PreferenceName = dietString,
                 StandardPreference = false
             };
             _preferenceRepository.CreatePreference(dietPreference);

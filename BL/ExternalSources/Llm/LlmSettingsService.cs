@@ -4,7 +4,6 @@ public class LlmSettingsService
 {
     public static string SystemPrompt { get; private set; }
     public static string RecipeJsonSchema { get; private set; }
-    public static string ExampleJson { get; private set; }
 
     static LlmSettingsService()
     {
@@ -95,6 +94,7 @@ public class LlmSettingsService
                        5. **Handling Invalid Ingredients or Recipes**:
                           - If any ingredient or recipe is deemed non-edible, return `"NOT_POSSIBLE with this reason {reason}"`.
                           - If a user requests an impractical or illogical combination of ingredients, the recipe should also be rejected with `"NOT_POSSIBLE with this reason {reason}"`.
+                          - Any recipe that is deemed not possible, ensure the reason after NOT_POSSIBLE is in the user's requested language.
 
                        6. **General Rules**:
                           - Make sure to provide values for all required fields in the JSON schema.
@@ -107,91 +107,5 @@ public class LlmSettingsService
                        """ + RecipeJsonSchema + """
                        ALWAYS ADHERE TO THE JSON SCHEMA FORMAT, AND ENSURE YOUR RESPONSE IS IN A VALID JSON FORMAT. Do not change any field names or the structure of the schema. Do not add any extra characters like underscores in the keys.
                        """; 
-
-        ExampleJson = """
-                        {
-                          "recipeName": "Stoofvlees met frietjes",
-                          "description": "Een klassiek Belgisch gerecht van langzaam gegaard rundvlees in een rijke saus, geserveerd met knapperige frietjes.",
-                          "ingredients": [
-                              {
-                                  "name": "rundvlees",
-                                  "amount": 1.5,
-                                  "measurementType": "Kilogram"
-                              },
-                              {
-                                  "name": "uien",
-                                  "amount": 3,
-                                  "measurementType": "Piece"
-                              },
-                              {
-                                  "name": "wortelen",
-                                  "amount": 2,
-                                  "measurementType": "Piece"
-                              },
-                              {
-                                  "name": "bier",
-                                  "amount": 500,
-                                  "measurementType": "Millilitre"
-                              },
-                              {
-                                  "name": "runderbouillon",
-                                  "amount": 500,
-                                  "measurementType": "Millilitre"
-                              },
-                              {
-                                  "name": "laurierblaadjes",
-                                  "amount": 2,
-                                  "measurementType": "Piece"
-                              },
-                              {
-                                  "name": "peterselie",
-                                  "amount": 10,
-                                  "measurementType": "Gram"
-                              },
-                              {
-                                  "name": "zout",
-                                  "amount": 1,
-                                  "measurementType": "Teaspoon"
-                              },
-                              {
-                                  "name": "peper",
-                                  "amount": 1,
-                                  "measurementType": "Teaspoon"
-                              }
-                          ],
-                          "diet": "None",
-                          "recipeType": "Dinner",
-                          "cookingTime": "180",
-                          "difficulty": "Intermediate",
-                          "amount_of_people": 4,
-                          "recipeSteps": [
-                              {
-                                  "stepNumber": 1,
-                                  "instruction": "Snijd het rundvlees in blokjes en kruid met zout en peper."
-                              },
-                              {
-                                  "stepNumber": 2,
-                                  "instruction": "Verhit een grote pan en bak het vlees aan alle kanten bruin."
-                              },
-                              {
-                                  "stepNumber": 3,
-                                  "instruction": "Voeg de gesneden uien en wortelen toe en bak deze tot ze zacht zijn."
-                              },
-                              {
-                                  "stepNumber": 4,
-                                  "instruction": "Voeg het bier, de runderbouillon en laurierblaadjes toe. Breng aan de kook."
-                              },
-                              {
-                                  "stepNumber": 5,
-                                  "instruction": "Zet het vuur laag en laat het stoofvlees minstens twee uur sudderen tot het vlees mals is."
-                              },
-                              {
-                                  "stepNumber": 6,
-                                  "instruction": "Serveer met frietjes en garneer met verse peterselie."
-                              }
-                          ]
-                      }
-
-                      """;
     }
 }

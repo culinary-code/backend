@@ -6,18 +6,18 @@ namespace WEBAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Obsolete]
+// Class used to test out Azure functionality
 public class ChatController : ControllerBase
 {
     private readonly ILogger<ChatController> _logger;
     
     private readonly ILlmService _llmService;
-    //private readonly LocalLlmService _localLlmService;
 
-    public ChatController(ILogger<ChatController> logger, ILlmService llmService/*, LocalLlmService localLlmService*/)
+    public ChatController(ILogger<ChatController> logger, ILlmService llmService)
     {
         _logger = logger;
         _llmService = llmService;
-        //_localLlmService = localLlmService;
     }
 
     [HttpPost("getchat")]

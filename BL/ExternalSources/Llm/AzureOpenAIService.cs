@@ -1,4 +1,5 @@
 ﻿using System.ClientModel;
+using Azure;
 using Azure.AI.OpenAI;
 using Azure.Storage.Blobs;
 using DOM.Exceptions;
@@ -112,6 +113,7 @@ public class AzureOpenAIService : ILlmService
 
         var response = _imageClient.GenerateImage(completion.Content[0].Text, options);
 
+        // Azure returns an image URI that only lasts for 24 hours and is not accessible, so we need to download the image and upload it to Blob Storage
         Uri azureImageUri = response.Value.ImageUri;
         HttpClient client = new HttpClient();
         var imageBytes = client.GetByteArrayAsync(azureImageUri).Result;
@@ -147,7 +149,7 @@ public class AzureOpenAIService : ILlmService
             _logger.LogInformation($"Uploaded image to Blob Storage: {imageUri}");
             return imageUri;
         }
-        catch (Exception ex)
+        catch (RequestFailedException ex)
         {
             _logger.LogError($"Error uploading image to Blob Storage: {ex.Message}");
         }

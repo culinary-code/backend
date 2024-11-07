@@ -1,5 +1,6 @@
 ﻿using DAL.EF;
 using DOM.Accounts;
+using DOM.Exceptions;
 
 namespace DAL.Recipes;
 
@@ -18,7 +19,7 @@ public class PreferenceRepository : IPreferenceRepository
         Preference? preference = _ctx.Preferences.Find(id);
         if (preference is null)
         {
-            throw new Exception($"No preference found with id {id}");
+            throw new PreferenceNotFoundException($"No preference found with id {id}");
         }
         return preference;
     }
@@ -28,7 +29,7 @@ public class PreferenceRepository : IPreferenceRepository
         Preference? preference = _ctx.Preferences.FirstOrDefault(p => p.PreferenceName == name);
         if (preference is null)
         {
-            throw new Exception($"No preference found with name {name}");
+            throw new PreferenceNotFoundException($"No preference found with name {name}");
         }
         return preference;
     }
@@ -38,7 +39,7 @@ public class PreferenceRepository : IPreferenceRepository
         ICollection<Preference> preferences = _ctx.Preferences.Where(p => p.StandardPreference).ToList();
         if (preferences.Count <= 0)
         {
-            throw new Exception("No standard preferences found");
+            throw new PreferenceNotFoundException("No standard preferences found");
         }
         return preferences;
     }
