@@ -49,7 +49,7 @@ public class RecipeController : ControllerBase
         }
     }
 
-    [HttpGet("/Collection/ByName/{name}")]
+    [HttpGet("Collection/ByName/{name}")]
     public IActionResult GetRecipeCollectionByName(string name)
     {
         try
@@ -64,7 +64,7 @@ public class RecipeController : ControllerBase
         }
     }
 
-    [HttpPost("/Create")]
+    [HttpPost("Create")]
     public IActionResult CreateRecipe([FromBody] CreateRecipeDto createRecipeDto)
     {
         try
@@ -85,7 +85,7 @@ public class RecipeController : ControllerBase
         }
     }
     
-    [HttpPost("/BatchCreate")]
+    [HttpPost("BatchCreate")]
     public async Task<IActionResult> BatchCreateRecipes()
     {
         using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
