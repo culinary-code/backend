@@ -48,8 +48,6 @@ public class KeyCloakController : ControllerBase, IIdentityProviderController
 
             await _identityProviderService.RegisterUserAsync(
                 username,
-                request.FirstName,
-                request.LastName,
                 email,
                 password
             );

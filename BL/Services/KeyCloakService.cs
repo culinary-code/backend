@@ -47,7 +47,7 @@ public class KeyCloakService : IIdentityProviderService
     }
 
     // Create a new user in Keycloak
-    public async Task RegisterUserAsync(string username, string? firstName, string? lastName, string email, string password)
+    public async Task RegisterUserAsync(string username, string email, string password)
     {
         var accessToken = await LoginAsync(_adminUsername, _adminPassword);
 
@@ -58,8 +58,6 @@ public class KeyCloakService : IIdentityProviderService
         {
             username,
             enabled = true,
-            firstName,
-            lastName,
             email,
             credentials = new[]
             {
