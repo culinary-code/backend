@@ -2,5 +2,5 @@
 
 public interface IIdentityProviderService
 { 
-    Task RegisterUserAsync(string username, string? firstName, string? lastName, string email, string password);
+    Task RegisterUserAsync(string username, string email, string password);
 }
