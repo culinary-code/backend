@@ -91,20 +91,16 @@ public class RecipeController : ControllerBase
         using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
         {
             string jsonString = await reader.ReadToEndAsync();
-        
-            _logger.LogInformation(jsonString);
             
             if (string.IsNullOrEmpty(jsonString))
             {
+                _logger.LogError("Received empty JSON string");
                 return BadRequest();
             }
             
             var recipes = _recipeManager.CreateBatchRecipes(jsonString);
             
-            
             return Ok(recipes);
         }
-
-        return BadRequest();
     }
 }
