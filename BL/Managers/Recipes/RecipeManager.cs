@@ -73,6 +73,12 @@ public class RecipeManager : IRecipeManager
 
                 _recipeRepository.CreateRecipe(recipe);
 
+                var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
+                if (imageUri is not null)
+                {
+                    recipe.ImagePath = imageUri!.ToString();
+                }
+
                 return _mapper.Map<RecipeDto>(recipe);
             }
             catch (JsonReaderException ex)
@@ -99,13 +105,13 @@ public class RecipeManager : IRecipeManager
 
     private bool RecipeValidation(string recipeJson)
     {
-        if (recipeJson.StartsWith("NOT_POSSIBLE"))
+        if (recipeJson.StartsWith("\"NOT_POSSIBLE"))
         {
-            var errorMessage = recipeJson.Substring(24);
+            var errorMessage = recipeJson.Substring(31).Trim('"');
             _logger.LogError("Recipe generation failed: {ErrorMessage}", errorMessage);
             throw new RecipeNotAllowedException(reasonMessage: errorMessage);
         }
-        
+
         var jsonSchema = LlmSettingsService.RecipeJsonSchema;
         JSchema schema = JSchema.Parse(jsonSchema);
         JObject recipe = JObject.Parse(recipeJson);
