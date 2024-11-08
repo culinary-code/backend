@@ -3,7 +3,7 @@ using BL.Services;
 using DOM.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WebApplication3.Controllers;
+namespace WEBAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]

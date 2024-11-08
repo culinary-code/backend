@@ -1,7 +1,7 @@
 ﻿using BL.DTOs.Accounts;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WebApplication3.Controllers;
+namespace WEBAPI.Controllers;
 
 public interface IIdentityProviderController
 {
