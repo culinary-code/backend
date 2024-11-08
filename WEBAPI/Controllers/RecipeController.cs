@@ -1,4 +1,5 @@
-﻿using BL.Managers.Recipes;
+﻿using System.Text;
+using BL.Managers.Recipes;
 using DOM.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using WEBAPI.Controllers.Dto;
@@ -82,5 +83,28 @@ public class RecipeController : ControllerBase
         {
             return BadRequest(ex.ReasonMessage);
         }
+    }
+    
+    [HttpPost("/BatchCreate")]
+    public async Task<IActionResult> BatchCreateRecipes()
+    {
+        using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
+        {
+            string jsonString = await reader.ReadToEndAsync();
+        
+            _logger.LogInformation(jsonString);
+            
+            if (string.IsNullOrEmpty(jsonString))
+            {
+                return BadRequest();
+            }
+            
+            var recipes = _recipeManager.CreateBatchRecipes(jsonString);
+            
+            
+            return Ok(recipes);
+        }
+
+        return BadRequest();
     }
 }

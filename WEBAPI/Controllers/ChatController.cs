@@ -27,6 +27,13 @@ public class ChatController : ControllerBase
         return message;
     }
     
+    [HttpPost("getmultiplechat")]
+    public string GetMultipleChat([FromBody] ChatRequestDto request)
+    {
+        var message = _llmService.GenerateMultipleRecipes(request.Prompt, request.Amount);
+        return message;
+    }
+    
     [HttpPost("getimage")]
     public string GetImage([FromBody] ChatRequestDto request)
     {

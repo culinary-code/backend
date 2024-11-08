@@ -70,6 +70,11 @@ public class LocalLlmService : ILlmService
         return "Sorry, I couldn't process your request. Please try again later.";
     }
 
+    public string GenerateMultipleRecipes(string message, int amount)
+    {
+        throw new NotImplementedException();
+    }
+
     public Uri? GenerateRecipeImage(string recipePrompt)
     {
         throw new NotImplementedException();

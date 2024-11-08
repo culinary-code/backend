@@ -50,6 +50,39 @@ public class AzureOpenAIService : ILlmService
         _imageClient = _azureClient.GetImageClient("dall-e-3");
     }
 
+    public string GenerateMultipleRecipes(string message, int amount)
+    {
+        ChatCompletionOptions completionOptions = new ChatCompletionOptions
+        {
+            Temperature = (float?)0.6,
+            TopP = (float?)0.9,
+        };
+        
+        ChatCompletion completion = _chatClient.CompleteChat(
+        [
+            new SystemChatMessage($"Based on the input, generate {amount} different recipe names along with a short description. Place each recipe on its own line, no new line between them. Do not add order numbers, name and description should be on the same line. Output no other information. Always respond in the user's language."),
+
+            new UserChatMessage(message),
+        ], completionOptions);
+
+        var response = completion.Content[0].Text;
+        
+        ICollection<string> recipePrompts = response.Split("\n");
+        
+        var output = "{ \"recipes\": [";
+        foreach (var recipePrompt in recipePrompts)
+        {
+            _logger.LogInformation(recipePrompt);
+            var recipe = GenerateRecipe(recipePrompt);
+            var imageUri = GenerateRecipeImage(recipePrompt);
+            output += recipe.Remove(recipe.Length - 1) + ", \"image_path\": \"" + imageUri + "\"}, ";
+        }
+        output = output.Remove(output.Length - 2); // remove the last comma
+        output += "]}";
+        
+        return output;
+    }
+
     public string GenerateRecipe(string message)
     {
         var systemPrompt = LlmSettingsService.SystemPrompt;
@@ -110,7 +143,7 @@ public class AzureOpenAIService : ILlmService
                 _logger.LogInformation($"Generated image: {imageUri}");
                 return imageUri;
             }
-            catch (RequestFailedException ex)
+            catch (ClientResultException ex)
             {
                 _logger.LogError("Failed to generate image: {ErrorMessage}", ex.Message);
                 _logger.LogInformation("Attempt: {Attempts}", attempts);
