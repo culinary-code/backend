@@ -8,4 +8,5 @@ public interface IRecipeManager
     RecipeDto GetRecipeDtoByName(string name);
     ICollection<RecipeDto> GetRecipesCollectionByName(string name);
     RecipeDto? CreateRecipe(string name);
+    ICollection<RecipeDto> CreateBatchRecipes(string input);
 }

@@ -72,7 +72,12 @@ public class RecipeManager : IRecipeManager
                 var recipe = ConvertGeneratedRecipe(generatedRecipeJson);
 
                 _recipeRepository.CreateRecipe(recipe);
-
+                
+                if (!string.IsNullOrEmpty(recipe.ImagePath))
+                {
+                    return _mapper.Map<RecipeDto>(recipe);
+                }
+                
                 var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
                 if (imageUri is not null)
                 {
@@ -101,6 +106,26 @@ public class RecipeManager : IRecipeManager
 
         _logger.LogError("Failed to create recipe after 3 attempts");
         return null;
+    }
+
+    public ICollection<RecipeDto> CreateBatchRecipes(string input)
+    {
+        var recipes = new List<RecipeDto>();
+        var recipeJson = JObject.Parse(input);
+        var recipeArray = recipeJson["recipes"];
+
+        foreach (var recipe in recipeArray)
+        {
+            var recipeString = recipe.ToString();
+            
+            var createdRecipe = ConvertGeneratedRecipe(recipeString);
+
+            _recipeRepository.CreateRecipe(createdRecipe);
+            
+            recipes.Add(_mapper.Map<RecipeDto>(createdRecipe));
+        }
+        
+        return recipes;
     }
 
     private bool RecipeValidation(string recipeJson)
@@ -141,9 +166,12 @@ public class RecipeManager : IRecipeManager
         generatedRecipeJson.TryGetValue("cookingTime", out var cookingTime);
         generatedRecipeJson.TryGetValue("difficulty", out var difficulty);
         generatedRecipeJson.TryGetValue("amount_of_people", out var amountOfPeople);
+        
 
         generatedRecipeJson.TryGetValue("ingredients", out var ingredients);
         generatedRecipeJson.TryGetValue("recipeSteps", out var instructions);
+        
+        generatedRecipeJson.TryGetValue("image_path", out var imagePath);
 
         Enum.TryParse<RecipeType>(recipeType!.ToString(), out var recipeTypeEnum);
         Enum.TryParse<Difficulty>(difficulty!.ToString(), out var difficultyEnum);
@@ -164,6 +192,7 @@ public class RecipeManager : IRecipeManager
             Difficulty = difficultyEnum,
             CreatedAt = DateTime.UtcNow,
             AmountOfPeople = int.Parse(amountOfPeople!.ToString()),
+            ImagePath = imagePath?.ToString() ?? string.Empty,
 
             Ingredients = ingredientQuantities,
             Instructions = instructionSteps
