@@ -3,6 +3,7 @@ using BL.DTOs.Accounts;
 using BL.Managers.Accounts;
 using BL.Services;
 using DOM.Accounts;
+using DOM.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WEBAPI.Controllers;
@@ -28,15 +29,12 @@ public class AccountController: ControllerBase
         try
         {
             var user = _accountManager.GetAccountById(accountId); 
-            if (user == null)
-            {
-                return NotFound("User not found");
-            }
             return Ok(user);
         }
-        catch (Exception e)
+        catch (AccountNotFoundException e)
         {
-            return BadRequest($"Error fetching user: {e.Message}");
+            _logger.LogError("An error occured trying to fetch user: {ErrorMessage}", e.Message);
+            return NotFound(e.Message);
         }
     }
 
@@ -46,14 +44,13 @@ public class AccountController: ControllerBase
         try
         {
             var account = _accountManager.UpdateAccount(updatedAccount);
-
             await _identityProviderService.UpdateUsernameAsync(account, updatedAccount.Name);
-            
             return Ok(account);
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            _logger.LogError("An error occurred while updating account {AccountId}: {ErrorMessage}", updatedAccount.AccountId, e.Message);
+            return BadRequest("Failed to update account.");
         }
     }
 }

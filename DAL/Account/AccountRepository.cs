@@ -1,6 +1,7 @@
 ﻿using DAL.Accounts;
 using DAL.EF;
 using DOM.Accounts;
+using DOM.Exceptions;
 
 namespace DAL.Accounts;
 
@@ -20,7 +21,7 @@ public class AccountRepository : IAccountRepository
         Account? account = _ctx.Accounts.Find(id);
         if (account == null)
         {
-            throw new Exception("Account not found");
+            throw new AccountNotFoundException("Account not found");
         }
         return account;
     }

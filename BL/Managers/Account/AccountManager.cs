@@ -2,6 +2,7 @@
 using BL.DTOs.Accounts;
 using DAL.Accounts;
 using DOM.Accounts;
+using DOM.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace BL.Managers.Accounts;
@@ -18,8 +19,8 @@ public class AccountManager : IAccountManager
         _logger = logger;
         _mapper = mapper;
     }
-
-
+    
+    
     public AccountDto GetAccountById(string id)
     {
         Guid parsedGuid = Guid.Parse(id);
@@ -32,13 +33,11 @@ public class AccountManager : IAccountManager
         var account = _accountRepository.ReadAccount(updatedAccount.AccountId);
         if (account == null)
         {
-            throw new Exception("Account not found");
+            _logger.LogError("Account not found");
+            throw new AccountNotFoundException("Account not found");
         }
         account.Name = updatedAccount.Name;
         _accountRepository.UpdateAccount(account);
-        
-        Console.WriteLine("old: " + account.Name + " updated" + updatedAccount.AccountId);
-        
         _logger.LogInformation($"Updating user: {updatedAccount.AccountId}, new username: {updatedAccount.Name}");
         
         return _mapper.Map<AccountDto>(account);
