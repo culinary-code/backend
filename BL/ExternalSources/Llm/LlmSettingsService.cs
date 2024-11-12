@@ -33,7 +33,7 @@ public class LlmSettingsService
                                                "amount": { "type": "number" },
                                                "measurementType": {
                                                    "type": "string",
-                                                   "enum": ["Kilogram", "Litre", "Pound", "Ounce", "Teaspoon", "Tablespoon", "Piece", "Millilitre", "Gram", "Pinch", "ToTaste"]
+                                                   "enum": ["Kilogram", "Litre", "Pound", "Ounce", "Teaspoon", "Tablespoon", "Piece", "Millilitre", "Gram", "Pinch", "ToTaste", "Clove"]
                                                }
                                            },
                                            "required": ["name", "amount", "measurementType"]
