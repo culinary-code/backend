@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using BL.Managers.Accounts;
+using DOM.Accounts;
 using Microsoft.Extensions.Configuration;
 using DOM.Exceptions;
 using Microsoft.IdentityModel.Tokens;
@@ -23,6 +24,7 @@ public class KeyCloakService : IIdentityProviderService
     {
         _httpClient = httpClient;
         _accountManager = accountManager;
+        
         _baseUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_BASE_URL environment variable is not set.");
         _clientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_CLIENT_ID environment variable is not set.");
         _realm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_REALM environment variable is not set.");
@@ -107,7 +109,6 @@ public class KeyCloakService : IIdentityProviderService
     }
     
 
-
     public static Guid GetGuidFromAccessToken(string accessToken)
     {
         // Initialize the JWT token handler
@@ -129,6 +130,47 @@ public class KeyCloakService : IIdentityProviderService
         }
         throw new RegisterUserException("Failed to get userId from account token");
     }
-    
+
+    public async Task UpdateUsernameAsync(Account account, string newUsername)
+    {
+        string accessToken = "";
+        try
+        {
+            accessToken = await LoginAsync(_adminUsername, _adminPassword);
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        
+        if (string.IsNullOrEmpty(accessToken!))
+            throw new LoginAdminException("Failed to read admin accesstoken.");
+        
+        var userPayload = new
+        {
+            username = newUsername,
+            
+        };
+        var jsonPayload = JsonSerializer.Serialize(userPayload);
+        var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+        
+        var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/admin/realms/{_realm}/users/{account.AccountId}")
+        {
+            Content = content,
+            Headers =
+            {
+                Authorization = new AuthenticationHeaderValue("Bearer", accessToken)
+            }
+        };
+        
+        var response = await _httpClient.SendAsync(request);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new RegisterUserException($"Failed to change username: {errorContent}");
+        }
+    }
     
 }
