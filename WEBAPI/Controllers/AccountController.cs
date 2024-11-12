@@ -16,17 +16,31 @@ public class AccountController: ControllerBase
         _accountManager = accountManager;
         _logger = logger;
     }
+    
+    [HttpGet("{accountId}")]
+    public IActionResult GetUserById(string accountId)
+    {
+        try
+        {
+            var user = _accountManager.GetAccountById(accountId); 
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+            return Ok(user);
+        }
+        catch (Exception e)
+        {
+            return BadRequest($"Error fetching user: {e.Message}");
+        }
+    }
 
-    [HttpPut("/updateAccount")]
+    [HttpPut("/updateAccount/{accountId}")]
     public IActionResult UpdateAccount([FromBody] Account updatedAccount)
     {
         try
         {
             var account = _accountManager.UpdateAccount(updatedAccount);
-            if (account is null)
-            {
-                return BadRequest();
-            }
             return Ok(account);
         }
         catch (Exception e)

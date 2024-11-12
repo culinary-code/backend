@@ -1,8 +1,11 @@
-﻿using System.Net.Http.Headers;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using BL.Managers.Accounts;
 using Microsoft.Extensions.Configuration;
 using DOM.Exceptions;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BL.Services;
 
@@ -14,10 +17,12 @@ public class KeyCloakService : IIdentityProviderService
     private readonly string _realm;
     private readonly string _adminUsername;
     private readonly string _adminPassword;
+    private readonly IAccountManager _accountManager;
 
-    public KeyCloakService(HttpClient httpClient, IConfiguration configuration)
+    public KeyCloakService(HttpClient httpClient, IConfiguration configuration, IAccountManager accountManager)
     {
-        _httpClient = httpClient; 
+        _httpClient = httpClient;
+        _accountManager = accountManager;
         _baseUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_BASE_URL environment variable is not set.");
         _clientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_CLIENT_ID environment variable is not set.");
         _realm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_REALM environment variable is not set.");
@@ -39,7 +44,7 @@ public class KeyCloakService : IIdentityProviderService
         var response = await _httpClient.PostAsync($"{_baseUrl}/realms/{_realm}/protocol/openid-connect/token", content);
         
         if (!response.IsSuccessStatusCode)
-            throw new LoginAdminException("Failed to log in as admin when registering a new user");
+            throw new LoginAdminException("Failed to get access_token");
 
         var responseBody = await response.Content.ReadAsStringAsync();
         var jsonDocument = JsonDocument.Parse(responseBody);
@@ -89,6 +94,40 @@ public class KeyCloakService : IIdentityProviderService
             var errorContent = await response.Content.ReadAsStringAsync();
             throw new RegisterUserException($"Failed to create user: {errorContent}");
         }
+        
+        accessToken = await LoginAsync(username, password);
+
+        if (accessToken.IsNullOrEmpty())
+        {
+            throw new RegisterUserException($"Failed to create user: access token is empty");
+        }
+        var userId = GetGuidFromAccessToken(accessToken);
+        _accountManager.CreateAccount(username, email, userId);
+        
+    }
+    
+
+
+    public static Guid GetGuidFromAccessToken(string accessToken)
+    {
+        // Initialize the JWT token handler
+        var tokenHandler = new JwtSecurityTokenHandler();
+
+        // Validate the token format and decode it if it's a valid JWT
+        if (tokenHandler.CanReadToken(accessToken))
+        {
+            var jwtToken = tokenHandler.ReadJwtToken(accessToken);
+
+            // Extract the "sub" claim (which usually contains the GUID in Keycloak tokens)
+            var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+
+            // Convert the "sub" claim to GUID if it exists
+            if (Guid.TryParse(userIdClaim, out Guid userId))
+            {
+                return userId;
+            }
+        }
+        throw new RegisterUserException("Failed to get userId from account token");
     }
     
     

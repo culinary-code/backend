@@ -265,6 +265,16 @@ internal static class CulinaryCodeDbInitializer
         context.Recipes.Add(recipe2);
         context.Recipes.Add(recipe3);
 
+        Account account1 = new Account()
+        {
+            AccountId = Guid.Parse("a75e963c-6943-4a9c-8f79-4a4c6f954427"),
+            Name = "Nisrine",
+            Email = "nisrine@n.com",
+            FamilySize = 3
+        };
+        
+        context.Accounts.Add(account1);
+
         // Save changes
         context.SaveChanges();
 
