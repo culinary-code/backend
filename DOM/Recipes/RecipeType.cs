@@ -1,6 +1,10 @@
 ﻿namespace DOM.Recipes;
 
-public enum RecipeType
+public enum RecipeType : byte
 {
-    Breakfast, Lunch, Dinner, Dessert, Snack
+    Breakfast = 0,
+    Lunch = 1,
+    Dinner = 2,
+    Dessert = 3,
+    Snack = 4
 }
