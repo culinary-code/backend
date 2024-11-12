@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BL.DTOs.Accounts;
 using BL.Managers.Accounts;
 using BL.Services;
 using DOM.Accounts;
@@ -40,7 +41,7 @@ public class AccountController: ControllerBase
     }
 
     [HttpPut("/updateAccount/{accountId}")]
-    public async Task<IActionResult> UpdateAccount([FromBody] Account updatedAccount)
+    public async Task<IActionResult> UpdateAccount([FromBody] AccountDto updatedAccount)
     {
         try
         {

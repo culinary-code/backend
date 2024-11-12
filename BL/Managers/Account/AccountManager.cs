@@ -1,4 +1,5 @@
-﻿using BL.DTOs.Accounts;
+﻿using AutoMapper;
+using BL.DTOs.Accounts;
 using DAL.Accounts;
 using DOM.Accounts;
 using Microsoft.Extensions.Logging;
@@ -9,22 +10,24 @@ public class AccountManager : IAccountManager
 {
     private readonly IAccountRepository _accountRepository;
     private readonly ILogger<AccountManager> _logger;
+    private readonly IMapper _mapper;
 
-    public AccountManager(IAccountRepository accountRepository, ILogger<AccountManager> logger)
+    public AccountManager(IAccountRepository accountRepository, ILogger<AccountManager> logger, IMapper mapper)
     {
         _accountRepository = accountRepository;
         _logger = logger;
+        _mapper = mapper;
     }
 
 
-    public Account GetAccountById(string id)
+    public AccountDto GetAccountById(string id)
     {
         Guid parsedGuid = Guid.Parse(id);
         var account = _accountRepository.ReadAccount(parsedGuid);
-        return account;
+        return _mapper.Map<AccountDto>(account);
     }
 
-    public Account UpdateAccount(Account updatedAccount)
+    public AccountDto UpdateAccount(AccountDto updatedAccount)
     {
         var account = _accountRepository.ReadAccount(updatedAccount.AccountId);
         if (account == null)
@@ -38,7 +41,7 @@ public class AccountManager : IAccountManager
         
         _logger.LogInformation($"Updating user: {updatedAccount.AccountId}, new username: {updatedAccount.Name}");
         
-        return account;
+        return _mapper.Map<AccountDto>(account);
     }
 
     public void CreateAccount(string username, string email, Guid userId)

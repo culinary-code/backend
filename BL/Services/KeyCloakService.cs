@@ -2,6 +2,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using BL.DTOs.Accounts;
 using BL.Managers.Accounts;
 using DOM.Accounts;
 using Microsoft.Extensions.Configuration;
@@ -131,7 +132,7 @@ public class KeyCloakService : IIdentityProviderService
         throw new RegisterUserException("Failed to get userId from account token");
     }
 
-    public async Task UpdateUsernameAsync(Account account, string newUsername)
+    public async Task UpdateUsernameAsync(AccountDto account, string newUsername)
     {
         string accessToken = "";
         try
