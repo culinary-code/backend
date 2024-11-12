@@ -1,7 +1,9 @@
 ﻿using System.ClientModel;
+using System.Net.Mime;
 using Azure;
 using Azure.AI.OpenAI;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using DOM.Exceptions;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
@@ -202,7 +204,7 @@ public class AzureOpenAIService : ILlmService
 
             using (MemoryStream stream = new MemoryStream(imageBytes))
             {
-                await blobClient.UploadAsync(stream, true);
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders {ContentType = MediaTypeNames.Image.Jpeg});
             }
 
             var imageUri = blobClient.Uri;

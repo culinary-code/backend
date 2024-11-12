@@ -82,6 +82,7 @@ public class RecipeManager : IRecipeManager
                 if (imageUri is not null)
                 {
                     recipe.ImagePath = imageUri!.ToString();
+                    _recipeRepository.UpdateRecipe(recipe);
                 }
 
                 return _mapper.Map<RecipeDto>(recipe);
