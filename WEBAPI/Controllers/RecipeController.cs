@@ -19,7 +19,7 @@ public class RecipeController : ControllerBase
         _recipeManager = recipeManager;
     }
 
-    [HttpGet("/{id}")]
+    [HttpGet("{id}")]
     public IActionResult GetRecipeById(string id)
     {
         try
