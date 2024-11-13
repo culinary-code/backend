@@ -38,7 +38,7 @@ public class AccountController: ControllerBase
         }
     }
 
-    [HttpPut("/updateAccount/{accountId}")]
+    [HttpPut("updateAccount/{accountId}")]
     public async Task<IActionResult> UpdateAccount([FromBody] AccountDto updatedAccount)
     {
         try
