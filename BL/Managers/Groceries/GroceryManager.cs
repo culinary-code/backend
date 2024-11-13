@@ -62,7 +62,7 @@ public class GroceryManager : IGroceryManager
             .Select(iq => new ItemQuantityDto
             {
                 IngredientQuantityId = iq.IngredientQuantityId,
-                Quantity = iq.Quantity, // Using the aggregated quantity
+                Quantity = iq.Quantity,
                 Ingredient = new IngredientDto
                 {
                     IngredientId = iq.Ingredient.IngredientId,
@@ -109,12 +109,9 @@ public class GroceryManager : IGroceryManager
         {
             Console.WriteLine($"Ingredient: {ingredient.Ingredient?.IngredientName}, Quantity: {ingredient.Quantity}");
         }
-
-
         
         _groceryRepository.CreateGroceryList(groceryList);
         
-        //return _mapper.Map<GroceryListDto>(groceryListDto);
         return groceryListDto;
     }
 }
