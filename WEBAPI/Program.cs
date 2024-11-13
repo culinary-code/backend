@@ -1,7 +1,9 @@
 using BL.AutoMapper;
 using BL.Managers.Recipes;
 using BL.ExternalSources.Llm;
+using BL.Managers.Accounts;
 using BL.Services;
+using DAL.Accounts;
 using DAL.EF;
 using DAL.Recipes;
 using DOM.Exceptions;
@@ -25,10 +27,12 @@ builder.Services.AddDbContext<CulinaryCodeDbContext>(optionsBuilder =>
 builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
 builder.Services.AddScoped<IPreferenceRepository, PreferenceRepository>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
 
 // Managers
 builder.Services.AddScoped<IRecipeManager, RecipeManager>();
+builder.Services.AddScoped<IAccountManager, AccountManager>();
 
 // Services
 builder.Services.AddHttpClient<IIdentityProviderService, KeyCloakService>();
