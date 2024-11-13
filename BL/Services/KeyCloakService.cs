@@ -142,11 +142,11 @@ public class KeyCloakService : IIdentityProviderService
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            throw new LoginAdminException("Failed to read admin access token", e);
         }
         
         if (string.IsNullOrEmpty(accessToken!))
-            throw new LoginAdminException("Failed to read admin accesstoken.");
+            throw new LoginAdminException("Failed to read admin access token.");
         
         var userPayload = new
         {
