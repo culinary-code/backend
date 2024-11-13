@@ -4,12 +4,14 @@ using BL.Managers.Accounts;
 using BL.Services;
 using DOM.Accounts;
 using DOM.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WEBAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class AccountController: ControllerBase
 {
     private readonly ILogger<AccountController> _logger;
@@ -38,18 +40,22 @@ public class AccountController: ControllerBase
         }
     }
 
-    [HttpPut("updateAccount/{accountId}")]
-    public async Task<IActionResult> UpdateAccount([FromBody] AccountDto updatedAccount)
+    [HttpPut("updateAccount")]
+    public async Task<IActionResult> UpdateAccount([FromBody] AccountDto accountDto)
     {
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+
+        accountDto.AccountId = userId;
+        
         try
         {
-            var account = _accountManager.UpdateAccount(updatedAccount);
-            await _identityProviderService.UpdateUsernameAsync(account, updatedAccount.Name);
+            var account = _accountManager.UpdateAccount(accountDto);
+            await _identityProviderService.UpdateUsernameAsync(account, accountDto.Name);
             return Ok(account);
         }
         catch (Exception e)
         {
-            _logger.LogError("An error occurred while updating account {AccountId}: {ErrorMessage}", updatedAccount.AccountId, e.Message);
+            _logger.LogError("An error occurred while updating account {AccountId}: {ErrorMessage}", userId, e.Message);
             return BadRequest("Failed to update account.");
         }
     }
