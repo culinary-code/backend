@@ -81,13 +81,13 @@ var baseUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? throw n
 var clientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_CLIENT_ID environment variable is not set.");
 var realm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_REALM environment variable is not set.");
 
-var authority = baseUrl + "/auth/realms/" + realm;
+var authority = baseUrl + "/realms/" + realm;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.Authority = authority;
-        options.Audience = clientId;
+        options.Audience = "account";
         
         options.RequireHttpsMetadata = false;
         
@@ -95,8 +95,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
+            ValidIssuer = authority, // The issuer URL Keycloak is using
+
             ValidateAudience = true,
-            ValidateLifetime = true
+            ValidAudience = "account", // Must match the client ID in Keycloak
+
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero, // Optional, remove any clock skew tolerance
+
+            ValidateIssuerSigningKey = true,
+            // Optionally, you can validate the signing key using Keycloak's JWKS endpoint
+            IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
+            {
+                // Keycloak's JWKS endpoint to retrieve public signing keys
+                var httpClient = new HttpClient();
+                var jwks = httpClient.GetStringAsync($"{authority}/protocol/openid-connect/certs").Result;
+                var keys = new JsonWebKeySet(jwks);
+                return keys.GetSigningKeys();
+            }
         };
     });
 
@@ -123,8 +139,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
 app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

@@ -110,7 +110,7 @@ public class KeyCloakService : IIdentityProviderService
     }
     
 
-    public static Guid GetGuidFromAccessToken(string accessToken)
+    public Guid GetGuidFromAccessToken(string accessToken)
     {
         // Initialize the JWT token handler
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -129,7 +129,7 @@ public class KeyCloakService : IIdentityProviderService
                 return userId;
             }
         }
-        throw new RegisterUserException("Failed to get userId from account token");
+        throw new JwtTokenException("Failed to get userId from account token");
     }
 
     public async Task UpdateUsernameAsync(AccountDto account, string newUsername)
@@ -173,5 +173,4 @@ public class KeyCloakService : IIdentityProviderService
             throw new RegisterUserException($"Failed to change username: {errorContent}");
         }
     }
-    
 }
