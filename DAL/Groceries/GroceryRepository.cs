@@ -1,5 +1,6 @@
 ﻿using DAL.EF;
 using DOM.MealPlanning;
+using DOM.Recipes.Ingredients;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Groceries;
@@ -13,32 +14,17 @@ public class GroceryRepository : IGroceryRepository
         _ctx = ctx;
     }
 
-    public MealPlanner GetMealPlannerById(Guid accountId)
-    {
-        return _ctx.Accounts
-            .Where(a => a.AccountId == accountId)
-            .Include(a => a.Planner)
-            .ThenInclude(mp => mp.NextWeek)
-            .ThenInclude(pm => pm.Ingredients)
-            .ThenInclude(iq => iq.Ingredient)
-            .Select(a => a.Planner)
-            .FirstOrDefault();
-    }
-
     public void CreateGroceryList(GroceryList groceryList)
     {
-        _ctx.GroceryLists.Add(groceryList);
-        _ctx.SaveChanges();
-    }
+        var savedGroceryList = _ctx.GroceryLists
+            .Include(gl => gl.Ingredients)
+            .ThenInclude(iq => iq.Ingredient)
+            .FirstOrDefault(gl => gl.GroceryListId == groceryList.GroceryListId);
 
-    /*public MealPlanner GetMealPlannerById(Guid accountId)
-    {
-        return _ctx.Accounts
-            .Where(a => a.AccountId == accountId)
-            .Include(a => a.Planner)                // Include Planner first
-            .ThenInclude(mp => mp.NextWeek)         // Then include NextWeek navigation property
-            .ThenInclude(pm => pm.Ingredients)     // Include Ingredients within NextWeek
-            .Select(a => a.Planner)                 // Now project the Planner after including related entities
-            .FirstOrDefault();
-    }*/
+        Console.WriteLine($"Saved Ingredients Count: {savedGroceryList?.Ingredients.Count() ?? 0}");
+        foreach (var ingredient in savedGroceryList?.Ingredients ?? new List<IngredientQuantity>())
+        {
+            Console.WriteLine($"Saved Ingredient: {ingredient.Ingredient?.IngredientName}, Quantity: {ingredient.Quantity}");
+        }
+    }
 }

@@ -1,8 +1,10 @@
-﻿using BL.DTOs.Accounts;
+﻿using AutoMapper;
+using BL.DTOs.Accounts;
 using BL.DTOs.MealPlanning;
 using BL.DTOs.Recipes.Ingredients;
 using DAL.Accounts;
 using DAL.Groceries;
+using DAL.Recipes;
 using DOM.MealPlanning;
 using DOM.Recipes.Ingredients;
 
@@ -12,11 +14,16 @@ public class GroceryManager : IGroceryManager
 {
     private readonly IGroceryRepository _groceryRepository;
     private readonly IAccountRepository _accountRepository;
+    private readonly IMealPlannerRepository _mealPlannerRepository;
+    private readonly IMapper _mapper;
 
-    public GroceryManager(IGroceryRepository groceryRepository, IAccountRepository accountRepository)
+
+    public GroceryManager(IGroceryRepository groceryRepository, IAccountRepository accountRepository, IMapper mapper, IMealPlannerRepository mealPlannerRepository)
     {
         _groceryRepository = groceryRepository;
         _accountRepository = accountRepository;
+        _mapper = mapper;
+        _mealPlannerRepository = mealPlannerRepository;
     }
 
     public GroceryListDto CreateGroceryList(Guid accountId)
@@ -28,7 +35,7 @@ public class GroceryManager : IGroceryManager
             throw new Exception("Account not found");
         }
         
-        var mealplanner = _groceryRepository.GetMealPlannerById(accountId);
+        var mealplanner = _mealPlannerRepository.ReadMealPlannerById(accountId);
         
         if (!mealplanner.NextWeek.Any())
         {
@@ -41,38 +48,30 @@ public class GroceryManager : IGroceryManager
             .ToList();
 
         var arrangedIngredients = allIngredientQuantities
-            //.Where(iq => iq.Quantity > 0)
-            .GroupBy(ingredientQuantity => new
-            {
-                ingredientQuantity.Ingredient?.IngredientName,
-                ingredientQuantity.Ingredient?.Measurement
-            })
-            .Select(group => new IngredientQuantityDto
+            .Where(iq => iq.Ingredient != null)
+            .GroupBy(iq => iq.Ingredient.IngredientId)
+            .Select(group => new IngredientQuantity
             {
                 IngredientQuantityId = Guid.NewGuid(),
                 Quantity = group.Sum(ingredientQuantity => ingredientQuantity.Quantity),
-                Ingredient = new IngredientDto()
-                {
-                    IngredientId = group.First().Ingredient.IngredientId,
-                    IngredientName = group.First().Ingredient.IngredientName,
-                    Measurement = group.First().Ingredient.Measurement
-                }
+                Ingredient = group.First().Ingredient
             })
             .ToList();
         
-        var items = mealplanner.NextWeek
-            .Select(plannedMeal => new ItemQuantityDto
+        var items = arrangedIngredients
+            .Select(iq => new ItemQuantityDto
             {
-                IngredientQuantityId = Guid.NewGuid(),  // Example: generate or map actual IngredientQuantityId
-                Quantity = plannedMeal.Ingredients.Sum(iq => iq.Quantity),  // Example: summing quantities of ingredients in each planned meal
+                IngredientQuantityId = iq.IngredientQuantityId,
+                Quantity = iq.Quantity, // Using the aggregated quantity
                 Ingredient = new IngredientDto
                 {
-                    IngredientId = plannedMeal.Ingredients.First().Ingredient.IngredientId,  // Example: assume at least one ingredient exists
-                    IngredientName = plannedMeal.Ingredients.First().Ingredient.IngredientName,
-                    Measurement = plannedMeal.Ingredients.First().Ingredient.Measurement
+                    IngredientId = iq.Ingredient.IngredientId,
+                    IngredientName = iq.Ingredient.IngredientName,
+                    Measurement = iq.Ingredient.Measurement
                 }
             })
             .ToList();
+
         
         var groceryListDto = new GroceryListDto
         {
@@ -91,12 +90,31 @@ public class GroceryManager : IGroceryManager
         GroceryList groceryList = new GroceryList()
         {
             GroceryListId = groceryListDto.GroceryListId,
-            Ingredients = allIngredientQuantities,
             Account = account,
+            Ingredients = arrangedIngredients.Select(iq => new IngredientQuantity
+            {
+                IngredientQuantityId = iq.IngredientQuantityId,
+                Quantity = iq.Quantity,
+                Ingredient = new Ingredient
+                {
+                    IngredientId = iq.Ingredient.IngredientId,
+                    IngredientName = iq.Ingredient.IngredientName,
+                    Measurement = iq.Ingredient.Measurement
+                }
+            }).ToList(),
         };
+        
+        Console.WriteLine($"Arranged Ingredients Count: {arrangedIngredients.Count}");
+        foreach (var ingredient in arrangedIngredients)
+        {
+            Console.WriteLine($"Ingredient: {ingredient.Ingredient?.IngredientName}, Quantity: {ingredient.Quantity}");
+        }
+
+
         
         _groceryRepository.CreateGroceryList(groceryList);
         
+        //return _mapper.Map<GroceryListDto>(groceryListDto);
         return groceryListDto;
     }
 }

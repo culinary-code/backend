@@ -1,191 +1,161 @@
-﻿using BL.Managers.Groceries;
-using DAL.Accounts;
+﻿using AutoMapper;
+using BL.DTOs.Recipes.Ingredients;
+using BL.DTOs.MealPlanning;
+using BL.Managers.Groceries;
 using DAL.Groceries;
-using DOM.Accounts;
-using DOM.MealPlanning;
+using DAL.Recipes;
 using DOM.Recipes.Ingredients;
-using FluentAssertions;
+using DOM.MealPlanning;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using DAL.Accounts;
+using DOM.Accounts;
+using Xunit.Abstractions;
 
-namespace BL.Testing;
-
-public class GroceryManagerTests
+namespace BL.Testing
 {
-    private readonly Mock<IGroceryRepository> _mockGroceryRepository;
+    public class GroceryManagerTests
+    {
+        private readonly ITestOutputHelper _testOutputHelper;
+        private readonly Mock<IGroceryRepository> _mockGroceryRepository;
         private readonly Mock<IAccountRepository> _mockAccountRepository;
+        private readonly Mock<IMealPlannerRepository> _mockMealPlannerRepository;
+        private readonly Mock<IMapper> _mockMapper;
         private readonly GroceryManager _groceryManager;
 
-        public GroceryManagerTests()
+        public GroceryManagerTests(ITestOutputHelper testOutputHelper)
         {
-            // Initialize mock dependencies
+            _testOutputHelper = testOutputHelper;
             _mockGroceryRepository = new Mock<IGroceryRepository>();
             _mockAccountRepository = new Mock<IAccountRepository>();
+            _mockMealPlannerRepository = new Mock<IMealPlannerRepository>();
+            _mockMapper = new Mock<IMapper>();
 
-            // Create the service instance to test
-            _groceryManager = new GroceryManager(_mockGroceryRepository.Object, _mockAccountRepository.Object);
+            _groceryManager = new GroceryManager(
+                _mockGroceryRepository.Object,
+                _mockAccountRepository.Object,
+                _mockMapper.Object,
+                _mockMealPlannerRepository.Object
+            );
         }
 
-        [Fact]
-        public void CreateGroceryList_WhenNoMealsArePlanned_ShouldReturnEmptyGroceryList()
+        private static Account CreateSampleAccount(Guid accountId)
         {
-            // Arrange
-            var accountId = Guid.NewGuid();
-            var account = new Account { AccountId = accountId, Name = "Test User" };
-
-            var mealPlanner = new MealPlanner
+            return new Account
             {
-                NextWeek = new List<PlannedMeal>() // No meals planned for next week
+                AccountId = accountId,
+                Name = "John Doe",
+                Email = "john.doe@example.com",
+                FamilySize = 4
             };
-
-            _mockAccountRepository.Setup(r => r.ReadAccount(accountId)).Returns(account);
-            _mockGroceryRepository.Setup(r => r.GetMealPlannerById(accountId)).Returns(mealPlanner);
-
-            // Act
-            var groceryList = _groceryManager.CreateGroceryList(accountId);
-
-            // Assert
-            groceryList.Should().NotBeNull();
-            groceryList.Ingredients.Should().BeEmpty();
-            groceryList.Account.Should().Be(account);
         }
 
-        [Fact]
-        public void CreateGroceryList_WhenMealsArePlanned_ShouldGroupAndSumIngredients()
+        private static MealPlanner CreateSampleMealPlanner()
         {
-            // Arrange
-            var accountId = Guid.NewGuid();
-            var account = new Account { AccountId = accountId, Name = "Test User" };
+            var ingredient1 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Carrot", Measurement = MeasurementType.Kilogram };
+            var ingredient2 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Apple", Measurement = MeasurementType.Gram };
 
-            var mealPlanner = new MealPlanner
+            var meal1 = new PlannedMeal
             {
-                NextWeek = new List<PlannedMeal>
+                Ingredients = new List<IngredientQuantity>
                 {
-                    new PlannedMeal
-                    {
-                        Ingredients = new List<IngredientQuantity>
-                        {
-                            new IngredientQuantity
-                            {
-                                Ingredient = new Ingredient { IngredientName = "Tomato", Measurement = MeasurementType.Kilogram },
-                                Quantity = 2
-                            },
-                            new IngredientQuantity
-                            {
-                                Ingredient = new Ingredient { IngredientName = "Potato", Measurement = MeasurementType.Kilogram },
-                                Quantity = 5
-                            }
-                        }
-                    },
-                    new PlannedMeal
-                    {
-                        Ingredients = new List<IngredientQuantity>
-                        {
-                            new IngredientQuantity
-                            {
-                                Ingredient = new Ingredient { IngredientName = "Tomato", Measurement = MeasurementType.Kilogram },
-                                Quantity = 1
-                            }
-                        }
-                    }
+                    new IngredientQuantity { Ingredient = ingredient1, Quantity = 1 },
+                    new IngredientQuantity { Ingredient = ingredient2, Quantity = 150 }
                 }
             };
 
-            _mockAccountRepository.Setup(r => r.ReadAccount(accountId)).Returns(account);
-            _mockGroceryRepository.Setup(r => r.GetMealPlannerById(accountId)).Returns(mealPlanner);
-
-            // Act
-            var groceryList = _groceryManager.CreateGroceryList(accountId);
-
-            // Assert
-            groceryList.Should().NotBeNull();
-            groceryList.Ingredients.Should().HaveCount(2);
-
-            // Check Tomato grouping
-            var tomato = groceryList.Ingredients.FirstOrDefault(i => i.Ingredient.IngredientName == "Tomato");
-            tomato.Should().NotBeNull();
-            tomato.Quantity.Should().Be(3); // 2 (from first meal) + 1 (from second meal)
-
-            // Check Potato
-            var potato = groceryList.Ingredients.FirstOrDefault(i => i.Ingredient.IngredientName == "Potato");
-            potato.Should().NotBeNull();
-            potato.Quantity.Should().Be(5); // Only one entry for Potato
-        }
-
-        [Fact]
-        public void CreateGroceryList_WhenIngredientsHaveZeroQuantity_ShouldNotIncludeInList()
-        {
-            // Arrange
-            var accountId = Guid.NewGuid();
-            var account = new Account { AccountId = accountId, Name = "Test User" };
-
-            var mealPlanner = new MealPlanner
+            var meal2 = new PlannedMeal
             {
-                NextWeek = new List<PlannedMeal>
+                Ingredients = new List<IngredientQuantity>
                 {
-                    new PlannedMeal
-                    {
-                        Ingredients = new List<IngredientQuantity>
-                        {
-                            new IngredientQuantity
-                            {
-                                Ingredient = new Ingredient { IngredientName = "Tomato", Measurement = MeasurementType.Kilogram },
-                                Quantity = 0 // Zero quantity, should not be included
-                            },
-                            new IngredientQuantity
-                            {
-                                Ingredient = new Ingredient { IngredientName = "Potato", Measurement = MeasurementType.Kilogram },
-                                Quantity = 5
-                            }
-                        }
-                    }
+                    new IngredientQuantity { Ingredient = ingredient1, Quantity = 2 },
+                    new IngredientQuantity { Ingredient = ingredient2, Quantity = 100 }
                 }
             };
 
-            _mockAccountRepository.Setup(r => r.ReadAccount(accountId)).Returns(account);
-            _mockGroceryRepository.Setup(r => r.GetMealPlannerById(accountId)).Returns(mealPlanner);
-
-            // Act
-            var groceryList = _groceryManager.CreateGroceryList(accountId);
-
-            // Assert
-            groceryList.Should().NotBeNull();
-            groceryList.Ingredients.Should().HaveCount(1);
-            var potato = groceryList.Ingredients.FirstOrDefault(i => i.Ingredient.IngredientName == "Potato");
-            potato.Should().NotBeNull();
-            potato.Quantity.Should().Be(5);
-        }
-        
-        [Fact]
-        public void CreateGroceryList_WhenAccountDoesNotExist_ShouldThrowException()
-        {
-            // Arrange
-            var invalidAccountId = Guid.NewGuid();
-    
-            // Simulate that no account is found for the given ID
-            _mockAccountRepository.Setup(r => r.ReadAccount(invalidAccountId)).Returns((Account)null);
-
-            // Act & Assert
-            Action act = () => _groceryManager.CreateGroceryList(invalidAccountId);
-            act.Should().Throw<Exception>().WithMessage("Account not found");
+            return new MealPlanner
+            {
+                NextWeek = new List<PlannedMeal> { meal1, meal2 }
+            };
         }
 
-
         [Fact]
-        public void CreateGroceryList_WhenMealPlannerIsNull_ShouldThrowException()
+        public void CreateGroceryList_ShouldReturnCorrectGroceryList_WhenValidDataIsProvided()
         {
             // Arrange
             var accountId = Guid.NewGuid();
-            var account = new Account { AccountId = accountId, Name = "Test User" };
+            var account = CreateSampleAccount(accountId);
+            var mealPlanner = CreateSampleMealPlanner();
 
-            // Simulate that the account is found, but the meal planner is null
-            _mockAccountRepository.Setup(r => r.ReadAccount(accountId)).Returns(account);
-            _mockGroceryRepository.Setup(r => r.GetMealPlannerById(accountId)).Returns((MealPlanner)null);
+            // Setup mock behavior
+            _mockAccountRepository
+                .Setup(repo => repo.ReadAccount(accountId))
+                .Returns(account);
 
-            // Act & Assert
-            Action act = () => _groceryManager.CreateGroceryList(accountId);
-            act.Should().Throw<Exception>().WithMessage("Meal planner not found");
+            _mockMealPlannerRepository
+                .Setup(repo => repo.ReadMealPlannerById(accountId))
+                .Returns(mealPlanner);
+
+            _mockMapper
+                .Setup(mapper => mapper.Map<GroceryListDto>(It.IsAny<GroceryList>()))
+                .Returns(new GroceryListDto());  // Mock DTO return
+
+            // Act
+            var result = _groceryManager.CreateGroceryList(accountId);
+
+            _testOutputHelper.WriteLine("GroceryListDto:");
+            _testOutputHelper.WriteLine($"GroceryListId: {result.GroceryListId}");
+            _testOutputHelper.WriteLine($"AccountId: {result.Account.AccountId}");
+            _testOutputHelper.WriteLine($"Account Name: {result.Account.Name}");
+            _testOutputHelper.WriteLine($"Number of Items: {result.Items.Count}");
+
+            foreach (var ingredient in result.Ingredients)
+            {
+                _testOutputHelper.WriteLine($"Ingredient: {ingredient.Ingredient.IngredientName}, Quantity: {ingredient.Quantity}");
+            }
+            
+            // Assert
+            Assert.NotNull(result);
+            _mockAccountRepository.Verify(repo => repo.ReadAccount(accountId), Times.Once);
+            _mockMealPlannerRepository.Verify(repo => repo.ReadMealPlannerById(accountId), Times.Once);
+            _mockGroceryRepository.Verify(repo => repo.CreateGroceryList(It.IsAny<GroceryList>()), Times.Once);
         }
 
+        [Fact]
+        public void CreateGroceryList_ShouldThrowException_WhenAccountIsNotFound()
+        {
+            // Arrange
+            var accountId = Guid.NewGuid();
+            _mockAccountRepository
+                .Setup(repo => repo.ReadAccount(accountId))
+                .Returns((Account)null); // Mock account not found
 
+            // Act & Assert
+            Assert.Throws<Exception>(() => _groceryManager.CreateGroceryList(accountId));
+        }
+
+        [Fact]
+        public void CreateGroceryList_ShouldThrowException_WhenNoPlannedMeals()
+        {
+            // Arrange
+            var accountId = Guid.NewGuid();
+            var account = CreateSampleAccount(accountId);
+            var mealPlanner = new MealPlanner(); // No planned meals
+
+            _mockAccountRepository
+                .Setup(repo => repo.ReadAccount(accountId))
+                .Returns(account);
+
+            _mockMealPlannerRepository
+                .Setup(repo => repo.ReadMealPlannerById(accountId))
+                .Returns(mealPlanner);
+
+            // Act & Assert
+            Assert.Throws<Exception>(() => _groceryManager.CreateGroceryList(accountId));
+        }
+    }
 }

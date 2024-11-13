@@ -1,8 +1,10 @@
 ﻿using System;
+using DAL.Groceries;
 using DOM.Accounts;
 using DOM.MealPlanning;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
+using Microsoft.EntityFrameworkCore;
 
 namespace DAL.EF;
 
@@ -266,127 +268,57 @@ internal static class CulinaryCodeDbInitializer
         context.Recipes.Add(recipe2);
         context.Recipes.Add(recipe3); 
         
-        
-        
-        
-        
-        ////////////////////////////////////////////////////////////////////////////////////////
-        
-        
-        
-         Account account1 = new Account()
-    {
-        AccountId = Guid.NewGuid(),
-        Name = "Test User 1"
-    };
-    Account account2 = new Account()
-    {
-        AccountId = Guid.NewGuid(),
-        Name = "Test User 2"
-    };
-    context.Accounts.Add(account1);
-    context.Accounts.Add(account2);
-    
-    context.Ingredients.Add(ingredient1);
-    context.Ingredients.Add(ingredient2);
-    context.Ingredients.Add(ingredient3);
+        // Testcode Boodschappenlijst
 
-    
-    context.IngredientQuantities.Add(ingredientQuantity1);
-    context.IngredientQuantities.Add(ingredientQuantity2);
-    context.IngredientQuantities.Add(ingredientQuantity3);
-
-    // Add Meals and MealPlanner
-    PlannedMeal meal1 = new PlannedMeal()
-    {
-        PlannedMealId = Guid.NewGuid(),
-        Ingredients = new List<IngredientQuantity> { ingredientQuantity1, ingredientQuantity2 }
-    };
-    PlannedMeal meal2 = new PlannedMeal()
-    {
-        PlannedMealId = Guid.NewGuid(),
-        Ingredients = new List<IngredientQuantity> { ingredientQuantity2, ingredientQuantity3 }
-    };
-
-    MealPlanner mealPlanner1 = new MealPlanner()
-    {
-        MealPlannerId = Guid.NewGuid(),
-        Account = account1,
-        NextWeek = new List<PlannedMeal> { meal1, meal2 }
-    };
-    MealPlanner mealPlanner2 = new MealPlanner()
-    {
-        MealPlannerId = Guid.NewGuid(),
-        Account = account2,
-        NextWeek = new List<PlannedMeal> { meal1 }
-    };
-
-    context.MealPlanners.Add(mealPlanner1);
-    context.MealPlanners.Add(mealPlanner2);
-
-    GroceryList groceryList1 = new GroceryList()
-    {
-        GroceryListId = Guid.NewGuid(),
-        Account = account1,
-        Items = new List<ItemQuantity>()
+        Account account1 = new Account
         {
-            new ItemQuantity() {Ingredient = ingredient1}
-        },
-        Ingredients = new List<IngredientQuantity>()
-        {
-            ingredientQuantity1,
-            ingredientQuantity2,
-        }
-    };
-    
-    
-    account1.GroceryListId = groceryList1.GroceryListId;
-    
-    context.MealPlanners.Add(mealPlanner1);
-    context.GroceryLists.Add(groceryList1);
-
-    // Save changes
-    context.SaveChanges();
-        
-        
-        
-        // TESTING GROCERYLIST
-        
-      /*  var mealPlanner = new MealPlanner { NextWeek = new List<PlannedMeal>() };
-        context.MealPlanners.Add(mealPlanner);
-        
-        
-         PlannedMeal plannedMeal1 = new PlannedMeal()
-         {
-             PlannedMealId = Guid.NewGuid(),
-             AmountOfPeople = 3,
-             Ingredients = recipe2.Ingredients.ToList(),
-             Recipe = recipe2
-         };
-         
-        MealPlanner mealPlanner1 = new MealPlanner()
-        {
-            MealPlannerId = Guid.NewGuid(),
-            NextWeek = new List<PlannedMeal> { plannedMeal1 },
-        };
-        
-        context.MealPlanners.Add(mealPlanner1);
-        context.PlannedMeals.Add(plannedMeal1);
-        
-        context.SaveChanges();
-        
-        Account account1 = new Account()
-        {
-            AccountId = Guid.Parse("a75e963c-6943-4a9c-8f79-4a4c6f954427"),
-            Name = "Kim",
-            Email = "Kim@n.com",
-            FamilySize = 3,
-            PlannerId = mealPlanner1.MealPlannerId
+            AccountId = Guid.NewGuid(),
+            Name = "John Doe",
+            Email = "john.doe@example.com",
+            FamilySize = 4
         };
         
         context.Accounts.Add(account1);
-        */
+        
+        var ingredient11 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Carrot", Measurement = MeasurementType.Kilogram };
+        var ingredient22 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Apple", Measurement = MeasurementType.Gram };
 
+        context.Ingredients.Add(ingredient11);
+        context.Ingredients.Add(ingredient22);
+        
+        var meal1 = new PlannedMeal
+        {
+            Ingredients = new List<IngredientQuantity>
+            {
+                new IngredientQuantity { Ingredient = ingredient1, Quantity = 1 },
+                new IngredientQuantity { Ingredient = ingredient2, Quantity = 150 }
+            }
+        };
+        
+        context.PlannedMeals.Add(meal1);
+
+        var meal2 = new PlannedMeal
+        {
+            Ingredients = new List<IngredientQuantity>
+            {
+                new IngredientQuantity { Ingredient = ingredient1, Quantity = 2 },
+                new IngredientQuantity { Ingredient = ingredient2, Quantity = 100 }
+            }
+        };
+        
+        context.PlannedMeals.Add(meal2);
+        
+        MealPlanner mealPlanner = new MealPlanner
+        {
+            MealPlannerId = Guid.NewGuid(),
+            NextWeek = new List<PlannedMeal> { meal1, meal2 },
+            Account = account1,
+        };
+        
+        context.MealPlanners.Add(mealPlanner);
+        
+        // Einde Testcode Boodschappenlijst
+        
         // Save changes
         context.SaveChanges();
 

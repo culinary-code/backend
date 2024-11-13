@@ -31,6 +31,7 @@ builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
 builder.Services.AddScoped<IPreferenceRepository, PreferenceRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IGroceryRepository, GroceryRepository>();
+builder.Services.AddScoped<IMealPlannerRepository, MealPlannerRepository>();
 
 
 // Managers
