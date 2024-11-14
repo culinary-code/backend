@@ -2,12 +2,14 @@
 using BL.DTOs.Llm;
 using BL.Managers.Recipes;
 using DOM.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WEBAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class RecipeController : ControllerBase
 {
     private readonly ILogger<RecipeController> _logger;

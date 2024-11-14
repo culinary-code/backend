@@ -89,7 +89,10 @@ public class RecipeManager : IRecipeManager
             }
             catch (JsonReaderException ex)
             {
-                break;
+                _logger.LogError("Failed to parse JSON: {ErrorMessage}", ex.Message);
+                _logger.LogInformation("Attempt: {Attempts}", attempts);
+                _logger.LogInformation("Retrying to create recipe");
+                attempts++;
             }
             catch (RecipeNotAllowedException ex)
             {

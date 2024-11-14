@@ -1,6 +1,7 @@
-﻿namespace DAL.Accounts;
-
+﻿using System;
 using DOM.Accounts;
+
+namespace DAL.Accounts;
 
 public interface IAccountRepository
 {

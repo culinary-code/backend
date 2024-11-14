@@ -5,7 +5,7 @@ namespace BL.DTOs.Accounts;
 
 public class AccountDto
 {
-    public Guid AccountId { get; set; }
+    public Guid AccountId { get; set; } = Guid.Empty;
     
     public string Name { get; set; } = "Default username";
     
