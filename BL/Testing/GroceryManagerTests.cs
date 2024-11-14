@@ -86,12 +86,10 @@ namespace BL.Testing
         [Fact]
         public void CreateGroceryList_ShouldReturnCorrectGroceryList_WhenValidDataIsProvided()
         {
-            // Arrange
             var accountId = Guid.NewGuid();
             var account = CreateSampleAccount(accountId);
             var mealPlanner = CreateSampleMealPlanner();
 
-            // Setup mock behavior
             _mockAccountRepository
                 .Setup(repo => repo.ReadAccount(accountId))
                 .Returns(account);
@@ -102,9 +100,8 @@ namespace BL.Testing
 
             _mockMapper
                 .Setup(mapper => mapper.Map<GroceryListDto>(It.IsAny<GroceryList>()))
-                .Returns(new GroceryListDto());  // Mock DTO return
+                .Returns(new GroceryListDto());  
 
-            // Act
             var result = _groceryManager.CreateGroceryList(accountId);
 
             _testOutputHelper.WriteLine("GroceryListDto:");
@@ -118,7 +115,6 @@ namespace BL.Testing
                 _testOutputHelper.WriteLine($"Ingredient: {ingredient.Ingredient.IngredientName}, Quantity: {ingredient.Quantity}");
             }
             
-            // Assert
             Assert.NotNull(result);
             _mockAccountRepository.Verify(repo => repo.ReadAccount(accountId), Times.Once);
             _mockMealPlannerRepository.Verify(repo => repo.ReadMealPlannerById(accountId), Times.Once);
@@ -132,16 +128,14 @@ namespace BL.Testing
             var accountId = Guid.NewGuid();
             _mockAccountRepository
                 .Setup(repo => repo.ReadAccount(accountId))
-                .Returns((Account)null); // Mock account not found
+                .Returns((Account)null);
 
-            // Act & Assert
             Assert.Throws<Exception>(() => _groceryManager.CreateGroceryList(accountId));
         }
 
         [Fact]
         public void CreateGroceryList_ShouldThrowException_WhenNoPlannedMeals()
         {
-            // Arrange
             var accountId = Guid.NewGuid();
             var account = CreateSampleAccount(accountId);
             var mealPlanner = new MealPlanner(); // No planned meals
@@ -154,7 +148,6 @@ namespace BL.Testing
                 .Setup(repo => repo.ReadMealPlannerById(accountId))
                 .Returns(mealPlanner);
 
-            // Act & Assert
             Assert.Throws<Exception>(() => _groceryManager.CreateGroceryList(accountId));
         }
     }
