@@ -20,7 +20,7 @@ public class RecipeController : ControllerBase
         _logger = logger;
         _recipeManager = recipeManager;
     }
-
+    
     [HttpGet("{id}")]
     public IActionResult GetRecipeById(string id)
     {
@@ -88,6 +88,7 @@ public class RecipeController : ControllerBase
     }
     
     [HttpPost("BatchCreate")]
+    [AllowAnonymous]
     public async Task<IActionResult> BatchCreateRecipes()
     {
         using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
