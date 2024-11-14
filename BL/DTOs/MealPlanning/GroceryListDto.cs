@@ -12,7 +12,7 @@ public class GroceryListDto
     
     public AccountDto Account { get; set; }
 
-    public List<IngredientQuantity> Ingredients { get; set; } = new List<IngredientQuantity>();
+    public List<IngredientQuantityDto> Ingredients { get; set; } = new List<IngredientQuantityDto>();
 
     // Navigation property omitted as it is not needed for the DTO
 }

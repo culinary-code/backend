@@ -290,8 +290,8 @@ internal static class CulinaryCodeDbInitializer
         {
             Ingredients = new List<IngredientQuantity>
             {
-                new IngredientQuantity { Ingredient = ingredient1, Quantity = 1 },
-                new IngredientQuantity { Ingredient = ingredient2, Quantity = 150 }
+                new IngredientQuantity { Ingredient = ingredient11, Quantity = 1 },
+                new IngredientQuantity { Ingredient = ingredient22, Quantity = 150 }
             }
         };
         
@@ -301,8 +301,8 @@ internal static class CulinaryCodeDbInitializer
         {
             Ingredients = new List<IngredientQuantity>
             {
-                new IngredientQuantity { Ingredient = ingredient1, Quantity = 2 },
-                new IngredientQuantity { Ingredient = ingredient2, Quantity = 100 }
+                new IngredientQuantity { Ingredient = ingredient11, Quantity = 2 },
+                new IngredientQuantity { Ingredient = ingredient22, Quantity = 100 }
             }
         };
         
@@ -316,6 +316,16 @@ internal static class CulinaryCodeDbInitializer
         };
         
         context.MealPlanners.Add(mealPlanner);
+
+        GroceryList groceryList = new GroceryList
+        {
+            GroceryListId = Guid.NewGuid(),
+            Ingredients = meal1.Ingredients,
+            Account = account1,
+        };
+        
+        context.GroceryLists.Add(groceryList);
+        account1.GroceryList = groceryList;
         
         // Einde Testcode Boodschappenlijst
         

@@ -50,11 +50,16 @@ public class GroceryManager : IGroceryManager
         var arrangedIngredients = allIngredientQuantities
             .Where(iq => iq.Ingredient != null)
             .GroupBy(iq => iq.Ingredient.IngredientId)
-            .Select(group => new IngredientQuantity
+            .Select(group => new IngredientQuantityDto()
             {
                 IngredientQuantityId = Guid.NewGuid(),
                 Quantity = group.Sum(ingredientQuantity => ingredientQuantity.Quantity),
-                Ingredient = group.First().Ingredient
+                Ingredient = new IngredientDto()
+                {
+                    IngredientId = group.First().Ingredient.IngredientId,
+                    IngredientName = group.First().Ingredient.IngredientName,
+                    Measurement = group.First().Ingredient.Measurement
+                }
             })
             .ToList();
         
