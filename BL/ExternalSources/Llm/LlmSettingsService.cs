@@ -90,17 +90,20 @@ public class LlmSettingsService
                           - `"cookingTime"`: Estimated cooking time (in minutes). Return only the numerical value.
                           - `"difficulty"`: Difficulty level (e.g., "Easy", "Medium", "Hard").
                           - `"recipeSteps"`: Step-by-step instructions for preparing the dish.
+                          - Always keep the key values in the English term, conforming to the JSON schema, only translate the value to the user's preferred language.
 
                        5. **Handling Invalid Ingredients or Recipes**:
                           - If any ingredient or recipe is deemed non-edible, return `"NOT_POSSIBLE with this reason {reason}"`.
                           - If a user requests an impractical or illogical combination of ingredients, the recipe should also be rejected with `"NOT_POSSIBLE with this reason {reason}"`.
                           - Any recipe that is deemed not possible, ensure the reason after NOT_POSSIBLE is in the user's requested language.
+                          - The user's preferred language is Dutch.
 
                        6. **General Rules**:
                           - Make sure to provide values for all required fields in the JSON schema.
                           - Use only proper quotation marks for JSON and escape any necessary characters (like quotes within strings). 
                           - Never add any additional text or information outside the JSON format, or comments within the JSON.
                           - Never add any dots or slashes in the measurementType enum values.
+                          - Always try to avoid single quote characters in values.
                           
                        This is the JSON schema:
 
