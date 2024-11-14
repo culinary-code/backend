@@ -1,10 +1,11 @@
 ﻿using System;
+using DOM.Accounts;
 
 namespace DAL.Accounts;
 
 public interface IAccountRepository
 {
-    DOM.Accounts.Account ReadAccount(Guid id);
-    void UpdateAccount(DOM.Accounts.Account account);
-    void CreateAccount(DOM.Accounts.Account account);
+    Account ReadAccount(Guid id);
+    void UpdateAccount(Account account);
+    void CreateAccount(Account account);
 }

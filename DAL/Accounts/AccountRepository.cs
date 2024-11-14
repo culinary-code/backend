@@ -1,5 +1,6 @@
 ﻿using System;
 using DAL.EF;
+using DOM.Accounts;
 using DOM.Exceptions;
 
 namespace DAL.Accounts;
@@ -15,9 +16,9 @@ public class AccountRepository : IAccountRepository
     }
 
 
-    public DOM.Accounts.Account ReadAccount(Guid id)
+    public Account ReadAccount(Guid id)
     {
-        DOM.Accounts.Account? account = _ctx.Accounts.Find(id);
+        Account? account = _ctx.Accounts.Find(id);
         if (account == null)
         {
             throw new AccountNotFoundException("Account not found");
@@ -25,13 +26,13 @@ public class AccountRepository : IAccountRepository
         return account;
     }
 
-    public void UpdateAccount(DOM.Accounts.Account account)
+    public void UpdateAccount(Account account)
     {
         _ctx.Accounts.Update(account);
         _ctx.SaveChanges();    
     }
 
-    public void CreateAccount(DOM.Accounts.Account account)
+    public void CreateAccount(Account account)
     {
         _ctx.Accounts.Add(account);
         _ctx.SaveChanges(); 
