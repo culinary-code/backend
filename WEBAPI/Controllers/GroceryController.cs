@@ -1,6 +1,7 @@
-﻿using BL.DTOs.MealPlanning;
+﻿using AutoMapper;
+using BL.DTOs.MealPlanning;
+using BL.DTOs.Recipes.Ingredients;
 using BL.Managers.Groceries;
-using DOM.MealPlanning;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WEBAPI.Controllers;
@@ -10,6 +11,7 @@ namespace WEBAPI.Controllers;
 public class GroceryController : ControllerBase
 {
     private readonly IGroceryManager _groceryManager;
+    private readonly IMapper _mapper;
 
     public GroceryController(IGroceryManager groceryManager)
     {
@@ -27,6 +29,29 @@ public class GroceryController : ControllerBase
         catch (Exception e)
         {
             return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost("{groceryListId}/add-item")]
+    public IActionResult AddItemToGroceryList(Guid groceryListId, [FromBody] ItemQuantityDto addItemDto)
+    {
+        if (addItemDto == null)
+        {
+            return BadRequest("ItemQuantityDto is required.");
+        }
+
+        try
+        {
+            _groceryManager.AddItemToGroceryList(groceryListId, addItemDto);
+            return Ok("Item added to the grocery list.");
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message); 
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 }

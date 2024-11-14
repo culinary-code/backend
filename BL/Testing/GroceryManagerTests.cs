@@ -138,7 +138,7 @@ namespace BL.Testing
         {
             var accountId = Guid.NewGuid();
             var account = CreateSampleAccount(accountId);
-            var mealPlanner = new MealPlanner(); // No planned meals
+            var mealPlanner = new MealPlanner(); 
 
             _mockAccountRepository
                 .Setup(repo => repo.ReadAccount(accountId))
@@ -150,5 +150,64 @@ namespace BL.Testing
 
             Assert.Throws<Exception>(() => _groceryManager.CreateGroceryList(accountId));
         }
+        
+        [Fact]
+        public void AddItemToGroceryList_ShouldAddItem_WhenValidItemIsProvided()
+        {
+            var accountId = Guid.NewGuid();
+            var account = CreateSampleAccount(accountId);
+            var mealPlanner = CreateSampleMealPlanner();
+            
+            var ingredient = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Potato", Measurement = MeasurementType.Kilogram };
+            var groceryList = new GroceryList
+            {
+                GroceryListId = Guid.NewGuid(),
+                Account = account,
+                Ingredients = new List<IngredientQuantity>
+                {
+                    new IngredientQuantity { Ingredient = ingredient, Quantity = 1 }
+                }
+            };
+            
+            _testOutputHelper.WriteLine($"Initial Grocery List (ID: {groceryList.GroceryListId}):");
+            foreach (var item in groceryList.Ingredients)
+            {
+                _testOutputHelper.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
+            }
+            
+            _mockAccountRepository.Setup(repo => repo.ReadAccount(accountId)).Returns(account);
+            _mockMealPlannerRepository.Setup(repo => repo.ReadMealPlannerById(accountId)).Returns(mealPlanner);
+            _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(accountId)).Returns(groceryList);
+            _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(groceryList.GroceryListId)).Returns(groceryList);
+
+            var addItemDto = new ItemQuantityDto
+            {
+                Ingredient = new IngredientDto
+                {
+                    IngredientId = ingredient.IngredientId,
+                    IngredientName = ingredient.IngredientName,
+                    Measurement = ingredient.Measurement
+                },
+                Quantity = 2
+            };
+
+            _groceryManager.AddItemToGroceryList(groceryList.GroceryListId, addItemDto);
+            
+            _testOutputHelper.WriteLine($"Updated Grocery List (ID: {groceryList.GroceryListId}):");
+            foreach (var item in groceryList.Ingredients)
+            {
+                _testOutputHelper.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
+            }
+            
+            foreach (var item in groceryList.Items)
+            {
+                _testOutputHelper.WriteLine($"- Item: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
+            }
+            
+            var updatedGroceryList = groceryList.Ingredients.FirstOrDefault(i => i.Ingredient.IngredientId == ingredient.IngredientId);
+            Assert.NotNull(updatedGroceryList);
+            Assert.Equal(3, updatedGroceryList.Quantity);
+        }
+
     }
 }

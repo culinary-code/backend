@@ -327,6 +327,51 @@ internal static class CulinaryCodeDbInitializer
         context.GroceryLists.Add(groceryList);
         account1.GroceryList = groceryList;
         
+        // Test adding item to GroceryList
+        
+        var ingredient = new Ingredient { IngredientId = Guid.Parse("351934e5-c237-4069-a6f7-be572cb809c4"), IngredientName = "Apple", Measurement = MeasurementType.Gram };
+        var newIngredient = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Potato", Measurement = MeasurementType.Kilogram };
+
+        
+        var addItem = new ItemQuantity
+        {
+            Ingredient = new Ingredient
+            {
+                IngredientId = ingredient.IngredientId,
+                IngredientName = ingredient.IngredientName,
+                Measurement = ingredient.Measurement
+            },
+            GroceryList = groceryList,
+            Quantity = 2
+        };
+        
+        var addNewItem = new ItemQuantity
+        {
+            Ingredient = new Ingredient
+            {
+                IngredientId = newIngredient.IngredientId,
+                IngredientName = newIngredient.IngredientName,
+                Measurement = newIngredient.Measurement
+            },
+            GroceryList = groceryList,
+            Quantity = 2
+        };
+        
+        context.ItemQuantities.Add(addItem);
+        context.ItemQuantities.Add(addNewItem);
+        context.GroceryLists.Add(groceryList);
+        
+        foreach (var item in groceryList.Items)
+        {
+            Console.WriteLine($"- Item: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}, {item.GroceryList.GroceryListId}");
+        }
+
+        foreach (var item in groceryList.Ingredients)
+        {
+            Console.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}, {item.GroceryList.GroceryListId}");
+        }
+
+        
         // Einde Testcode Boodschappenlijst
         
         // Save changes

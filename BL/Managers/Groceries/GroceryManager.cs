@@ -26,6 +26,13 @@ public class GroceryManager : IGroceryManager
         _mealPlannerRepository = mealPlannerRepository;
     }
 
+    public GroceryListDto GetGroceryListById(string id)
+    {
+        Guid parseGuid = Guid.Parse(id);
+        var GroceryList = _groceryRepository.ReadGroceryListById(parseGuid);
+        return _mapper.Map<GroceryListDto>(GroceryList);
+    }
+
     public GroceryListDto CreateGroceryList(Guid accountId)
     {
         var account = _accountRepository.ReadAccount(accountId);
@@ -62,21 +69,8 @@ public class GroceryManager : IGroceryManager
                 }
             })
             .ToList();
-        
-        var items = arrangedIngredients
-            .Select(iq => new ItemQuantityDto
-            {
-                IngredientQuantityId = iq.IngredientQuantityId,
-                Quantity = iq.Quantity,
-                Ingredient = new IngredientDto
-                {
-                    IngredientId = iq.Ingredient.IngredientId,
-                    IngredientName = iq.Ingredient.IngredientName,
-                    Measurement = iq.Ingredient.Measurement
-                }
-            })
-            .ToList();
 
+        var items = new List<ItemQuantityDto>();
         
         var groceryListDto = new GroceryListDto
         {
@@ -96,6 +90,7 @@ public class GroceryManager : IGroceryManager
         {
             GroceryListId = groceryListDto.GroceryListId,
             Account = account,
+            Items = new List<ItemQuantity>(),
             Ingredients = arrangedIngredients.Select(iq => new IngredientQuantity
             {
                 IngredientQuantityId = iq.IngredientQuantityId,
@@ -109,14 +104,50 @@ public class GroceryManager : IGroceryManager
             }).ToList(),
         };
         
-        Console.WriteLine($"Arranged Ingredients Count: {arrangedIngredients.Count}");
-        foreach (var ingredient in arrangedIngredients)
-        {
-            Console.WriteLine($"Ingredient: {ingredient.Ingredient?.IngredientName}, Quantity: {ingredient.Quantity}");
-        }
-        
         _groceryRepository.CreateGroceryList(groceryList);
         
         return groceryListDto;
     }
+
+    public void AddItemToGroceryList(Guid groceryListId, ItemQuantityDto addItemDto)
+    {
+        var groceryList = _groceryRepository.ReadGroceryListById(groceryListId);
+
+        if (groceryList == null)
+        {
+            throw new ArgumentNullException(nameof(groceryList), "Grocery list not found");
+        }
+
+        var existingIngredient = groceryList.Ingredients
+            .FirstOrDefault(i => i.Ingredient.IngredientId == addItemDto.Ingredient.IngredientId);
+        
+        if (addItemDto == null || addItemDto.Ingredient == null)
+        {
+            throw new ArgumentException("Item details are missing or incorrect.");
+        }
+
+        if (existingIngredient != null)
+        {
+            existingIngredient.Quantity += addItemDto.Quantity;
+            _groceryRepository.UpdateGroceryList(groceryList);
+        }
+        else 
+        {
+            var newItem = new ItemQuantity
+            {
+                IngredientQuantityId = Guid.NewGuid(),
+                Quantity = addItemDto.Quantity,
+                Ingredient = new Ingredient
+                {
+                    IngredientId = addItemDto.Ingredient.IngredientId,
+                    IngredientName = addItemDto.Ingredient.IngredientName,
+                    Measurement = addItemDto.Ingredient.Measurement
+                }
+            };
+            groceryList.Items = groceryList.Items.Append(newItem).ToList();
+        }
+        _groceryRepository.UpdateGroceryList(groceryList);
+    }
+
+
 }

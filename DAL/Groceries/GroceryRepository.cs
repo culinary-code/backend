@@ -14,6 +14,20 @@ public class GroceryRepository : IGroceryRepository
         _ctx = ctx;
     }
 
+    public GroceryList ReadGroceryListById(Guid id)
+    {
+        GroceryList? groceryList = _ctx.GroceryLists
+            .Include(gl => gl.Ingredients)
+            .Include(gl => gl.Items)
+            .Include(gl => gl.Account)
+            .FirstOrDefault(gl => gl.GroceryListId == id);
+        if (groceryList == null)
+        {
+            throw new KeyNotFoundException();
+        }
+        return groceryList;
+    }
+
     public void CreateGroceryList(GroceryList groceryList)
     {
         var savedGroceryList = _ctx.GroceryLists
@@ -26,5 +40,11 @@ public class GroceryRepository : IGroceryRepository
         {
             Console.WriteLine($"Saved Ingredient: {ingredient.Ingredient?.IngredientName}, Quantity: {ingredient.Quantity}");
         }
+    }
+
+    public void UpdateGroceryList(GroceryList groceryList)
+    { 
+        _ctx.GroceryLists.Update(groceryList);
+        _ctx.SaveChanges();
     }
 }
