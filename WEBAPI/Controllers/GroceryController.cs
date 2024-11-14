@@ -33,16 +33,16 @@ public class GroceryController : ControllerBase
     }
 
     [HttpPost("{groceryListId}/add-item")]
-    public IActionResult AddItemToGroceryList(Guid groceryListId, [FromBody] ItemQuantityDto addItemDto)
+    public IActionResult AddItemToGroceryList(Guid groceryListId, [FromBody] ItemQuantityDto newItem)
     {
-        if (addItemDto == null)
+        if (newItem == null)
         {
             return BadRequest("ItemQuantityDto is required.");
         }
 
         try
         {
-            _groceryManager.AddItemToGroceryList(groceryListId, addItemDto);
+            _groceryManager.AddItemToGroceryList(groceryListId, newItem);
             return Ok("Item added to the grocery list.");
         }
         catch (KeyNotFoundException ex)
