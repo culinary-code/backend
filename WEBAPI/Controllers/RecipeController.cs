@@ -9,7 +9,6 @@ namespace WEBAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize]
 public class RecipeController : ControllerBase
 {
     private readonly ILogger<RecipeController> _logger;
@@ -20,7 +19,8 @@ public class RecipeController : ControllerBase
         _logger = logger;
         _recipeManager = recipeManager;
     }
-
+    
+    [Authorize]
     [HttpGet("{id}")]
     public IActionResult GetRecipeById(string id)
     {
@@ -36,6 +36,7 @@ public class RecipeController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpGet("ByName/{name}")]
     public IActionResult GetRecipeByName(string name)
     {
@@ -51,6 +52,7 @@ public class RecipeController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpGet("Collection/ByName/{name}")]
     public IActionResult GetRecipeCollectionByName(string name)
     {
@@ -66,6 +68,7 @@ public class RecipeController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPost("Create")]
     public IActionResult CreateRecipe([FromBody] CreateRecipeDto createRecipeDto)
     {
