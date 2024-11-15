@@ -270,16 +270,6 @@ internal static class CulinaryCodeDbInitializer
         context.Recipes.Add(recipe3); 
         
         // Testcode Boodschappenlijst
-
-        Account account1 = new Account
-        {
-            AccountId = Guid.Parse("6ceed686-8784-4386-9a0b-899dd7fde3e3"),
-            Name = "nis",
-            Email = "nis@n.n",
-            FamilySize = 4
-        };
-        
-        context.Accounts.Add(account1);
         
         var ingredient11 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Wortel", Measurement = MeasurementType.Kilogram };
         var ingredient22 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Appel", Measurement = MeasurementType.Gram };
@@ -307,7 +297,30 @@ internal static class CulinaryCodeDbInitializer
             }
         };
         
+        GroceryList groceryList = new GroceryList
+                {
+                    GroceryListId = Guid.NewGuid(),
+                    Ingredients = meal1.Ingredients,
+                    //Account = account1,
+                };
+                
+                context.GroceryLists.Add(groceryList);
+                
+                
         context.PlannedMeals.Add(meal2);
+        
+        Account account1 = new Account
+                {
+                    AccountId = Guid.Parse("6ceed686-8784-4386-9a0b-899dd7fde3e3"),
+                    Name = "nis",
+                    Email = "nis@n.n",
+                    FamilySize = 4,
+                    GroceryList = groceryList
+                };
+        
+        context.Accounts.Add(account1);
+        account1.GroceryList = groceryList;
+
         
         MealPlanner mealPlanner = new MealPlanner
         {
@@ -317,17 +330,7 @@ internal static class CulinaryCodeDbInitializer
         };
         
         context.MealPlanners.Add(mealPlanner);
-
-        GroceryList groceryList = new GroceryList
-        {
-            GroceryListId = Guid.NewGuid(),
-            Ingredients = meal1.Ingredients,
-            Account = account1,
-        };
-        
-        context.GroceryLists.Add(groceryList);
-        account1.GroceryList = groceryList;
-        
+        context.Accounts.Add(account1);
         // Test adding item to GroceryList
         
         var ingredient = new Ingredient { IngredientId = Guid.Parse("351934e5-c237-4069-a6f7-be572cb809c4"), IngredientName = "Appel", Measurement = MeasurementType.Gram };
