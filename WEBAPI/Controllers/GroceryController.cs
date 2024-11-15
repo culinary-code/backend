@@ -2,6 +2,8 @@
 using BL.DTOs.MealPlanning;
 using BL.DTOs.Recipes.Ingredients;
 using BL.Managers.Groceries;
+using DOM.Exceptions;
+using DOM.MealPlanning;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WEBAPI.Controllers;
@@ -36,6 +38,21 @@ public class GroceryController : ControllerBase
         }
     }
 
+    [HttpPost("/add-grocery-list/{accountId}")]
+    public IActionResult CreateNewGroceryList([FromBody] GroceryList groceryList)
+    {
+        try
+        {
+            _groceryManager.CreateNewGroceryList(groceryList);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("An error occured while creating grocerylist: {ErrorMessage}", e.Message);
+            return BadRequest("Failed to create new grocery list.");
+        }
+    }
+
     [HttpPost("{groceryListId}/add-item")]
     public IActionResult AddItemToGroceryList(Guid groceryListId, [FromBody] ItemQuantityDto newItem)
     {
@@ -51,14 +68,9 @@ public class GroceryController : ControllerBase
             _logger.LogInformation("Item added to grocery list.");
             return Ok($"{newItem} added to {groceryListId} grocery list.");
         }
-        catch (KeyNotFoundException ex)
+        catch (GroceryListNotFoundException ex)
         {
-            _logger.LogError($"Item was not found for {groceryListId}");
-            return NotFound(ex.Message); 
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Item was not found for {groceryListId}");
+            _logger.LogError($"Grocery list was not found for {groceryListId}");
             return BadRequest(ex.Message);
         }
     }
