@@ -121,7 +121,6 @@ public class GroceryManager : IGroceryManager
         if (existingIngredient != null)
         {
             existingIngredient.Quantity += newListItem.Quantity;
-            //_groceryRepository.UpdateGroceryList(groceryList);
             _logger.LogInformation($"{existingIngredient} has been updated");
         }
         else 
@@ -141,54 +140,6 @@ public class GroceryManager : IGroceryManager
         _groceryRepository.UpdateGroceryList(groceryList);
         _logger.LogInformation(newListItem.Ingredient.IngredientId + " has been added to grocery list");
     }
-
-   /* public void CreateNewGroceryList(GroceryList groceryList)
-    {
-        groceryList = new GroceryList();
-        _groceryRepository.CreateGroceryList(groceryList);
-    }
-
-    public void AddItemToGroceryList(Guid groceryListId, ItemQuantityDto newListItem)
-    {
-        if (newListItem == null || newListItem.Ingredient == null)
-        {
-            throw new GroceryListNotFoundException("New item is empty");
-        }
-        
-        var groceryList = _groceryRepository.ReadGroceryListById(groceryListId);
-
-        if (groceryList == null)
-        {
-            throw new GroceryListNotFoundException("Grocery list not found!");
-        }
-
-        var existingIngredient = groceryList.Ingredients
-            .FirstOrDefault(i => i.Ingredient.IngredientId == newListItem.Ingredient.IngredientId || i.Ingredient.IngredientName == newListItem.Ingredient.IngredientName);
-
-        if (existingIngredient != null)
-        {
-            existingIngredient.Quantity += newListItem.Quantity;
-            _groceryRepository.UpdateGroceryList(groceryList);
-            _logger.LogInformation($"{existingIngredient} has been updated");
-        }
-        else 
-        {
-            var newItem = new ItemQuantity
-            {
-                IngredientQuantityId = Guid.NewGuid(),
-                Quantity = newListItem.Quantity,
-                Ingredient = new Ingredient
-                {
-                    IngredientId = newListItem.Ingredient.IngredientId,
-                    IngredientName = newListItem.Ingredient.IngredientName,
-                    Measurement = newListItem.Ingredient.Measurement
-                }
-            };
-            groceryList.Items = groceryList.Items.Append(newItem).ToList();
-        }
-        _groceryRepository.UpdateGroceryList(groceryList);
-        _logger.LogInformation(newListItem.Ingredient.IngredientId + " has been added to grocery list");
-    }*/
 
     public GroceryListDto? UpdateGroceryList(Guid accountId, GroceryListDto groceryList)
     {

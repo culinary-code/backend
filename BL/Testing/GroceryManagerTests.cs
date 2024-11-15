@@ -166,7 +166,6 @@ namespace BL.Testing
         [Fact]
         public void CreateGroceryList_ShouldThrowException_WhenAccountIsNotFound()
         {
-            // Arrange
             var accountId = Guid.NewGuid();
             _mockAccountRepository
                 .Setup(repo => repo.ReadAccount(accountId))
@@ -310,7 +309,6 @@ namespace BL.Testing
             var existingIngredientInIngredients = groceryList.Ingredients.FirstOrDefault(i => i.Ingredient.IngredientId == newIngredient.IngredientId);
             Assert.Null(existingIngredientInIngredients);
         }
-
         
         [Fact]
         public void AddItemToGroceryList_ShouldAddItem_WhenValidItemIsProvided()
