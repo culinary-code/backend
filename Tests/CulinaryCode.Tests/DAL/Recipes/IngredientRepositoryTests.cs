@@ -22,16 +22,21 @@ public class IngredientRepositoryTests
         _ingredientRepository = new IngredientRepository(_dbContext);
     }
     
-    [Fact]
-    public void ReadIngredientById_IngredientExists_ReturnsIngredient()
+    private Ingredient CreateIngredient()
     {
-        // Arrange
-        var ingredient = new Ingredient
+        return new Ingredient
         {
             IngredientId = Guid.NewGuid(),
             IngredientName = "Test Ingredient",
             Measurement = MeasurementType.Gram
         };
+    }
+    
+    [Fact]
+    public void ReadIngredientById_IngredientExists_ReturnsIngredient()
+    {
+        // Arrange
+        var ingredient = CreateIngredient();
         _dbContext.Ingredients.Add(ingredient);
         _dbContext.SaveChanges();
         
@@ -58,12 +63,7 @@ public class IngredientRepositoryTests
     public void ReadIngredientByName_IngredientExists_ReturnsIngredient()
     {
         // Arrange
-        var ingredient = new Ingredient
-        {
-            IngredientId = Guid.NewGuid(),
-            IngredientName = "Test Ingredient",
-            Measurement = MeasurementType.Gram
-        };
+        var ingredient = CreateIngredient();
         _dbContext.Ingredients.Add(ingredient);
         _dbContext.SaveChanges();
         
@@ -90,12 +90,7 @@ public class IngredientRepositoryTests
     public void ReadIngredientByNameAndMeasurementType_IngredientExists_ReturnsIngredient()
     {
         // Arrange
-        var ingredient = new Ingredient
-        {
-            IngredientId = Guid.NewGuid(),
-            IngredientName = "Test Ingredient",
-            Measurement = MeasurementType.Gram
-        };
+        var ingredient = CreateIngredient();
         _dbContext.Ingredients.Add(ingredient);
         _dbContext.SaveChanges();
         
@@ -124,12 +119,7 @@ public class IngredientRepositoryTests
     public void CreateIngredient_IngredientDoesNotExist_CreatesIngredient()
     {
         // Arrange
-        var ingredient = new Ingredient
-        {
-            IngredientId = Guid.NewGuid(),
-            IngredientName = "Test Ingredient",
-            Measurement = MeasurementType.Gram
-        };
+        var ingredient = CreateIngredient();
         
         // Act
         _ingredientRepository.CreateIngredient(ingredient);
@@ -146,12 +136,7 @@ public class IngredientRepositoryTests
     public void UpdateIngredient_IngredientExists_UpdatesIngredient()
     {
         // Arrange
-        var ingredient = new Ingredient
-        {
-            IngredientId = Guid.NewGuid(),
-            IngredientName = "Test Ingredient",
-            Measurement = MeasurementType.Gram
-        };
+        var ingredient = CreateIngredient();
         _dbContext.Ingredients.Add(ingredient);
         _dbContext.SaveChanges();
         
