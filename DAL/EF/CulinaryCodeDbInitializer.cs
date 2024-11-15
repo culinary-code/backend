@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.Design;
 using DAL.Groceries;
 using DOM.Accounts;
 using DOM.MealPlanning;
@@ -331,7 +332,56 @@ internal static class CulinaryCodeDbInitializer
         
         var ingredient = new Ingredient { IngredientId = Guid.Parse("351934e5-c237-4069-a6f7-be572cb809c4"), IngredientName = "Appel", Measurement = MeasurementType.Gram };
         var newIngredient = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Aardappel", Measurement = MeasurementType.Kilogram };
+        var newItem = new GroceryItem { GroceryItemId = Guid.NewGuid(), GroceryItemName = "Waspoeder" };
 
+        var addItem = new ItemQuantity
+        {
+            GroceryItem = new GroceryItem
+            {
+                GroceryItemId = ingredient.IngredientId,
+                GroceryItemName = ingredient.IngredientName,
+            },
+            GroceryList = groceryList,
+            Quantity = 2
+        };
+        
+        var addNewItem = new ItemQuantity
+        {
+            GroceryItem = new GroceryItem
+            {
+                GroceryItemId = newIngredient.IngredientId,
+                GroceryItemName = newIngredient.IngredientName,
+            },
+            GroceryList = groceryList,
+            Quantity = 2
+        };
+        
+        var addNewItem2 = new ItemQuantity
+        {
+            GroceryItem = new GroceryItem
+            {
+                GroceryItemId = newItem.GroceryItemId,
+                GroceryItemName = newItem.GroceryItemName,
+            },
+            GroceryList = groceryList,
+            Quantity = 7
+        };
+        
+        context.ItemQuantities.Add(addItem);
+        context.ItemQuantities.Add(addNewItem);
+        context.ItemQuantities.Add(addNewItem2);
+        context.GroceryLists.Add(groceryList);
+        
+        foreach (var item in groceryList.Items)
+        {
+            Console.WriteLine("KIP");
+            Console.WriteLine($"- Item: {item.GroceryItem.GroceryItemName}, Quantity: {item.Quantity}, {item.GroceryList.GroceryListId}");
+        }
+
+        foreach (var item in groceryList.Ingredients)
+        {
+            Console.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}, {item.GroceryList.GroceryListId}");
+        }
         
        /* var addItem = new ItemQuantity
         {
@@ -364,13 +414,13 @@ internal static class CulinaryCodeDbInitializer
         foreach (var item in groceryList.Items)
         {
             Console.WriteLine($"- Item: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}, {item.GroceryList.GroceryListId}");
-        }*/
+        }
 
         foreach (var item in groceryList.Ingredients)
         {
             Console.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}, {item.GroceryList.GroceryListId}");
         }
-
+*/
         
         // Einde Testcode Boodschappenlijst
         

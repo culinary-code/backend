@@ -119,6 +119,7 @@ namespace BL.Testing
 
             _mockAccountRepository.Object.CreateAccount(account);
             _mockAccountRepository.Verify(repo => repo.CreateAccount(It.IsAny<Account>()), Times.Once);
+
             _testOutputHelper.WriteLine($"Account ID: {account.AccountId} created with Grocery List ID: {account.GroceryList.GroceryListId}");
         }
 
@@ -193,7 +194,7 @@ namespace BL.Testing
         }
 
 
-    /*    [Fact]
+        [Fact]
         public void AddItemToGroceryList_ShouldAddNewItem_WhenItemIsNotInGroceryList()
         {
             var accountId = Guid.NewGuid();
@@ -265,19 +266,22 @@ namespace BL.Testing
             _testOutputHelper.WriteLine("Initial Grocery List items:");
             foreach (var item in groceryList.Items)
             {
-                _testOutputHelper.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
+                //_testOutputHelper.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
+                _testOutputHelper.WriteLine($"- Item: {item.GroceryItem.GroceryItemName}, Quantity: {item.Quantity}");
             }
             
             _groceryManager.AddItemToGroceryList(groceryList.GroceryListId, addItemDto);
             _groceryManager.AddItemToGroceryList(groceryList.GroceryListId, addItemDto2);
             _groceryManager.AddItemToGroceryList(groceryList.GroceryListId, addItemDto3);
             
-            var addedItem = groceryList.Items.FirstOrDefault(i => i.Ingredient.IngredientId == newIngredient.IngredientId);
+            //var addedItem = groceryList.Items.FirstOrDefault(i => i.Ingredient.IngredientId == newIngredient.IngredientId);
+            var addedItem = groceryList.Items.FirstOrDefault(i => i.GroceryItem.GroceryItemId == newIngredient.IngredientId);
             
             _testOutputHelper.WriteLine("Updated Grocery ListItems:");
             foreach (var item in groceryList.Items)
             {
-                _testOutputHelper.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
+                //_testOutputHelper.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
+                _testOutputHelper.WriteLine($"- Item: {item.GroceryItem.GroceryItemName}, Quantity: {item.Quantity}");
             }
             
             _testOutputHelper.WriteLine("After Grocery ListIngredients:");
@@ -292,7 +296,7 @@ namespace BL.Testing
             var existingIngredientInIngredients = groceryList.Ingredients.FirstOrDefault(i => i.Ingredient.IngredientId == newIngredient.IngredientId);
             Assert.Null(existingIngredientInIngredients);
         }
-*/
+
         
         [Fact]
         public void AddItemToGroceryList_ShouldAddItem_WhenValidItemIsProvided()
@@ -339,13 +343,14 @@ namespace BL.Testing
             _testOutputHelper.WriteLine($"Updated Grocery List (ID: {groceryList.GroceryListId}):");
             foreach (var item in groceryList.Ingredients)
             {
-                _testOutputHelper.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
+                _testOutputHelper.WriteLine($"- Item: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
             }
             
             _testOutputHelper.WriteLine($"Test Grocery List (ID: {groceryList.GroceryListId}):");
             foreach (var item in groceryList.Items)
             {
                // _testOutputHelper.WriteLine($"- Item: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
+                _testOutputHelper.WriteLine($"- Item: {item.GroceryItem.GroceryItemName}, Quantity: {item.Quantity}");
             }
             
             var updatedGroceryList = groceryList.Ingredients.FirstOrDefault(i => i.Ingredient.IngredientId == ingredient.IngredientId);

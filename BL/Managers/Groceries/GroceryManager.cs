@@ -121,7 +121,7 @@ public class GroceryManager : IGroceryManager
         if (existingIngredient != null)
         {
             existingIngredient.Quantity += newListItem.Quantity;
-            _groceryRepository.UpdateGroceryList(groceryList);
+            //_groceryRepository.UpdateGroceryList(groceryList);
             _logger.LogInformation($"{existingIngredient} has been updated");
         }
         else 
