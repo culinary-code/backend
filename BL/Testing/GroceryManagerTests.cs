@@ -179,6 +179,7 @@ namespace BL.Testing
             
             var newIngredient = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Potato", Measurement = MeasurementType.Kilogram };
             var newIngredient2 = new Ingredient { IngredientId = ingredient1.IngredientId, IngredientName = "Carrot", Measurement = MeasurementType.Kilogram };
+            var newIngredient3 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Apple", Measurement = MeasurementType.Kilogram };
 
             var addItemDto = new ItemQuantityDto
             {
@@ -202,6 +203,17 @@ namespace BL.Testing
                 Quantity = 3
             };
             
+            var addItemDto3 = new ItemQuantityDto
+            {
+                Ingredient = new IngredientDto
+                {
+                    IngredientId = newIngredient3.IngredientId,
+                    IngredientName = newIngredient3.IngredientName,
+                    Measurement = newIngredient3.Measurement
+                },
+                Quantity = 111
+            };
+            
             _mockAccountRepository.Setup(repo => repo.ReadAccount(accountId)).Returns(account);
             _mockMealPlannerRepository.Setup(repo => repo.ReadMealPlannerById(accountId)).Returns(mealPlanner);
             _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(groceryList.GroceryListId)).Returns(groceryList);
@@ -220,6 +232,7 @@ namespace BL.Testing
             
             _groceryManager.AddItemToGroceryList(groceryList.GroceryListId, addItemDto);
             _groceryManager.AddItemToGroceryList(groceryList.GroceryListId, addItemDto2);
+            _groceryManager.AddItemToGroceryList(groceryList.GroceryListId, addItemDto3);
             
             var addedItem = groceryList.Items.FirstOrDefault(i => i.Ingredient.IngredientId == newIngredient.IngredientId);
             

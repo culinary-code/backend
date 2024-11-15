@@ -19,8 +19,7 @@ public class GroceryManager : IGroceryManager
     private readonly IMealPlannerRepository _mealPlannerRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<GroceryManager> _logger;
-
-
+    
     public GroceryManager(IGroceryRepository groceryRepository, IAccountRepository accountRepository, IMapper mapper, IMealPlannerRepository mealPlannerRepository, ILogger<GroceryManager> logger)
     {
         _groceryRepository = groceryRepository;
@@ -58,7 +57,7 @@ public class GroceryManager : IGroceryManager
             {
                 IngredientQuantityId = Guid.NewGuid(),
                 Quantity = group.Sum(ingredientQuantity => ingredientQuantity.Quantity),
-                Ingredient = new IngredientDto()
+                Ingredient = new IngredientDto
                 {
                     IngredientId = group.First().Ingredient.IngredientId,
                     IngredientName = group.First().Ingredient.IngredientName,
@@ -83,7 +82,7 @@ public class GroceryManager : IGroceryManager
             }
         };
 
-        GroceryList groceryList = new GroceryList()
+        GroceryList groceryList = new GroceryList
         {
             GroceryListId = groceryListDto.GroceryListId,
             Account = account,
@@ -105,7 +104,6 @@ public class GroceryManager : IGroceryManager
         _groceryRepository.CreateGroceryList(groceryList);
         return groceryListDto;
     }
-
     
     public void AddItemToGroceryList(Guid groceryListId, ItemQuantityDto newListItem)
     {
@@ -122,7 +120,7 @@ public class GroceryManager : IGroceryManager
         }
 
         var existingIngredient = groceryList.Ingredients
-            .FirstOrDefault(i => i.Ingredient.IngredientId == newListItem.Ingredient.IngredientId);
+            .FirstOrDefault(i => i.Ingredient.IngredientId == newListItem.Ingredient.IngredientId || i.Ingredient.IngredientName == newListItem.Ingredient.IngredientName);
 
         if (existingIngredient != null)
         {
