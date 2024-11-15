@@ -2,11 +2,11 @@
 using BL.Managers.Recipes;
 using DOM.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 using WEBAPI.Controllers;
-using Xunit;
 
-namespace WEBAPI.Testing;
+namespace CulinaryCode.Tests.WEBAPI;
 
 public class RecipeControllerTests
 {

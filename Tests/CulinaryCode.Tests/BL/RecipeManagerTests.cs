@@ -8,9 +8,8 @@ using DOM.Recipes;
 using DOM.Recipes.Ingredients;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
-namespace BL.Testing;
+namespace CulinaryCode.Tests.BL;
 
 public class RecipeManagerTests
 {
