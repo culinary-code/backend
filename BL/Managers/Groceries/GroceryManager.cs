@@ -8,6 +8,7 @@ using DAL.Recipes;
 using DOM.Exceptions;
 using DOM.MealPlanning;
 using DOM.Recipes.Ingredients;
+using Microsoft.Extensions.Logging;
 
 namespace BL.Managers.Groceries;
 
@@ -17,21 +18,16 @@ public class GroceryManager : IGroceryManager
     private readonly IAccountRepository _accountRepository;
     private readonly IMealPlannerRepository _mealPlannerRepository;
     private readonly IMapper _mapper;
+    private readonly ILogger<GroceryManager> _logger;
 
 
-    public GroceryManager(IGroceryRepository groceryRepository, IAccountRepository accountRepository, IMapper mapper, IMealPlannerRepository mealPlannerRepository)
+    public GroceryManager(IGroceryRepository groceryRepository, IAccountRepository accountRepository, IMapper mapper, IMealPlannerRepository mealPlannerRepository, ILogger<GroceryManager> logger)
     {
         _groceryRepository = groceryRepository;
         _accountRepository = accountRepository;
         _mapper = mapper;
         _mealPlannerRepository = mealPlannerRepository;
-    }
-
-    public GroceryListDto GetGroceryListById(string id)
-    {
-        Guid parseGuid = Guid.Parse(id);
-        var GroceryList = _groceryRepository.ReadGroceryListById(parseGuid);
-        return _mapper.Map<GroceryListDto>(GroceryList);
+        _logger = logger;
     }
 
     public GroceryListDto CreateGroceryList(Guid accountId)
@@ -40,14 +36,14 @@ public class GroceryManager : IGroceryManager
 
         if (account == null)
         {
-            throw new Exception("Account not found");
+            throw new AccountNotFoundException("Account not found");
         }
         
         var mealplanner = _mealPlannerRepository.ReadMealPlannerById(accountId);
         
         if (!mealplanner.NextWeek.Any())
         {
-            throw new Exception("No planned meals found for next week");
+            throw new MealPlannerNotFoundException("No planned meals found for next week");
         }
         
         var allIngredientQuantities = mealplanner.NextWeek
@@ -105,6 +101,7 @@ public class GroceryManager : IGroceryManager
             }).ToList(),
         };
         
+        _logger.LogInformation($"{groceryListDto.GroceryListId} has been added.");
         _groceryRepository.CreateGroceryList(groceryList);
         return groceryListDto;
     }
@@ -131,6 +128,7 @@ public class GroceryManager : IGroceryManager
         {
             existingIngredient.Quantity += newListItem.Quantity;
             _groceryRepository.UpdateGroceryList(groceryList);
+            _logger.LogInformation($"{existingIngredient} has been updated");
         }
         else 
         {
@@ -148,5 +146,6 @@ public class GroceryManager : IGroceryManager
             groceryList.Items = groceryList.Items.Append(newItem).ToList();
         }
         _groceryRepository.UpdateGroceryList(groceryList);
+        _logger.LogInformation(newListItem.Ingredient.IngredientId + " has been added to grocery list");
     }
 }

@@ -9,6 +9,8 @@ using Moq;
 using Xunit;
 using DAL.Accounts;
 using DOM.Accounts;
+using DOM.Exceptions;
+using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
 namespace BL.Testing
@@ -21,10 +23,12 @@ namespace BL.Testing
         private readonly Mock<IMealPlannerRepository> _mockMealPlannerRepository;
         private readonly Mock<IMapper> _mockMapper;
         private readonly GroceryManager _groceryManager;
+        private readonly Mock<ILogger<GroceryManager>> _mockLogger;
 
         public GroceryManagerTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
+            _mockLogger = new Mock<ILogger<GroceryManager>>();
             _mockGroceryRepository = new Mock<IGroceryRepository>();
             _mockAccountRepository = new Mock<IAccountRepository>();
             _mockMealPlannerRepository = new Mock<IMealPlannerRepository>();
@@ -34,7 +38,8 @@ namespace BL.Testing
                 _mockGroceryRepository.Object,
                 _mockAccountRepository.Object,
                 _mockMapper.Object,
-                _mockMealPlannerRepository.Object
+                _mockMealPlannerRepository.Object,
+                _mockLogger.Object
             );
         }
 
@@ -128,7 +133,7 @@ namespace BL.Testing
                 .Setup(repo => repo.ReadAccount(accountId))
                 .Returns((Account)null);
 
-            Assert.Throws<Exception>(() => _groceryManager.CreateGroceryList(accountId));
+            Assert.Throws<AccountNotFoundException>(() => _groceryManager.CreateGroceryList(accountId));
         }
 
         [Fact]
@@ -146,7 +151,7 @@ namespace BL.Testing
                 .Setup(repo => repo.ReadMealPlannerById(accountId))
                 .Returns(mealPlanner);
 
-            Assert.Throws<Exception>(() => _groceryManager.CreateGroceryList(accountId));
+            Assert.Throws<MealPlannerNotFoundException>(() => _groceryManager.CreateGroceryList(accountId));
         }
 
 
@@ -169,7 +174,7 @@ namespace BL.Testing
                     new IngredientQuantity { Ingredient = ingredient1, Quantity = 2 },
                     new IngredientQuantity { Ingredient = ingredient2, Quantity = 150 }
                 },
-                Items = new List<ItemQuantity>() // Start with an empty Items list
+                Items = new List<ItemQuantity>()
             };
             
             var newIngredient = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Potato", Measurement = MeasurementType.Kilogram };
