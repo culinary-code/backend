@@ -24,19 +24,24 @@ public class RecipeRepositoryTests
         _recipeRepository = new RecipeRepository(_dbContext);
     }
     
-    [Fact]
-    public void ReadRecipeById_RecipeExists_ReturnsRecipe()
+    private Recipe CreateRecipe(string recipeName = "Test Recipe")
     {
-        // Arrange
-        var recipe = new Recipe
+        return new Recipe
         {
             RecipeId = Guid.NewGuid(),
-            RecipeName = "Test Recipe",
+            RecipeName = recipeName,
             Ingredients = new List<IngredientQuantity>(),
             Instructions = new List<InstructionStep>(),
             Reviews = new List<Review>(),
             Preferences = new List<Preference>()
         };
+    }
+    
+    [Fact]
+    public void ReadRecipeById_RecipeExists_ReturnsRecipe()
+    {
+        // Arrange
+        var recipe = CreateRecipe();
         _dbContext.Recipes.Add(recipe);
         _dbContext.SaveChanges();
         
@@ -63,15 +68,7 @@ public class RecipeRepositoryTests
     public void ReadRecipeByName_RecipeExists_ReturnsRecipe()
     {
         // Arrange
-        var recipe = new Recipe
-        {
-            RecipeId = Guid.NewGuid(),
-            RecipeName = "Test Recipe",
-            Ingredients = new List<IngredientQuantity>(),
-            Instructions = new List<InstructionStep>(),
-            Reviews = new List<Review>(),
-            Preferences = new List<Preference>()
-        };
+        var recipe = CreateRecipe();
         _dbContext.Recipes.Add(recipe);
         _dbContext.SaveChanges();
         
@@ -98,24 +95,8 @@ public class RecipeRepositoryTests
     public void ReadRecipesCollectionByName_RecipesExist_ReturnsCollection()
     {
         // Arrange
-        var recipe1 = new Recipe
-        {
-            RecipeId = Guid.NewGuid(),
-            RecipeName = "Test Recipe 1",
-            Ingredients = new List<IngredientQuantity>(),
-            Instructions = new List<InstructionStep>(),
-            Reviews = new List<Review>(),
-            Preferences = new List<Preference>()
-        };
-        var recipe2 = new Recipe
-        {
-            RecipeId = Guid.NewGuid(),
-            RecipeName = "Test Recipe 2",
-            Ingredients = new List<IngredientQuantity>(),
-            Instructions = new List<InstructionStep>(),
-            Reviews = new List<Review>(),
-            Preferences = new List<Preference>()
-        };
+        var recipe1 = CreateRecipe("Test Recipe 1");
+        var recipe2 = CreateRecipe("Test Recipe 2");
         _dbContext.Recipes.Add(recipe1);
         _dbContext.Recipes.Add(recipe2);
         _dbContext.SaveChanges();
@@ -142,15 +123,7 @@ public class RecipeRepositoryTests
     public void CreateRecipe_ValidRecipe_CreatesRecipe()
     {
         // Arrange
-        var recipe = new Recipe
-        {
-            RecipeId = Guid.NewGuid(),
-            RecipeName = "Test Recipe",
-            Ingredients = new List<IngredientQuantity>(),
-            Instructions = new List<InstructionStep>(),
-            Reviews = new List<Review>(),
-            Preferences = new List<Preference>()
-        };
+        var recipe = CreateRecipe();
         
         // Act
         _recipeRepository.CreateRecipe(recipe);
@@ -166,15 +139,7 @@ public class RecipeRepositoryTests
     public void UpdateRecipe_ValidRecipe_UpdatesRecipe()
     {
         // Arrange
-        var recipe = new Recipe
-        {
-            RecipeId = Guid.NewGuid(),
-            RecipeName = "Test Recipe",
-            Ingredients = new List<IngredientQuantity>(),
-            Instructions = new List<InstructionStep>(),
-            Reviews = new List<Review>(),
-            Preferences = new List<Preference>()
-        };
+        var recipe = CreateRecipe();
         _dbContext.Recipes.Add(recipe);
         _dbContext.SaveChanges();
         
