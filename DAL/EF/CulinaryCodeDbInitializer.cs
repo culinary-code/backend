@@ -272,8 +272,8 @@ internal static class CulinaryCodeDbInitializer
 
         Account account1 = new Account
         {
-            AccountId = Guid.NewGuid(),
-            Name = "John Doe",
+            AccountId = Guid.Parse("6ceed686-8784-4386-9a0b-899dd7fde3e3"),
+            Name = "John",
             Email = "john.doe@example.com",
             FamilySize = 4
         };
