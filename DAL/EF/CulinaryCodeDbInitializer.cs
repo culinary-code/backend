@@ -273,15 +273,15 @@ internal static class CulinaryCodeDbInitializer
         Account account1 = new Account
         {
             AccountId = Guid.Parse("6ceed686-8784-4386-9a0b-899dd7fde3e3"),
-            Name = "John",
+            Name = "john",
             Email = "john.doe@example.com",
             FamilySize = 4
         };
         
         context.Accounts.Add(account1);
         
-        var ingredient11 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Carrot", Measurement = MeasurementType.Kilogram };
-        var ingredient22 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Apple", Measurement = MeasurementType.Gram };
+        var ingredient11 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Wortel", Measurement = MeasurementType.Kilogram };
+        var ingredient22 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Appel", Measurement = MeasurementType.Gram };
 
         context.Ingredients.Add(ingredient11);
         context.Ingredients.Add(ingredient22);
@@ -329,8 +329,8 @@ internal static class CulinaryCodeDbInitializer
         
         // Test adding item to GroceryList
         
-        var ingredient = new Ingredient { IngredientId = Guid.Parse("351934e5-c237-4069-a6f7-be572cb809c4"), IngredientName = "Apple", Measurement = MeasurementType.Gram };
-        var newIngredient = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Potato", Measurement = MeasurementType.Kilogram };
+        var ingredient = new Ingredient { IngredientId = Guid.Parse("351934e5-c237-4069-a6f7-be572cb809c4"), IngredientName = "Appel", Measurement = MeasurementType.Gram };
+        var newIngredient = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Aardappel", Measurement = MeasurementType.Kilogram };
 
         
         var addItem = new ItemQuantity
