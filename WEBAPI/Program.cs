@@ -17,8 +17,14 @@ DotNetEnv.Env.Load("../.env");
 var builder = WebApplication.CreateBuilder(args);
 
 // set DbContext
+//builder.Services.AddDbContext<CulinaryCodeDbContext>(optionsBuilder => 
+//    optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? throw new EnvironmentVariableNotAvailableException("DATABASE_CONNECTION_STRING environment variable is not set.");
+Console.WriteLine("Connection string: " + connectionString);
 builder.Services.AddDbContext<CulinaryCodeDbContext>(optionsBuilder => 
-    optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    optionsBuilder.UseNpgsql(connectionString));
+
 
 
 // Add services to the container.
