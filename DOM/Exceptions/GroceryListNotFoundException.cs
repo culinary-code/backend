@@ -8,10 +8,6 @@ public class GroceryListNotFoundException : Exception
     {
     }
 
-    protected GroceryListNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
-
     public GroceryListNotFoundException(string? message) : base(message)
     {
     }

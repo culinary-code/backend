@@ -32,18 +32,8 @@ public class GroceryManager : IGroceryManager
     public GroceryListDto CreateGroceryList(Guid accountId)
     {
         var account = _accountRepository.ReadAccount(accountId);
-
-        if (account == null)
-        {
-            throw new AccountNotFoundException("Account not found");
-        }
         
         var mealplanner = _mealPlannerRepository.ReadMealPlannerById(accountId);
-        
-        if (!mealplanner.NextWeek.Any())
-        {
-            throw new MealPlannerNotFoundException("No planned meals found for next week");
-        }
         
         var allIngredientQuantities = mealplanner.NextWeek
             .SelectMany(plannedMeal => plannedMeal.Ingredients)
@@ -104,7 +94,13 @@ public class GroceryManager : IGroceryManager
         _groceryRepository.CreateGroceryList(groceryList);
         return groceryListDto;
     }
-    
+
+    public void CreateNewGroceryList(GroceryList groceryList)
+    {
+        groceryList = new GroceryList();
+        _groceryRepository.CreateGroceryList(groceryList);
+    }
+
     public void AddItemToGroceryList(Guid groceryListId, ItemQuantityDto newListItem)
     {
         if (newListItem == null || newListItem.Ingredient == null)

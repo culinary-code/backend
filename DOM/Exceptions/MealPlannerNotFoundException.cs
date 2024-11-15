@@ -8,10 +8,6 @@ public class MealPlannerNotFoundException : Exception
     {
     }
 
-    protected MealPlannerNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
-
     public MealPlannerNotFoundException(string? message) : base(message)
     {
     }

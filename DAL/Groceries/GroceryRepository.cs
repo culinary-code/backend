@@ -1,4 +1,5 @@
 ﻿using DAL.EF;
+using DOM.Exceptions;
 using DOM.MealPlanning;
 using DOM.Recipes.Ingredients;
 using Microsoft.EntityFrameworkCore;
@@ -23,9 +24,15 @@ public class GroceryRepository : IGroceryRepository
             .FirstOrDefault(gl => gl.GroceryListId == id);
         if (groceryList == null)
         {
-            throw new KeyNotFoundException();
+            throw new GroceryListNotFoundException();
         }
         return groceryList;
+    }
+
+    public void CreateNewGroceryList(GroceryList groceryList)
+    {
+        _ctx.GroceryLists.Add(groceryList);
+        _ctx.SaveChanges();
     }
 
     public void CreateGroceryList(GroceryList groceryList)

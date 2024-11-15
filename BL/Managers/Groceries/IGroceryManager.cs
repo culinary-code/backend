@@ -8,6 +8,7 @@ namespace BL.Managers.Groceries;
 public interface IGroceryManager
 {
     GroceryListDto CreateGroceryList(Guid accountId);
+    void CreateNewGroceryList(GroceryList groceryList);
     void AddItemToGroceryList(Guid groceryListId, ItemQuantityDto addItem);
 
 }

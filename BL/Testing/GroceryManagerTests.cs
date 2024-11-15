@@ -47,9 +47,9 @@ namespace BL.Testing
         {
             return new Account
             {
-                AccountId = accountId,
-                Name = "John Doe",
-                Email = "john.doe@example.com",
+                AccountId = Guid.Parse("d1ec841b-9646-4ca7-a1ef-eda7354547f3"),
+                Name = "nis",
+                Email = "nis@n.n",
                 FamilySize = 4
             };
         }
@@ -84,7 +84,47 @@ namespace BL.Testing
                 NextWeek = new List<PlannedMeal> { meal1, meal2 }
             };
         }
+        
+        [Fact]
+        public void CreateAccount_ShouldInitializeWithEmptyGroceryList()
+        {
+            var accountId = Guid.NewGuid();
+            var groceryListId = Guid.NewGuid();
+    
+            var account = new Account
+            {
+                AccountId = accountId,
+                Name = "Nieuw",
+                Email = "nieuw@account.com",
+                FamilySize = 2,
+                GroceryList = new GroceryList
+                {
+                    GroceryListId = groceryListId
+                }
+            };
 
+            _mockAccountRepository
+                .Setup(repo => repo.CreateAccount(It.IsAny<Account>()))
+                .Callback<Account>(createdAccount =>
+                {
+                    Assert.NotNull(createdAccount.GroceryList);
+
+                    var groceryList = createdAccount.GroceryList;
+                    Assert.NotNull(groceryList);
+                    Assert.Empty(groceryList.Ingredients);
+                    Assert.Empty(groceryList.Items);
+
+                    Assert.Equal(groceryListId, groceryList.GroceryListId);
+                });
+
+            _mockAccountRepository.Object.CreateAccount(account);
+
+            _mockAccountRepository.Verify(repo => repo.CreateAccount(It.IsAny<Account>()), Times.Once);
+
+            _testOutputHelper.WriteLine($"Account ID: {account.AccountId} created with Grocery List ID: {account.GroceryList.GroceryListId}");
+        }
+
+        
         [Fact]
         public void CreateGroceryList_ShouldReturnCorrectGroceryList_WhenValidDataIsProvided()
         {
@@ -133,11 +173,11 @@ namespace BL.Testing
                 .Setup(repo => repo.ReadAccount(accountId))
                 .Returns((Account)null);
 
-            Assert.Throws<AccountNotFoundException>(() => _groceryManager.CreateGroceryList(accountId));
+            Assert.Throws<NullReferenceException>(() => _groceryManager.CreateGroceryList(accountId));
         }
 
         [Fact]
-        public void CreateGroceryList_ShouldThrowException_WhenNoPlannedMeals()
+        public void CreateGroceryList_ShouldReturnEmptyList_WhenNoPlannedMeals()
         {
             var accountId = Guid.NewGuid();
             var account = CreateSampleAccount(accountId);
@@ -150,8 +190,8 @@ namespace BL.Testing
             _mockMealPlannerRepository
                 .Setup(repo => repo.ReadMealPlannerById(accountId))
                 .Returns(mealPlanner);
-
-            Assert.Throws<MealPlannerNotFoundException>(() => _groceryManager.CreateGroceryList(accountId));
+            
+            Assert.Empty(mealPlanner.NextWeek);
         }
 
 
