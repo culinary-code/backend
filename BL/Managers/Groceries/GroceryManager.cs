@@ -5,6 +5,7 @@ using BL.DTOs.Recipes.Ingredients;
 using DAL.Accounts;
 using DAL.Groceries;
 using DAL.Recipes;
+using DOM.Exceptions;
 using DOM.MealPlanning;
 using DOM.Recipes.Ingredients;
 
@@ -105,7 +106,6 @@ public class GroceryManager : IGroceryManager
         };
         
         _groceryRepository.CreateGroceryList(groceryList);
-        
         return groceryListDto;
     }
 
@@ -114,23 +114,18 @@ public class GroceryManager : IGroceryManager
     {
         if (newListItem == null || newListItem.Ingredient == null)
         {
-            throw new ArgumentException("Item details are missing or incorrect.");
+            throw new GroceryListNotFoundException("New item is empty");
         }
         
         var groceryList = _groceryRepository.ReadGroceryListById(groceryListId);
 
         if (groceryList == null)
         {
-            throw new ArgumentNullException(nameof(groceryList), "Grocery list not found");
+            throw new GroceryListNotFoundException("Grocery list not found!");
         }
 
         var existingIngredient = groceryList.Ingredients
             .FirstOrDefault(i => i.Ingredient.IngredientId == newListItem.Ingredient.IngredientId);
-        
-        if (newListItem == null || newListItem.Ingredient == null)
-        {
-            throw new ArgumentException("Item details are missing or incorrect.");
-        }
 
         if (existingIngredient != null)
         {

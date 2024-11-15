@@ -34,6 +34,9 @@ public class GroceryRepository : IGroceryRepository
             .Include(gl => gl.Ingredients)
             .ThenInclude(iq => iq.Ingredient)
             .FirstOrDefault(gl => gl.GroceryListId == groceryList.GroceryListId);
+        
+        _ctx.GroceryLists.Add(groceryList);
+        _ctx.SaveChanges();
 
         Console.WriteLine($"Saved Ingredients Count: {savedGroceryList?.Ingredients.Count() ?? 0}");
         foreach (var ingredient in savedGroceryList?.Ingredients ?? new List<IngredientQuantity>())

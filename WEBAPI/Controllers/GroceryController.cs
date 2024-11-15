@@ -12,10 +12,13 @@ public class GroceryController : ControllerBase
 {
     private readonly IGroceryManager _groceryManager;
     private readonly IMapper _mapper;
+    private readonly Logger<GroceryController> _logger;
 
-    public GroceryController(IGroceryManager groceryManager)
+    public GroceryController(IGroceryManager groceryManager, IMapper mapper, Logger<GroceryController> logger)
     {
         _groceryManager = groceryManager;
+        _mapper = mapper;
+        _logger = logger;
     }
 
     [HttpGet("{accountId}/grocery-list")]
@@ -24,6 +27,7 @@ public class GroceryController : ControllerBase
         try
         { 
             GroceryListDto groceryList =  _groceryManager.CreateGroceryList(accountId);
+            _logger.LogInformation($"Grocery list for {accountId} has been created.");
             return Ok(groceryList);
         }
         catch (Exception e)
@@ -37,20 +41,24 @@ public class GroceryController : ControllerBase
     {
         if (newItem == null)
         {
-            return BadRequest("ItemQuantityDto is required.");
+            _logger.LogError($"Item was null for {groceryListId}");
+            return BadRequest("ItemQuantity is required!");
         }
 
         try
         {
             _groceryManager.AddItemToGroceryList(groceryListId, newItem);
-            return Ok("Item added to the grocery list.");
+            _logger.LogInformation("Item added to grocery list.");
+            return Ok($"{newItem} added to {groceryListId} grocery list.");
         }
         catch (KeyNotFoundException ex)
         {
+            _logger.LogError($"Item was not found for {groceryListId}");
             return NotFound(ex.Message); 
         }
         catch (Exception ex)
         {
+            _logger.LogError($"Item was not found for {groceryListId}");
             return BadRequest(ex.Message);
         }
     }
