@@ -333,7 +333,7 @@ internal static class CulinaryCodeDbInitializer
         var newIngredient = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Aardappel", Measurement = MeasurementType.Kilogram };
 
         
-        var addItem = new ItemQuantity
+       /* var addItem = new ItemQuantity
         {
             Ingredient = new Ingredient
             {
@@ -364,7 +364,7 @@ internal static class CulinaryCodeDbInitializer
         foreach (var item in groceryList.Items)
         {
             Console.WriteLine($"- Item: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}, {item.GroceryList.GroceryListId}");
-        }
+        }*/
 
         foreach (var item in groceryList.Ingredients)
         {

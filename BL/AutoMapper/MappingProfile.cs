@@ -41,6 +41,10 @@ public class MappingProfile : Profile
         // Ingredient mappings
         CreateMap<Ingredient, IngredientDto>(); // From Ingredient to IngredientDto
         CreateMap<IngredientDto, Ingredient>(); // From IngredientDto to Ingredient
+        
+        // GroceryItem mappings
+        CreateMap<GroceryItem, IngredientDto>().ForMember(gi => gi.Measurement, opt => opt.MapFrom(mt => MeasurementType.Piece)); // From GroceryItem to IngredientDto
+        CreateMap<IngredientDto, GroceryItem>(); // From IngredientDto to GroceryItem
 
         // IngredientQuantity mappings
         CreateMap<IngredientQuantity, IngredientQuantityDto>(); // From IngredientQuantity to IngredientQuantityDto
