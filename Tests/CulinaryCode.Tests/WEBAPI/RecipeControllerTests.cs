@@ -158,12 +158,12 @@ public class RecipeControllerTests
     {
         // Arrange
         var recipeName = "Spaghetti Bolognese";
-        var CreateRecipeDto = new CreateRecipeDto() {Name = "Spaghetti Bolognese"};
+        var createRecipeDto = new CreateRecipeDto() {Name = "Spaghetti Bolognese"};
         var recipeDto = new RecipeDto { RecipeId = Guid.NewGuid(), RecipeName = recipeName };
         _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeName)).Returns(recipeDto);
 
         // Act
-        var result = _controller.CreateRecipe(CreateRecipeDto);
+        var result = _controller.CreateRecipe(createRecipeDto);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -175,11 +175,11 @@ public class RecipeControllerTests
     {
         // Arrange
         var recipeName = "Spaghetti Bolognese";
-        var CreateRecipeDto = new CreateRecipeDto() {Name = "Spaghetti Bolognese"};
+        var createRecipeDto = new CreateRecipeDto() {Name = "Spaghetti Bolognese"};
         _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeName)).Returns(null as RecipeDto);
         
         // Act
-        var result = _controller.CreateRecipe(CreateRecipeDto);
+        var result = _controller.CreateRecipe(createRecipeDto);
         
         // Assert
         Assert.IsType<BadRequestResult>(result);
@@ -190,12 +190,12 @@ public class RecipeControllerTests
     {
         // Arrange
         var recipeName = "Baksteensoep";
-        var CreateRecipeDto = new CreateRecipeDto() {Name = "Baksteensoep"};
+        var createRecipeDto = new CreateRecipeDto() {Name = "Baksteensoep"};
         _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeName))
             .Throws(new RecipeNotAllowedException($"Recipe with name {recipeName} is not allowed."));
         
         // Act
-        var result = _controller.CreateRecipe(CreateRecipeDto);
+        var result = _controller.CreateRecipe(createRecipeDto);
         
         // Assert
         Assert.IsType<BadRequestObjectResult>(result);
