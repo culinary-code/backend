@@ -19,13 +19,50 @@ public class GroceryRepository : IGroceryRepository
     {
         GroceryList? groceryList = _ctx.GroceryLists
             .Include(gl => gl.Ingredients)
+            .ThenInclude(i => i.Ingredient)
             .Include(gl => gl.Items)
+            .ThenInclude(i => i. GroceryItem)
             .Include(gl => gl.Account)
             .FirstOrDefault(gl => gl.GroceryListId == id);
         if (groceryList == null)
         {
             throw new GroceryListNotFoundException();
         }
+
+        var groupedIngredients = groceryList.Ingredients
+            .Where(i => i != null)
+            .GroupBy(i => i.Ingredient.IngredientId)
+            .Select(group => new
+            {
+                IngredientId = group.Key,
+                IngredientName = group.Key,
+                Quantity = group.Sum(i => i.Quantity),
+                MeasurementType = group.First().Ingredient.Measurement,
+            }).ToList();
+
+        var groupedItems = groceryList.Items
+            .Where(i => i != null)
+            .GroupBy(i => i.GroceryItem.GroceryItemId)
+            .Select(group => new
+            {
+                GroceryItemId = group.Key,
+                GroceryName = group.Key,
+                Quantity = group.Sum(i => i.Quantity),
+            }).ToList();
+        
+        return groceryList;
+    }
+
+    public GroceryList ReadGroceryListByAccountId(Guid accountId)
+    {
+        var groceryList = _ctx.GroceryLists
+            .Include(gl => gl.Ingredients)
+            .ThenInclude(i => i.Ingredient)
+            .Include(gl => gl.Items)
+            .ThenInclude(i => i.GroceryItem)
+            .Include(gl => gl.Account)
+            .FirstOrDefault(gl => gl.Account.AccountId == accountId);
+        
         return groceryList;
     }
 

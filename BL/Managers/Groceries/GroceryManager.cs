@@ -28,8 +28,83 @@ public class GroceryManager : IGroceryManager
         _mealPlannerRepository = mealPlannerRepository;
         _logger = logger;
     }
+    
+    public void CreateNewGroceryList(GroceryList groceryList)
+    {
+        groceryList = new GroceryList();
+        _groceryRepository.CreateGroceryList(groceryList);
+    }
 
-    public GroceryListDto CreateGroceryList(Guid accountId)
+    public GroceryListDto GetGroceryList(string id)
+    {
+        Guid groceryId = Guid.Parse(id);
+        var groceryList = _groceryRepository.ReadGroceryListById(groceryId);
+        return _mapper.Map<GroceryListDto>(groceryList);
+    }
+
+    public GroceryListDto GetGroceryListByAccountId(string accountId)
+    {
+        Guid id = Guid.Parse(accountId);
+        var groceryList = _groceryRepository.ReadGroceryListByAccountId(id);
+
+        if (groceryList == null)
+        {
+            throw new GroceryListNotFoundException("No grocery list found for this account.");
+        }
+
+        return _mapper.Map<GroceryListDto>(groceryList);
+    }
+
+    public void AddItemToGroceryList(Guid groceryListId, ItemQuantityDto newListItem)
+    {
+        if (newListItem == null || newListItem.Ingredient == null)
+        {
+            throw new GroceryListNotFoundException("New item is empty");
+        }
+        
+        var groceryList = _groceryRepository.ReadGroceryListById(groceryListId);
+
+        if (groceryList == null)
+        {
+            throw new GroceryListNotFoundException("Grocery list not found!");
+        }
+
+        var existingIngredient = groceryList.Ingredients
+            .FirstOrDefault(i => i.Ingredient.IngredientId == newListItem.Ingredient.IngredientId || i.Ingredient.IngredientName == newListItem.Ingredient.IngredientName);
+
+        if (existingIngredient != null)
+        {
+            existingIngredient.Quantity += newListItem.Quantity;
+            _logger.LogInformation($"{existingIngredient} has been updated");
+        }
+        else 
+        {
+            var newItem = new ItemQuantity
+            {
+                IngredientQuantityId = Guid.NewGuid(),
+                Quantity = newListItem.Quantity,
+                GroceryItem = new GroceryItem()
+                {
+                    GroceryItemId = newListItem.Ingredient.IngredientId,
+                    GroceryItemName = newListItem.Ingredient.IngredientName,
+                }
+            };
+            groceryList.Items = groceryList.Items.Append(newItem).ToList();
+        }
+        _groceryRepository.UpdateGroceryList(groceryList);
+        _logger.LogInformation(newListItem.Ingredient.IngredientId + " has been added to grocery list");
+    }
+
+    public GroceryListDto? UpdateGroceryList(Guid accountId, GroceryListDto groceryList)
+    {
+        var mealPlanner = _mealPlannerRepository.ReadMealPlannerById(accountId);
+        var plannedMeals = mealPlanner.NextWeek;
+        return groceryList;
+    }
+    
+    
+    
+   /* public GroceryListDto CreateGroceryList(Guid accountId)
     {
         var account = _accountRepository.ReadAccount(accountId);
         
@@ -94,57 +169,5 @@ public class GroceryManager : IGroceryManager
         _groceryRepository.CreateGroceryList(groceryList);
         return groceryListDto;
     }
-    
-    public void CreateNewGroceryList(GroceryList groceryList)
-    {
-        groceryList = new GroceryList();
-        _groceryRepository.CreateGroceryList(groceryList);
-    }
-
-    public void AddItemToGroceryList(Guid groceryListId, ItemQuantityDto newListItem)
-    {
-        if (newListItem == null || newListItem.Ingredient == null)
-        {
-            throw new GroceryListNotFoundException("New item is empty");
-        }
-        
-        var groceryList = _groceryRepository.ReadGroceryListById(groceryListId);
-
-        if (groceryList == null)
-        {
-            throw new GroceryListNotFoundException("Grocery list not found!");
-        }
-
-        var existingIngredient = groceryList.Ingredients
-            .FirstOrDefault(i => i.Ingredient.IngredientId == newListItem.Ingredient.IngredientId || i.Ingredient.IngredientName == newListItem.Ingredient.IngredientName);
-
-        if (existingIngredient != null)
-        {
-            existingIngredient.Quantity += newListItem.Quantity;
-            _logger.LogInformation($"{existingIngredient} has been updated");
-        }
-        else 
-        {
-            var newItem = new ItemQuantity
-            {
-                IngredientQuantityId = Guid.NewGuid(),
-                Quantity = newListItem.Quantity,
-                GroceryItem = new GroceryItem()
-                {
-                    GroceryItemId = newListItem.Ingredient.IngredientId,
-                    GroceryItemName = newListItem.Ingredient.IngredientName,
-                }
-            };
-            groceryList.Items = groceryList.Items.Append(newItem).ToList();
-        }
-        _groceryRepository.UpdateGroceryList(groceryList);
-        _logger.LogInformation(newListItem.Ingredient.IngredientId + " has been added to grocery list");
-    }
-
-    public GroceryListDto? UpdateGroceryList(Guid accountId, GroceryListDto groceryList)
-    {
-        var mealPlanner = _mealPlannerRepository.ReadMealPlannerById(accountId);
-        var plannedMeals = mealPlanner.NextWeek;
-        return groceryList;
-    }
+    */
 }

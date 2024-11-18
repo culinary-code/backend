@@ -123,57 +123,25 @@ namespace BL.Testing
             _testOutputHelper.WriteLine($"Account ID: {account.AccountId} created with Grocery List ID: {account.GroceryList.GroceryListId}");
         }
 
-        
+
         [Fact]
-        public void CreateGroceryList_ShouldReturnCorrectGroceryList_WhenValidDataIsProvided()
+        public void GettingGroceryList_ShouldReturnGroceryList()
         {
-            var accountId = Guid.NewGuid();
-            var account = CreateSampleAccount(accountId);
-            var mealPlanner = CreateSampleMealPlanner();
+            var groceryListId = Guid.NewGuid();
+            var groceryList = new GroceryList { GroceryListId = groceryListId };
 
-            _mockAccountRepository
-                .Setup(repo => repo.ReadAccount(accountId))
-                .Returns(account);
+            _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(groceryListId)).Returns(groceryList);
 
-            _mockMealPlannerRepository
-                .Setup(repo => repo.ReadMealPlannerById(accountId))
-                .Returns(mealPlanner);
+            var result = _mockGroceryRepository.Object.ReadGroceryListById(groceryListId);
+            
+             _testOutputHelper.WriteLine($"GroceryListId: {result.GroceryListId}");
 
-            _mockMapper
-                .Setup(mapper => mapper.Map<GroceryListDto>(It.IsAny<GroceryList>()))
-                .Returns(new GroceryListDto());
-
-            var result = _groceryManager.CreateGroceryList(accountId);
-
-            _testOutputHelper.WriteLine("GroceryListDto:");
-            _testOutputHelper.WriteLine($"GroceryListId: {result.GroceryListId}");
-            _testOutputHelper.WriteLine($"AccountId: {result.Account.AccountId}");
-            _testOutputHelper.WriteLine($"Account Name: {result.Account.Name}");
-            _testOutputHelper.WriteLine($"Number of Items: {result.Items.Count}");
-
-            foreach (var ingredient in result.Ingredients)
-            {
-                _testOutputHelper.WriteLine(
-                    $"Ingredient: {ingredient.Ingredient.IngredientName}, Quantity: {ingredient.Quantity}");
-            }
 
             Assert.NotNull(result);
-            _mockAccountRepository.Verify(repo => repo.ReadAccount(accountId), Times.Once);
-            _mockMealPlannerRepository.Verify(repo => repo.ReadMealPlannerById(accountId), Times.Once);
-            _mockGroceryRepository.Verify(repo => repo.CreateGroceryList(It.IsAny<GroceryList>()), Times.Once);
+            Assert.Equal(groceryListId, result.GroceryListId);
         }
 
-        [Fact]
-        public void CreateGroceryList_ShouldThrowException_WhenAccountIsNotFound()
-        {
-            var accountId = Guid.NewGuid();
-            _mockAccountRepository
-                .Setup(repo => repo.ReadAccount(accountId))
-                .Returns((Account)null);
-
-            Assert.Throws<NullReferenceException>(() => _groceryManager.CreateGroceryList(accountId));
-        }
-
+        
         [Fact]
         public void CreateGroceryList_ShouldReturnEmptyList_WhenNoPlannedMeals()
         {
