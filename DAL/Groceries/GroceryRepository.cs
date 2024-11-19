@@ -63,6 +63,10 @@ public class GroceryRepository : IGroceryRepository
             .Include(gl => gl.Account)
             .FirstOrDefault(gl => gl.Account.AccountId == accountId);
         
+        if (groceryList == null)
+        {
+            Console.WriteLine($"No grocery list found for account {accountId}");
+        }
         return groceryList;
     }
 

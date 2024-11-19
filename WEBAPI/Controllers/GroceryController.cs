@@ -50,12 +50,8 @@ public class GroceryController : ControllerBase
     {
         try
         {
-            // Extract AccountId from the access token
             var accountId = _identityProviderService.GetGuidFromAccessToken(accessToken);
-
-            // Fetch the grocery list for this account
             var groceryListDto = _groceryManager.GetGroceryListByAccountId(accountId.ToString());
-        
             return Ok(groceryListDto);
         }
         catch (JwtTokenException e)
@@ -119,6 +115,7 @@ public class GroceryController : ControllerBase
             var userId = _identityProviderService.GetGuidFromAccessToken(accessToken);
             // Fetch the grocery list for the user
             var groceryList = _groceryManager.GetGroceryListByAccountId(userId.ToString());
+            Console.WriteLine(groceryList.GroceryListId + "Test");
 
             if (groceryList == null)
             {
@@ -137,24 +134,15 @@ public class GroceryController : ControllerBase
         }
     }
 
-    /*private Guid GetGuidFromAccessToken(string accessToken)
+    [Authorize]
+    [HttpGet("new/{accountId}")]
+    public IActionResult getGroceryListByAccountId(string accountId)
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
-
-        if (tokenHandler.CanReadToken(accessToken))
-        {
-            var jwtToken = tokenHandler.ReadJwtToken(accessToken);
-
-            var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
-
-            if (Guid.TryParse(userIdClaim, out Guid userId))
-            {
-                return userId;
-            }
-        }
-
-        throw new JwtTokenException("Failed to get userId from access token");
-    }*/
+        var groceryList = _groceryManager.GetGroceryListByAccountId(accountId);
+        return Ok(groceryList);
+    }
+    
+    
     
     /*[HttpGet("{accountId}/grocery-list")]
 public async Task<IActionResult> GetGroceryList(Guid accountId)

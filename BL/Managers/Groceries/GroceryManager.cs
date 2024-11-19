@@ -70,7 +70,7 @@ public class GroceryManager : IGroceryManager
         }
 
         var existingIngredient = groceryList.Ingredients
-            .FirstOrDefault(i => i.Ingredient.IngredientId == newListItem.Ingredient.IngredientId || i.Ingredient.IngredientName == newListItem.Ingredient.IngredientName);
+            .FirstOrDefault(i => i.Ingredient.IngredientName == newListItem.Ingredient.IngredientName || i.Ingredient.IngredientName == newListItem.Ingredient.IngredientName);
 
         if (existingIngredient != null)
         {
@@ -88,6 +88,7 @@ public class GroceryManager : IGroceryManager
                 {
                     GroceryItemId = newListItem.Ingredient.IngredientId,
                     GroceryItemName = newListItem.Ingredient.IngredientName,
+                    Measurement = newListItem.Ingredient.Measurement,
                 }
             };
             groceryList.Items = groceryList.Items.Append(newItem).ToList();

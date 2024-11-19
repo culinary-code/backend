@@ -1,16 +1,13 @@
 ﻿using AutoMapper;
 using BL.DTOs.Recipes.Ingredients;
-using BL.DTOs.MealPlanning;
 using BL.Managers.Groceries;
-using DAL.Groceries;
-using DOM.Recipes.Ingredients;
-using DOM.MealPlanning;
-using Moq;
-using Xunit;
 using DAL.Accounts;
+using DAL.Groceries;
 using DOM.Accounts;
-using DOM.Exceptions;
+using DOM.MealPlanning;
+using DOM.Recipes.Ingredients;
 using Microsoft.Extensions.Logging;
+using Moq;
 using Xunit.Abstractions;
 
 namespace BL.Testing
@@ -177,6 +174,8 @@ public void ReadGroceryListByAccountId_ShouldReturnGroceryList_WhenAccountIdExis
 
     // Act
     var result = _mockGroceryRepository.Object.ReadGroceryListByAccountId(accountId);
+    
+    _testOutputHelper.WriteLine($"GroceryListId: {result.GroceryListId}");
 
     // Assert
     Assert.NotNull(result);
