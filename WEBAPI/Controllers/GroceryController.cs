@@ -45,13 +45,16 @@ public class GroceryController : ControllerBase
     }
     
     [Authorize]
-    [HttpGet("/account/grocery-list")]
-    public IActionResult GetGroceryListByAccessToken([FromHeader] string accessToken)
+    [HttpGet("account/grocery-list")]
+    public IActionResult GetGroceryListByAccessToken([FromHeader(Name = "Authorization")] string accessToken)
     {
         try
         {
-            var accountId = _identityProviderService.GetGuidFromAccessToken(accessToken);
-            var groceryListDto = _groceryManager.GetGroceryListByAccountId(accountId.ToString());
+            //var accountId = _identityProviderService.GetGuidFromAccessToken(accessToken);
+            Guid userId =
+                _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString()
+                    .Substring(7));
+            var groceryListDto = _groceryManager.GetGroceryListByAccountId(userId.ToString());
             return Ok(groceryListDto);
         }
         catch (JwtTokenException e)
@@ -65,7 +68,7 @@ public class GroceryController : ControllerBase
     }
 
 
-    [HttpPost("/add-grocery-list/{accountId}")]
+    [HttpPost("add-grocery-list/{accountId}")]
     public IActionResult CreateNewGroceryList([FromBody] GroceryList groceryList)
     {
         try

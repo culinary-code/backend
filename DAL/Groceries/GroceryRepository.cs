@@ -50,6 +50,7 @@ public class GroceryRepository : IGroceryRepository
                 Quantity = group.Sum(i => i.Quantity),
             }).ToList();
         
+        
         return groceryList;
     }
 
@@ -57,9 +58,9 @@ public class GroceryRepository : IGroceryRepository
     {
         var groceryList = _ctx.GroceryLists
             .Include(gl => gl.Ingredients)
-            .ThenInclude(i => i.Ingredient)
+                .ThenInclude(i => i.Ingredient)
             .Include(gl => gl.Items)
-            .ThenInclude(i => i.GroceryItem)
+                .ThenInclude(i => i.GroceryItem)
             .Include(gl => gl.Account)
             .FirstOrDefault(gl => gl.Account.AccountId == accountId);
         
