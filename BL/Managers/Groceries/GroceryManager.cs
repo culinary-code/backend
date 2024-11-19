@@ -83,6 +83,7 @@ public class GroceryManager : IGroceryManager
             {
                 IngredientQuantityId = Guid.NewGuid(),
                 Quantity = newListItem.Quantity,
+                GroceryList = groceryList,
                 GroceryItem = new GroceryItem()
                 {
                     GroceryItemId = newListItem.Ingredient.IngredientId,
@@ -90,9 +91,14 @@ public class GroceryManager : IGroceryManager
                 }
             };
             groceryList.Items = groceryList.Items.Append(newItem).ToList();
+            //groceryList.Items.ToList().Add(newItem);
+            Console.WriteLine("KIP:" + newListItem.Ingredient.IngredientName + newItem.GroceryItem.GroceryItemName);
+            
+            //_groceryRepository.UpdateGroceryList(groceryList);
+            _groceryRepository.AddGroceryListItem(groceryList, newItem);
+            
+            _logger.LogInformation(newListItem.Ingredient.IngredientId + " has been added to grocery list");
         }
-        _groceryRepository.UpdateGroceryList(groceryList);
-        _logger.LogInformation(newListItem.Ingredient.IngredientId + " has been added to grocery list");
     }
 
     public GroceryListDto? UpdateGroceryList(Guid accountId, GroceryListDto groceryList)

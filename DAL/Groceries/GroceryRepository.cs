@@ -90,8 +90,23 @@ public class GroceryRepository : IGroceryRepository
     }
 
     public void UpdateGroceryList(GroceryList groceryList)
-    { 
+    {
         _ctx.GroceryLists.Update(groceryList);
+        _ctx.SaveChanges();
+    }
+    
+    public void AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem)
+    {
+        if (groceryList == null || newItem == null)
+        {
+            throw new ArgumentException("Grocery list or new item cannot be null.");
+        }
+        
+        groceryList.Items.Append(newItem); 
+
+        _ctx.Add(newItem);
+        _ctx.Add(newItem.GroceryItem);
+
         _ctx.SaveChanges();
     }
 }

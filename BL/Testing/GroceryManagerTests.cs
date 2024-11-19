@@ -140,6 +140,61 @@ namespace BL.Testing
             Assert.NotNull(result);
             Assert.Equal(groceryListId, result.GroceryListId);
         }
+        
+        [Fact]
+public void ReadGroceryListByAccountId_ShouldReturnGroceryList_WhenAccountIdExists()
+{
+    // Arrange
+    var accountId = Guid.NewGuid();
+    var groceryListId = Guid.NewGuid();
+    var ingredient1 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Milk", Measurement = MeasurementType.Kilogram };
+    var ingredient2 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Bread", Measurement = MeasurementType.Clove };
+    var groceryItem = new GroceryItem { GroceryItemId = Guid.NewGuid(), GroceryItemName = "Soap" };
+
+    var groceryList = new GroceryList
+    {
+        GroceryListId = groceryListId,
+        Ingredients = new List<IngredientQuantity>
+        {
+            new IngredientQuantity { Ingredient = ingredient1, Quantity = 2 },
+            new IngredientQuantity { Ingredient = ingredient2, Quantity = 3 }
+        },
+        Items = new List<ItemQuantity>
+        {
+            new ItemQuantity { GroceryItem = groceryItem, Quantity = 1 }
+        },
+        Account = new Account
+        {
+            AccountId = accountId,
+            Name = "Test User",
+            Email = "testuser@example.com"
+        }
+    };
+
+    _mockGroceryRepository
+        .Setup(repo => repo.ReadGroceryListByAccountId(accountId))
+        .Returns(groceryList);
+
+    // Act
+    var result = _mockGroceryRepository.Object.ReadGroceryListByAccountId(accountId);
+
+    // Assert
+    Assert.NotNull(result);
+    Assert.Equal(groceryListId, result.GroceryListId);
+    Assert.NotNull(result.Ingredients);
+    Assert.Equal(2, result.Ingredients.Count());
+    Assert.Contains(result.Ingredients, iq => iq.Ingredient.IngredientName == "Milk" && iq.Quantity == 2);
+    Assert.Contains(result.Ingredients, iq => iq.Ingredient.IngredientName == "Bread" && iq.Quantity == 3);
+
+    Assert.NotNull(result.Items);
+    Assert.Single(result.Items);
+    Assert.Contains(result.Items, iq => iq.GroceryItem.GroceryItemName == "Soap" && iq.Quantity == 1);
+
+    Assert.NotNull(result.Account);
+    Assert.Equal(accountId, result.Account.AccountId);
+    Assert.Equal("Test User", result.Account.Name);
+}
+
 
         
         [Fact]

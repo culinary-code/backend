@@ -1,4 +1,5 @@
 ﻿using DOM.MealPlanning;
+using DOM.Recipes.Ingredients;
 
 namespace DAL.Groceries;
 
@@ -9,4 +10,5 @@ public interface IGroceryRepository
     void CreateNewGroceryList(GroceryList groceryList);
     void CreateGroceryList(GroceryList groceryList);
     void UpdateGroceryList(GroceryList groceryList);
+    void AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem);
 }
