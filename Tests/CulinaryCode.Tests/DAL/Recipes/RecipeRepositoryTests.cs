@@ -153,4 +153,133 @@ public class RecipeRepositoryTests
         Assert.Equal(recipe.RecipeId, result.RecipeId);
         Assert.Equal(recipe.RecipeName, result.RecipeName);
     }
+    
+    [Fact]
+    public async Task GetFilteredRecipesAsync_FilterByName_ReturnsMatchingRecipes()
+    {
+        // Arrange
+        var recipe1 = new Recipe { RecipeName = "Spaghetti Bolognese" };
+        var recipe2 = new Recipe { RecipeName = "Chicken Curry" };
+        var recipe3 = new Recipe { RecipeName = "Spaghetti Carbonara" };
+        _dbContext.Recipes.AddRange(recipe1, recipe2, recipe3);
+        _dbContext.SaveChanges();
+
+        // Act
+        var result = await _recipeRepository.GetFilteredRecipesAsync("Spaghetti", Difficulty.NotAvailable, RecipeType.NotAvailable, 0, new List<string>());
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, r => r.RecipeName == "Spaghetti Bolognese");
+        Assert.Contains(result, r => r.RecipeName == "Spaghetti Carbonara");
+    }
+    
+    [Fact]
+    public async Task GetFilteredRecipesAsync_FilterByDifficulty_ReturnsMatchingRecipes()
+    {
+        // Arrange
+        var recipe1 = new Recipe { RecipeName = "Easy Dish", Difficulty = Difficulty.Easy };
+        var recipe2 = new Recipe { RecipeName = "Medium Dish", Difficulty = Difficulty.Intermediate };
+        _dbContext.Recipes.AddRange(recipe1, recipe2);
+        _dbContext.SaveChanges();
+
+        // Act
+        var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.Easy, RecipeType.NotAvailable, 0, new List<string>());
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result);
+        Assert.Equal("Easy Dish", result.First().RecipeName);
+    }
+
+    [Fact]
+    public async Task GetFilteredRecipesAsync_FilterByRecipeType_ReturnsMatchingRecipes()
+    {
+        // Arrange
+        var recipe1 = new Recipe { RecipeName = "Soup", RecipeType = RecipeType.Dinner };
+        var recipe2 = new Recipe { RecipeName = "Salad", RecipeType = RecipeType.Breakfast };
+        _dbContext.Recipes.AddRange(recipe1, recipe2);
+        _dbContext.SaveChanges();
+
+        // Act
+        var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.NotAvailable, RecipeType.Dinner, 0, new List<string>());
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result);
+        Assert.Equal("Soup", result.First().RecipeName);
+    }
+
+
+    [Fact]
+    public async Task GetFilteredRecipesAsync_FilterByCookingTime_ReturnsMatchingRecipes()
+    {
+        // Arrange
+        var recipe1 = new Recipe { RecipeName = "Quick Dish", CookingTime = 15 };
+        var recipe2 = new Recipe { RecipeName = "Slow Dish", CookingTime = 60 };
+        _dbContext.Recipes.AddRange(recipe1, recipe2);
+        _dbContext.SaveChanges();
+
+        // Act
+        var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.NotAvailable, RecipeType.NotAvailable, 30, new List<string>());
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result);
+        Assert.Equal("Quick Dish", result.First().RecipeName);
+    }
+    
+    [Fact]
+    public async Task GetFilteredRecipesAsync_FilterByIngredients_ReturnsMatchingRecipes()
+    {
+        // Arrange
+        var ingredient1 = new Ingredient { IngredientName = "Tomato" };
+        var ingredient2 = new Ingredient { IngredientName = "Basil" };
+        var ingredient3 = new Ingredient { IngredientName = "Chicken" };
+        
+        _dbContext.Ingredients.AddRange(ingredient1, ingredient2, ingredient3);
+
+        var iq1 = new IngredientQuantity { Ingredient = ingredient1, Quantity = 5 };
+        var iq2 = new IngredientQuantity { Ingredient = ingredient2, Quantity = 1 };
+        var iq3 = new IngredientQuantity { Ingredient = ingredient3, Quantity = 4};
+        
+        _dbContext.IngredientQuantities.AddRange(iq1, iq2, iq3);
+        
+        var recipe1 = new Recipe
+        {
+            RecipeName = "Tomato Soup",
+            Ingredients = new List<IngredientQuantity> { iq1, iq2  }
+        };
+        var recipe2 = new Recipe
+        {
+            RecipeName = "Chicken Curry",
+            Ingredients = new List<IngredientQuantity> { iq3 }
+        };
+
+        _dbContext.Recipes.AddRange(recipe1, recipe2);
+        _dbContext.SaveChanges();
+        _dbContext.ChangeTracker.Clear();
+
+        // Act
+        var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.NotAvailable, RecipeType.NotAvailable, 0, new List<string> { "Tomato", "Basil" });
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result);
+        Assert.Equal("Tomato Soup", result.First().RecipeName);
+    }
+
+    [Fact]
+    public async Task GetFilteredRecipesAsync_NoRecipesInDatabase_ReturnsEmptyList()
+    {
+        // Arrange
+        // No recipes added to the database.
+
+        // Act
+        var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.NotAvailable, RecipeType.NotAvailable, 0, new List<string>());
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
 }
