@@ -2,9 +2,10 @@
 
 public enum RecipeType : byte
 {
-    Breakfast = 0,
-    Lunch = 1,
-    Dinner = 2,
-    Dessert = 3,
-    Snack = 4
+    NotAvailable = 0,
+    Breakfast = 1,
+    Lunch = 2,
+    Dinner = 3,
+    Dessert = 4,
+    Snack = 5,
 }

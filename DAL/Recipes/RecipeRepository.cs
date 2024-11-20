@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using DAL.EF;
 using DOM.Exceptions;
 using DOM.Recipes;
@@ -54,6 +55,50 @@ public class RecipeRepository : IRecipeRepository
         {
             throw new RecipeNotFoundException($"No recipes found with name {name}");
         }
+        return recipes;
+    }
+
+    public async Task<ICollection<Recipe>> GetFilteredRecipesAsync(string recipeName, Difficulty difficulty, RecipeType recipeType, int cooktime, List<String> ingredientStrings)
+    {
+        var query = _ctx.Recipes.AsQueryable();
+
+        // Apply filters conditionally
+        if (!string.IsNullOrEmpty(recipeName))
+        {
+            string lowerName = recipeName.ToLower();
+            query = query.Where(r => r.RecipeName.ToLower().Contains(lowerName));
+        }
+
+        if (difficulty != Difficulty.NotAvailable) // Assuming `None` means no filtering
+        {
+            query = query.Where(r => r.Difficulty == difficulty);
+        }
+
+        if (recipeType != RecipeType.NotAvailable) // Assuming `None` means no filtering
+        {
+            query = query.Where(r => r.RecipeType == recipeType);
+        }
+
+        if (cooktime > 0)
+        {
+            query = query.Where(r => r.CookingTime <= cooktime);
+        }
+
+        if (ingredientStrings.Any())
+        {
+            // Filter based on whether all ingredients in ingredientStrings exist in the recipe
+            query = query.Where(r => ingredientStrings.All(ingredient =>
+                r.Ingredients.Any(iq => iq.Ingredient != null && 
+                                        (iq.Ingredient.IngredientName.ToLower().StartsWith(ingredient.ToLower()) || 
+                                         iq.Ingredient.IngredientName.ToLower().Contains(" " + ingredient.ToLower()))
+                )
+            ));
+        }
+        
+        // Execute the query and return the results
+        var recipes = await query
+            .ToListAsync();
+
         return recipes;
     }
 

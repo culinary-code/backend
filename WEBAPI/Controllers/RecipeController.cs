@@ -1,7 +1,9 @@
 ﻿using System.Text;
 using BL.DTOs.Llm;
+using BL.DTOs.Recipes;
 using BL.Managers.Recipes;
 using DOM.Exceptions;
+using DOM.Recipes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -57,6 +59,24 @@ public class RecipeController : ControllerBase
         try
         {
             var recipes = _recipeManager.GetRecipesCollectionByName(name);
+            return Ok(recipes);
+        }
+        catch (RecipeNotFoundException e)
+        {
+            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
+            return NotFound(e.Message);
+        }
+    }
+    
+    
+    [HttpPost("Collection/Filtered")]
+    public async Task<IActionResult> GetFilteredRecipeCollection([FromBody] RecipeFilterDto filter)
+    {
+        try
+        {
+            Enum.TryParse<RecipeType>(filter.MealType, out var mealTypeEnum);
+            Enum.TryParse<Difficulty>(filter.Difficulty, out var difficultyEnum);
+            var recipes = await _recipeManager.GetFilteredRecipeCollection(filter.RecipeName, difficultyEnum, mealTypeEnum, filter.CookTime, filter.Ingredients );
             return Ok(recipes);
         }
         catch (RecipeNotFoundException e)
