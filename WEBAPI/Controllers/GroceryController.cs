@@ -18,15 +18,13 @@ public class GroceryController : ControllerBase
 {
     private readonly IGroceryManager _groceryManager;
     private readonly IIdentityProviderService _identityProviderService;
-    private readonly IMapper _mapper;
-    //private readonly Logger<GroceryController> _logger;
+    private readonly ILogger<GroceryController> _logger;
 
-    public GroceryController(IGroceryManager groceryManager, IMapper mapper, IIdentityProviderService identityProviderService)
+    public GroceryController(IGroceryManager groceryManager, IIdentityProviderService identityProviderService, ILogger<GroceryController> logger)
     {
         _groceryManager = groceryManager;
-        _mapper = mapper;
         _identityProviderService = identityProviderService;
-        //_logger = logger;
+        _logger = logger;
     }
 
     [HttpGet("{groceryListId}")]
@@ -39,7 +37,7 @@ public class GroceryController : ControllerBase
         }
         catch (GroceryListNotFoundException e)
         {
-            //_logger.LogError("An error occured trying to fetch user: {ErrorMessage}", e.Message);
+            _logger.LogError("An error occured trying to fetch user: {ErrorMessage}", e.Message);
             return NotFound(e.Message);
         }
     }
@@ -50,10 +48,7 @@ public class GroceryController : ControllerBase
     {
         try
         {
-            //var accountId = _identityProviderService.GetGuidFromAccessToken(accessToken);
-            Guid userId =
-                _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString()
-                    .Substring(7));
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
             var groceryListDto = _groceryManager.GetGroceryListByAccountId(userId.ToString());
             return Ok(groceryListDto);
         }
@@ -67,98 +62,26 @@ public class GroceryController : ControllerBase
         }
     }
 
-
-    [HttpPost("add-grocery-list/{accountId}")]
-    public IActionResult CreateNewGroceryList([FromBody] GroceryList groceryList)
-    {
-        try
-        {
-            _groceryManager.CreateNewGroceryList(groceryList);
-            return Ok();
-        }
-        catch (Exception e)
-        {
-            //_logger.LogError("An error occured while creating grocerylist: {ErrorMessage}", e.Message);
-            return BadRequest("Failed to create new grocery list.");
-        }
-    }
-
     [HttpPut("{groceryListId}/add-item")]
     [Authorize]
     public IActionResult AddItemToGroceryList(Guid groceryListId, [FromBody] ItemQuantityDto newItem)
     {
         if (newItem == null)
         {
-            //_logger.LogError($"Item was null for {groceryListId}");
+            _logger.LogError($"Item was null for {groceryListId}");
             return BadRequest("ItemQuantity is required!");
         }
 
         try
         {
             _groceryManager.AddItemToGroceryList(groceryListId, newItem);
-            //_logger.LogInformation("Item added to grocery list.");
+            _logger.LogInformation("Item added to grocery list.");
             return Ok($"{newItem} added to {groceryListId} grocery list.");
         }
         catch (GroceryListNotFoundException ex)
         {
-            //_logger.LogError($"Grocery list was not found for {groceryListId}");
+            _logger.LogError($"Grocery list was not found for {groceryListId}");
             return BadRequest(ex.Message);
         }
     }
-    
-    
-    [HttpGet]
-    [Route("grocerylist")]
-    [Authorize]
-    public IActionResult GetGroceryList([FromHeader(Name = "Authorization")] string accessToken)
-    {
-        try
-        {
-            // Extract the GUID from the access token
-            var userId = _identityProviderService.GetGuidFromAccessToken(accessToken);
-            // Fetch the grocery list for the user
-            var groceryList = _groceryManager.GetGroceryListByAccountId(userId.ToString());
-            Console.WriteLine(groceryList.GroceryListId + "Test");
-
-            if (groceryList == null)
-            {
-                return NotFound(new { Message = "Grocery list not found for the specified user." });
-            }
-
-            return Ok(groceryList);
-        }
-        catch (JwtTokenException ex)
-        {
-            return Unauthorized(new { Message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
-        }
-    }
-
-    [Authorize]
-    [HttpGet("new/{accountId}")]
-    public IActionResult getGroceryListByAccountId(string accountId)
-    {
-        var groceryList = _groceryManager.GetGroceryListByAccountId(accountId);
-        return Ok(groceryList);
-    }
-    
-    
-    
-    /*[HttpGet("{accountId}/grocery-list")]
-public async Task<IActionResult> GetGroceryList(Guid accountId)
-{
-    try
-    {
-        GroceryListDto groceryList =  _groceryManager.CreateGroceryList(accountId);
-        _logger.LogInformation($"Grocery list for {accountId} has been created.");
-        return Ok(groceryList);
-    }
-    catch (Exception e)
-    {
-        return BadRequest(e.Message);
-    }
-}*/
 }
