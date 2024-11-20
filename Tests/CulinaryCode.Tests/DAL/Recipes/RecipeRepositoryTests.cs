@@ -52,7 +52,7 @@ namespace CulinaryCode.Tests.DAL.Recipes
             await _postgresContainer.StopAsync();
         }
 
-        private Recipe CreateRecipe(string recipeName = "Test Recipe")
+        private static Recipe CreateRecipe(string recipeName = "Test Recipe")
         {
             return new Recipe
             {
@@ -187,11 +187,11 @@ namespace CulinaryCode.Tests.DAL.Recipes
         public async Task GetFilteredRecipesAsync_FilterByName_ReturnsMatchingRecipes()
         {
             // Arrange
-            var recipe1 = new Recipe { RecipeName = "Spaghetti Bolognese" };
-            var recipe2 = new Recipe { RecipeName = "Chicken Curry" };
-            var recipe3 = new Recipe { RecipeName = "Spaghetti Carbonara" };
+            var recipe1 = CreateRecipe("Spaghetti Bolognese"); 
+            var recipe2 = CreateRecipe("Chicken Curry"); 
+            var recipe3 = CreateRecipe("Spaghetti Carbonara"); 
             _dbContext.Recipes.AddRange(recipe1, recipe2, recipe3);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             // Act
             var result = await _recipeRepository.GetFilteredRecipesAsync("Spaghetti", Difficulty.NotAvailable,
@@ -208,10 +208,14 @@ namespace CulinaryCode.Tests.DAL.Recipes
         public async Task GetFilteredRecipesAsync_FilterByDifficulty_ReturnsMatchingRecipes()
         {
             // Arrange
-            var recipe1 = new Recipe { RecipeName = "Easy Dish", Difficulty = Difficulty.Easy };
-            var recipe2 = new Recipe { RecipeName = "Medium Dish", Difficulty = Difficulty.Intermediate };
+            var recipe1 = CreateRecipe("Easy Dish");
+            recipe1.Difficulty = Difficulty.Easy;
+
+            var recipe2 = CreateRecipe("Medium Dish");
+            recipe2.Difficulty = Difficulty.Intermediate;
+
             _dbContext.Recipes.AddRange(recipe1, recipe2);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             // Act
             var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.Easy, RecipeType.NotAvailable,
@@ -227,10 +231,14 @@ namespace CulinaryCode.Tests.DAL.Recipes
         public async Task GetFilteredRecipesAsync_FilterByRecipeType_ReturnsMatchingRecipes()
         {
             // Arrange
-            var recipe1 = new Recipe { RecipeName = "Soup", RecipeType = RecipeType.Dinner };
-            var recipe2 = new Recipe { RecipeName = "Salad", RecipeType = RecipeType.Breakfast };
+            var recipe1 = CreateRecipe("Soup");
+            recipe1.RecipeType = RecipeType.Dinner;
+
+            var recipe2 = CreateRecipe("Salad");
+            recipe2.RecipeType = RecipeType.Breakfast;
+
             _dbContext.Recipes.AddRange(recipe1, recipe2);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             // Act
             var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.NotAvailable, RecipeType.Dinner,
@@ -247,10 +255,14 @@ namespace CulinaryCode.Tests.DAL.Recipes
         public async Task GetFilteredRecipesAsync_FilterByCookingTime_ReturnsMatchingRecipes()
         {
             // Arrange
-            var recipe1 = new Recipe { RecipeName = "Quick Dish", CookingTime = 15 };
-            var recipe2 = new Recipe { RecipeName = "Slow Dish", CookingTime = 60 };
+            var recipe1 = CreateRecipe("Quick Dish");
+            recipe1.CookingTime = 15;
+
+            var recipe2 = CreateRecipe("Slow Dish");
+            recipe2.CookingTime = 60;
+
             _dbContext.Recipes.AddRange(recipe1, recipe2);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             // Act
             var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.NotAvailable,
@@ -278,19 +290,14 @@ namespace CulinaryCode.Tests.DAL.Recipes
 
             _dbContext.IngredientQuantities.AddRange(iq1, iq2, iq3);
 
-            var recipe1 = new Recipe
-            {
-                RecipeName = "Tomato Soup",
-                Ingredients = new List<IngredientQuantity> { iq1, iq2 }
-            };
-            var recipe2 = new Recipe
-            {
-                RecipeName = "Chicken Curry",
-                Ingredients = new List<IngredientQuantity> { iq3 }
-            };
+            var recipe1 = CreateRecipe("Tomato Soup");
+            recipe1.Ingredients = new List<IngredientQuantity> { iq1, iq2 };
+
+            var recipe2 = CreateRecipe("Chicken Curry");
+            recipe2.Ingredients = new List<IngredientQuantity> { iq3 };
 
             _dbContext.Recipes.AddRange(recipe1, recipe2);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
             _dbContext.ChangeTracker.Clear();
 
             // Act
@@ -302,6 +309,7 @@ namespace CulinaryCode.Tests.DAL.Recipes
             Assert.Single(result);
             Assert.Equal("Tomato Soup", result.First().RecipeName);
         }
+
 
         [Fact]
         public async Task GetFilteredRecipesAsync_NoRecipesInDatabase_ReturnsEmptyList()
@@ -332,21 +340,16 @@ namespace CulinaryCode.Tests.DAL.Recipes
 
             _dbContext.IngredientQuantities.AddRange(iq1, iq2);
 
-            var recipe1 = new Recipe
-            {
-                RecipeName = "Quick Tomato Pasta",
-                CookingTime = 20,
-                Ingredients = new List<IngredientQuantity> { iq1, iq2 }
-            };
-            var recipe2 = new Recipe
-            {
-                RecipeName = "Slow-Cooked Onion Soup",
-                CookingTime = 120,
-                Ingredients = new List<IngredientQuantity> { iq2 }
-            };
+            var recipe1 = CreateRecipe("Quick Tomato Pasta");
+            recipe1.CookingTime = 20;
+            recipe1.Ingredients = new List<IngredientQuantity> { iq1, iq2 };
+
+            var recipe2 = CreateRecipe("Slow-Cooked Onion Soup");
+            recipe2.CookingTime = 120;
+            recipe2.Ingredients = new List<IngredientQuantity> { iq2 };
 
             _dbContext.Recipes.AddRange(recipe1, recipe2);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
             _dbContext.ChangeTracker.Clear();
 
             // Act
@@ -374,18 +377,13 @@ namespace CulinaryCode.Tests.DAL.Recipes
 
             _dbContext.IngredientQuantities.AddRange(iq1, iq2);
 
-            var recipe1 = new Recipe
-            {
-                RecipeName = "Garlic Chicken",
-                Difficulty = Difficulty.Intermediate,
-                Ingredients = new List<IngredientQuantity> { iq1, iq2 }
-            };
-            var recipe2 = new Recipe
-            {
-                RecipeName = "Simple Garlic Bread",
-                Difficulty = Difficulty.Easy,
-                Ingredients = new List<IngredientQuantity> { iq3 }
-            };
+            var recipe1 = CreateRecipe("Garlic Chicken");
+            recipe1.Difficulty = Difficulty.Intermediate;
+            recipe1.Ingredients = new List<IngredientQuantity> { iq1, iq2 };
+
+            var recipe2 = CreateRecipe("Simple Garlic Bread");
+            recipe2.Difficulty = Difficulty.Easy;
+            recipe2.Ingredients = new List<IngredientQuantity> { iq3 };
 
             _dbContext.Recipes.AddRange(recipe1, recipe2);
             await _dbContext.SaveChangesAsync();
@@ -405,27 +403,20 @@ namespace CulinaryCode.Tests.DAL.Recipes
         public async Task GetFilteredRecipesAsync_FilterByTypeAndCookTime_ReturnsMatchingRecipes()
         {
             // Arrange
-            var recipe1 = new Recipe
-            {
-                RecipeName = "Vegetarian Pizza",
-                RecipeType = RecipeType.Dinner,
-                CookingTime = 30
-            };
-            var recipe2 = new Recipe
-            {
-                RecipeName = "Granola Bar",
-                RecipeType = RecipeType.Snack,
-                CookingTime = 25
-            };
-            var recipe3 = new Recipe
-            {
-                RecipeName = "Vegan Salad",
-                RecipeType = RecipeType.Dinner,
-                CookingTime = 10
-            };
+            var recipe1 = CreateRecipe("Vegetarian Pizza");
+            recipe1.RecipeType = RecipeType.Dinner;
+            recipe1.CookingTime = 30;
+
+            var recipe2 = CreateRecipe("Granola Bar");
+            recipe2.RecipeType = RecipeType.Snack;
+            recipe2.CookingTime = 25;
+
+            var recipe3 = CreateRecipe("Vegan Salad");
+            recipe3.RecipeType = RecipeType.Dinner;
+            recipe3.CookingTime = 10;
 
             _dbContext.Recipes.AddRange(recipe1, recipe2, recipe3);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
             _dbContext.ChangeTracker.Clear();
 
             // Act
@@ -454,25 +445,20 @@ namespace CulinaryCode.Tests.DAL.Recipes
 
             _dbContext.IngredientQuantities.AddRange(iq1, iq2);
 
-            var recipe1 = new Recipe
-            {
-                RecipeName = "Chicken Fried Rice",
-                Difficulty = Difficulty.Easy,
-                RecipeType = RecipeType.Dinner,
-                CookingTime = 20,
-                Ingredients = new List<IngredientQuantity> { iq1, iq3 }
-            };
-            var recipe2 = new Recipe
-            {
-                RecipeName = "Granola Bar",
-                Difficulty = Difficulty.Easy,
-                RecipeType = RecipeType.Snack,
-                CookingTime = 20,
-                Ingredients = new List<IngredientQuantity> { iq2 }
-            };
+            var recipe1 = CreateRecipe("Chicken Fried Rice");
+            recipe1.Difficulty = Difficulty.Easy;
+            recipe1.RecipeType = RecipeType.Dinner;
+            recipe1.CookingTime = 20;
+            recipe1.Ingredients = new List<IngredientQuantity> { iq1, iq3 };
+
+            var recipe2 = CreateRecipe("Granola Bar");
+            recipe2.Difficulty = Difficulty.Easy;
+            recipe2.RecipeType = RecipeType.Snack;
+            recipe2.CookingTime = 20;
+            recipe2.Ingredients = new List<IngredientQuantity> { iq2 };
 
             _dbContext.Recipes.AddRange(recipe1, recipe2);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
             _dbContext.ChangeTracker.Clear();
 
             // Act
