@@ -50,7 +50,6 @@ public class GroceryRepository : IGroceryRepository
                 Quantity = group.Sum(i => i.Quantity),
             }).ToList();
         
-        
         return groceryList;
     }
 
@@ -63,11 +62,7 @@ public class GroceryRepository : IGroceryRepository
                 .ThenInclude(i => i.GroceryItem)
             .Include(gl => gl.Account)
             .FirstOrDefault(gl => gl.Account.AccountId == accountId);
-        
-        if (groceryList == null)
-        {
-            Console.WriteLine($"No grocery list found for account {accountId}");
-        }
+
         return groceryList;
     }
 
@@ -86,12 +81,6 @@ public class GroceryRepository : IGroceryRepository
         
         _ctx.GroceryLists.Add(groceryList);
         _ctx.SaveChanges();
-
-        Console.WriteLine($"Saved Ingredients Count: {savedGroceryList?.Ingredients.Count() ?? 0}");
-        foreach (var ingredient in savedGroceryList?.Ingredients ?? new List<IngredientQuantity>())
-        {
-            Console.WriteLine($"Saved Ingredient: {ingredient.Ingredient?.IngredientName}, Quantity: {ingredient.Quantity}");
-        }
     }
 
     public void UpdateGroceryList(GroceryList groceryList)
@@ -104,7 +93,7 @@ public class GroceryRepository : IGroceryRepository
     {
         if (groceryList == null || newItem == null)
         {
-            throw new ArgumentException("Grocery list or new item cannot be null.");
+            throw new GroceryListNotFoundException("Grocery list or new item cannot be null.");
         }
         
         groceryList.Items.Append(newItem); 

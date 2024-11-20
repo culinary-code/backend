@@ -54,6 +54,7 @@ public class GroceryController : ControllerBase
         }
         catch (JwtTokenException e)
         {
+            _logger.LogError("An error occurred while trying to get user: {ErrorMessage}", e.Message);
             return Unauthorized("Invalid access token: " + e.Message);
         }
         catch (GroceryListNotFoundException e)

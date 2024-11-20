@@ -57,7 +57,7 @@ public class GroceryManager : IGroceryManager
     {
         if (newListItem == null || newListItem.Ingredient == null)
         {
-            throw new GroceryListNotFoundException("New item is empty");
+            throw new GroceryListItemNotFoundException("Item does not exist.");
         }
         
         var groceryList = _groceryRepository.ReadGroceryListById(groceryListId);
