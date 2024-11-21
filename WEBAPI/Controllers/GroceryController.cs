@@ -42,7 +42,6 @@ public class GroceryController : ControllerBase
         }
     }
     
-    [Authorize]
     [HttpGet("account/grocery-list")]
     public IActionResult GetGroceryListByAccessToken([FromHeader(Name = "Authorization")] string accessToken)
     {
@@ -64,7 +63,6 @@ public class GroceryController : ControllerBase
     }
 
     [HttpPut("{groceryListId}/add-item")]
-    [Authorize]
     public IActionResult AddItemToGroceryList(Guid groceryListId, [FromBody] ItemQuantityDto newItem)
     {
         if (newItem == null)

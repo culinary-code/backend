@@ -26,29 +26,8 @@ public class GroceryRepository : IGroceryRepository
             .FirstOrDefault(gl => gl.GroceryListId == id);
         if (groceryList == null)
         {
-            throw new GroceryListNotFoundException();
+            throw new GroceryListNotFoundException("Grocery list not found!");
         }
-
-        var groupedIngredients = groceryList.Ingredients
-            .Where(i => i != null)
-            .GroupBy(i => i.Ingredient.IngredientId)
-            .Select(group => new
-            {
-                IngredientId = group.Key,
-                IngredientName = group.Key,
-                Quantity = group.Sum(i => i.Quantity),
-                MeasurementType = group.First().Ingredient.Measurement,
-            }).ToList();
-
-        var groupedItems = groceryList.Items
-            .Where(i => i != null)
-            .GroupBy(i => i.GroceryItem.GroceryItemId)
-            .Select(group => new
-            {
-                GroceryItemId = group.Key,
-                GroceryName = group.Key,
-                Quantity = group.Sum(i => i.Quantity),
-            }).ToList();
         
         return groceryList;
     }
@@ -62,6 +41,11 @@ public class GroceryRepository : IGroceryRepository
                 .ThenInclude(i => i.GroceryItem)
             .Include(gl => gl.Account)
             .FirstOrDefault(gl => gl.Account.AccountId == accountId);
+        
+        if (groceryList == null)
+        {
+            throw new GroceryListNotFoundException("No grocery list found for this account.");
+        }
 
         return groceryList;
     }
@@ -74,11 +58,6 @@ public class GroceryRepository : IGroceryRepository
 
     public void CreateGroceryList(GroceryList groceryList)
     {
-        var savedGroceryList = _ctx.GroceryLists
-            .Include(gl => gl.Ingredients)
-            .ThenInclude(iq => iq.Ingredient)
-            .FirstOrDefault(gl => gl.GroceryListId == groceryList.GroceryListId);
-        
         _ctx.GroceryLists.Add(groceryList);
         _ctx.SaveChanges();
     }
@@ -98,8 +77,8 @@ public class GroceryRepository : IGroceryRepository
         
         groceryList.Items.Append(newItem); 
 
-        _ctx.Add(newItem);
-        _ctx.Add(newItem.GroceryItem);
+        _ctx.ItemQuantities.Add(newItem);
+        _ctx.GroceryItems.Add(newItem.GroceryItem);
 
         _ctx.SaveChanges();
     }

@@ -15,21 +15,18 @@ namespace BL.Managers.Groceries;
 public class GroceryManager : IGroceryManager
 {
     private readonly IGroceryRepository _groceryRepository;
-    private readonly IMealPlannerRepository _mealPlannerRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<GroceryManager> _logger;
     
-    public GroceryManager(IGroceryRepository groceryRepository, IMapper mapper, IMealPlannerRepository mealPlannerRepository, ILogger<GroceryManager> logger)
+    public GroceryManager(IGroceryRepository groceryRepository, IMapper mapper, ILogger<GroceryManager> logger)
     {
         _groceryRepository = groceryRepository;
         _mapper = mapper;
-        _mealPlannerRepository = mealPlannerRepository;
         _logger = logger;
     }
     
     public void CreateNewGroceryList(GroceryList groceryList)
     {
-        groceryList = new GroceryList();
         _groceryRepository.CreateGroceryList(groceryList);
     }
 
@@ -44,12 +41,6 @@ public class GroceryManager : IGroceryManager
     {
         Guid id = Guid.Parse(accountId);
         var groceryList = _groceryRepository.ReadGroceryListByAccountId(id);
-
-        if (groceryList == null)
-        {
-            throw new GroceryListNotFoundException("No grocery list found for this account.");
-        }
-
         return _mapper.Map<GroceryListDto>(groceryList);
     }
 
@@ -62,11 +53,7 @@ public class GroceryManager : IGroceryManager
         
         var groceryList = _groceryRepository.ReadGroceryListById(groceryListId);
 
-        if (groceryList == null)
-        {
-            throw new GroceryListNotFoundException("Grocery list not found!");
-        }
-
+        
         var existingIngredient = groceryList.Ingredients
             .FirstOrDefault(i => i.Ingredient.IngredientName.ToLower() == newListItem.Ingredient.IngredientName.ToLower());
         var existingItem = groceryList.Items.FirstOrDefault(i => i.GroceryItem.GroceryItemName.ToLower() == newListItem.Ingredient.IngredientName.ToLower());
@@ -87,7 +74,7 @@ public class GroceryManager : IGroceryManager
         {
             var newItem = new ItemQuantity
             {
-                IngredientQuantityId = Guid.NewGuid(),
+                ItemQuantityId = Guid.NewGuid(),
                 Quantity = newListItem.Quantity,
                 GroceryList = groceryList,
                 GroceryItem = new GroceryItem()
@@ -101,12 +88,5 @@ public class GroceryManager : IGroceryManager
             _groceryRepository.AddGroceryListItem(groceryList, newItem);
             _logger.LogInformation(newListItem.Ingredient.IngredientId + " has been added to grocery list");
         }
-    }
-
-    public GroceryListDto? UpdateGroceryList(Guid accountId, GroceryListDto groceryList)
-    {
-        var mealPlanner = _mealPlannerRepository.ReadMealPlannerById(accountId);
-        var plannedMeals = mealPlanner.NextWeek;
-        return groceryList;
     }
 }

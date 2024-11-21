@@ -22,7 +22,6 @@ public class AccountManager : IAccountManager
     
     public AccountDto GetAccountById(string id)
     {
-        //id = "d1ec841b-9646-4ca7-a1ef-eda7354547f3";
         Guid parsedGuid = Guid.Parse(id);
         var account = _accountRepository.ReadAccount(parsedGuid);
         return _mapper.Map<AccountDto>(account);

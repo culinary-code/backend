@@ -28,13 +28,11 @@ namespace BL.Testing
             _mockLogger = new Mock<ILogger<GroceryManager>>();
             _mockGroceryRepository = new Mock<IGroceryRepository>();
             _mockAccountRepository = new Mock<IAccountRepository>();
-            _mockMealPlannerRepository = new Mock<IMealPlannerRepository>();
             _mockMapper = new Mock<IMapper>();
 
             _groceryManager = new GroceryManager(
                 _mockGroceryRepository.Object,
                 _mockMapper.Object,
-                _mockMealPlannerRepository.Object,
                 _mockLogger.Object
             );
         }
@@ -150,7 +148,7 @@ namespace BL.Testing
 
             _mockGroceryRepository
                 .Setup(repo => repo.ReadGroceryListByAccountId(accountId))
-                .Returns(account.GroceryList);
+                .Returns(groceryList);
 
             var result = _mockGroceryRepository.Object.ReadGroceryListByAccountId(accountId);
             
@@ -161,24 +159,6 @@ namespace BL.Testing
             Assert.NotNull(account.GroceryList); 
             Assert.Equal(accountId, account.AccountId);
             Assert.Equal("nis", account.Name); 
-        }
-        
-        [Fact]
-        public void CreateGroceryList_ShouldReturnEmptyList_WhenNoPlannedMeals()
-        {
-            var accountId = Guid.NewGuid();
-            var account = CreateSampleAccount(accountId);
-            var mealPlanner = new MealPlanner();
-
-            _mockAccountRepository
-                .Setup(repo => repo.ReadAccount(accountId))
-                .Returns(account);
-
-            _mockMealPlannerRepository
-                .Setup(repo => repo.ReadMealPlannerById(accountId))
-                .Returns(mealPlanner);
-            
-            Assert.Empty(mealPlanner.NextWeek);
         }
         
         [Fact]
@@ -253,20 +233,7 @@ namespace BL.Testing
             };
             
             _mockAccountRepository.Setup(repo => repo.ReadAccount(accountId)).Returns(account);
-            _mockMealPlannerRepository.Setup(repo => repo.ReadMealPlannerById(accountId)).Returns(mealPlanner);
             _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(groceryList.GroceryListId)).Returns(groceryList);
-
-            _testOutputHelper.WriteLine("Initial Grocery List ingredients:");
-            foreach (var item in groceryList.Ingredients)
-            {
-                _testOutputHelper.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
-            }
-            
-            _testOutputHelper.WriteLine("Initial Grocery List items:");
-            foreach (var item in groceryList.Items)
-            {
-                _testOutputHelper.WriteLine($"- Item: {item.GroceryItem.GroceryItemName}, Quantity: {item.Quantity}");
-            }
             
             _groceryManager.AddItemToGroceryList(groceryList.GroceryListId, addItemDto);
             _groceryManager.AddItemToGroceryList(groceryList.GroceryListId, addItemDto2);
@@ -322,7 +289,6 @@ namespace BL.Testing
             }
             
             _mockAccountRepository.Setup(repo => repo.ReadAccount(accountId)).Returns(account);
-            _mockMealPlannerRepository.Setup(repo => repo.ReadMealPlannerById(accountId)).Returns(mealPlanner);
             _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(accountId)).Returns(groceryList);
             _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(groceryList.GroceryListId)).Returns(groceryList);
 

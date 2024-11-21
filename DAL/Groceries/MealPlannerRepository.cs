@@ -15,13 +15,6 @@ public class MealPlannerRepository : IMealPlannerRepository
 
     public MealPlanner ReadMealPlannerById(Guid accountId)
     {
-        return _ctx.Accounts
-            .Where(a => a.AccountId == accountId)
-            .Include(a => a.Planner)
-            .ThenInclude(mp => mp.NextWeek)
-            .ThenInclude(pm => pm.Ingredients)
-            .ThenInclude(iq => iq.Ingredient)
-            .Select(a => a.Planner)
-            .FirstOrDefault();
+        return _ctx.MealPlanners.Where(m => m.Account.AccountId == accountId).FirstOrDefault();
     }
 }
