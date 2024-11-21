@@ -7,9 +7,9 @@ namespace DOM.Recipes.Ingredients;
 public class ItemQuantity
 {
     [Key]
-    public Guid IngredientQuantityId { get; set; }
+    public Guid ItemQuantityId { get; set; }
     public float Quantity { get; set; }
-    public Ingredient? Ingredient { get; set; } 
+    public GroceryItem? GroceryItem { get; set; } 
     
     // navigation properties
     public GroceryList? GroceryList { get; set; }

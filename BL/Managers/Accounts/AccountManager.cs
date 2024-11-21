@@ -20,7 +20,6 @@ public class AccountManager : IAccountManager
         _mapper = mapper;
     }
     
-    
     public AccountDto GetAccountById(string id)
     {
         Guid parsedGuid = Guid.Parse(id);

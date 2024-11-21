@@ -2,9 +2,11 @@ using BL.AutoMapper;
 using BL.Managers.Recipes;
 using BL.ExternalSources.Llm;
 using BL.Managers.Accounts;
+using BL.Managers.Groceries;
 using BL.Services;
 using DAL.Accounts;
 using DAL.EF;
+using DAL.Groceries;
 using DAL.Recipes;
 using DOM.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -28,12 +30,15 @@ builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
 builder.Services.AddScoped<IPreferenceRepository, PreferenceRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IGroceryRepository, GroceryRepository>();
+builder.Services.AddScoped<IMealPlannerRepository, MealPlannerRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 
 // Managers
 builder.Services.AddScoped<IRecipeManager, RecipeManager>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
+builder.Services.AddScoped<IGroceryManager, GroceryManager>();
 builder.Services.AddScoped<IReviewManager, ReviewManager>();
 
 // Services
