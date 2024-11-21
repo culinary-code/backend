@@ -13,5 +13,7 @@ public class PlannedMealDto
     
     public RecipeDto? Recipe { get; set; } // Include RecipeDto to reference the recipe if needed
     
+    public DateTime PlannedDate { get; set; }
+    
     // Navigation properties omitted as they are not needed for the DTO
 }

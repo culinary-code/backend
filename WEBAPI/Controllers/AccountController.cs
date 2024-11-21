@@ -43,7 +43,7 @@ public class AccountController: ControllerBase
     [HttpPut("updateAccount")]
     public async Task<IActionResult> UpdateAccount([FromBody] AccountDto accountDto)
     {
-        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers.Authorization.ToString().Substring(7));
 
         accountDto.AccountId = userId;
         
