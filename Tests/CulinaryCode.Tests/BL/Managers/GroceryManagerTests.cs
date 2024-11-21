@@ -109,8 +109,6 @@ namespace BL.Testing
 
             _mockAccountRepository.Object.CreateAccount(account);
             _mockAccountRepository.Verify(repo => repo.CreateAccount(It.IsAny<Account>()), Times.Once);
-
-            _testOutputHelper.WriteLine($"Account ID: {account.AccountId} created with Grocery List ID: {account.GroceryList.GroceryListId}");
         }
 
         [Fact]
@@ -122,9 +120,6 @@ namespace BL.Testing
             _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(groceryListId)).Returns(groceryList);
 
             var result = _mockGroceryRepository.Object.ReadGroceryListById(groceryListId);
-            
-             _testOutputHelper.WriteLine($"GroceryListId: {result.GroceryListId}");
-
 
             Assert.NotNull(result);
             Assert.Equal(groceryListId, result.GroceryListId);
@@ -242,18 +237,6 @@ namespace BL.Testing
             
             var addedItem = groceryList.Items.FirstOrDefault(i => i.GroceryItem.GroceryItemId == newIngredient.IngredientId);
             
-            _testOutputHelper.WriteLine("Updated Grocery ListItems:");
-            foreach (var item in groceryList.Items)
-            {
-                _testOutputHelper.WriteLine($"- Item: {item.GroceryItem.GroceryItemName}, Quantity: {item.Quantity}");
-            }
-            
-            _testOutputHelper.WriteLine("Updated Grocery ListIngredients:");
-            foreach (var item in groceryList.Ingredients)
-            {
-                _testOutputHelper.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
-            }
-            
             Assert.NotNull(addedItem); 
             Assert.Equal(3, addedItem.Quantity);
 
@@ -282,12 +265,6 @@ namespace BL.Testing
             
             account.GroceryListId = groceryList.GroceryListId;
             
-            _testOutputHelper.WriteLine($"Initial Grocery List (ID: {groceryList.GroceryListId}):");
-            foreach (var item in groceryList.Ingredients)
-            {
-                _testOutputHelper.WriteLine($"- Ingredient: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
-            }
-            
             _mockAccountRepository.Setup(repo => repo.ReadAccount(accountId)).Returns(account);
             _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(accountId)).Returns(groceryList);
             _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(groceryList.GroceryListId)).Returns(groceryList);
@@ -315,18 +292,6 @@ namespace BL.Testing
 
             _groceryManager.AddItemToGroceryList(groceryList.GroceryListId, addItemDto);
             _groceryManager.AddItemToGroceryList(groceryList.GroceryListId, addItemDto2);
-            
-            _testOutputHelper.WriteLine($"Updated Grocery List (ID: {groceryList.GroceryListId}):");
-            foreach (var item in groceryList.Ingredients)
-            {
-                _testOutputHelper.WriteLine($"- Item: {item.Ingredient.IngredientName}, Quantity: {item.Quantity}");
-            }
-            
-            _testOutputHelper.WriteLine($"Test Grocery List (ID: {groceryList.GroceryListId}):");
-            foreach (var item in groceryList.Items)
-            {
-                _testOutputHelper.WriteLine($"- Item: {item.GroceryItem.GroceryItemName}, Quantity: {item.Quantity}");
-            }
             
             var updatedGroceryList = groceryList.Ingredients.FirstOrDefault(i => i.Ingredient.IngredientId == ingredient.IngredientId);
             Assert.NotNull(updatedGroceryList);

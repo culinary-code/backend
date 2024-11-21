@@ -17,14 +17,14 @@ public class GroceryManager : IGroceryManager
     private readonly IGroceryRepository _groceryRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<GroceryManager> _logger;
-    
+
     public GroceryManager(IGroceryRepository groceryRepository, IMapper mapper, ILogger<GroceryManager> logger)
     {
         _groceryRepository = groceryRepository;
         _mapper = mapper;
         _logger = logger;
     }
-    
+
     public void CreateNewGroceryList(GroceryList groceryList)
     {
         _groceryRepository.CreateGroceryList(groceryList);
@@ -50,43 +50,49 @@ public class GroceryManager : IGroceryManager
         {
             throw new GroceryListItemNotFoundException("Item does not exist.");
         }
-        
+
         var groceryList = _groceryRepository.ReadGroceryListById(groceryListId);
 
-        
         var existingIngredient = groceryList.Ingredients
-            .FirstOrDefault(i => i.Ingredient.IngredientName.ToLower() == newListItem.Ingredient.IngredientName.ToLower());
-        var existingItem = groceryList.Items.FirstOrDefault(i => i.GroceryItem.GroceryItemName.ToLower() == newListItem.Ingredient.IngredientName.ToLower());
-        
+            .FirstOrDefault(i =>
+                i.Ingredient.IngredientName.ToLower() == newListItem.Ingredient.IngredientName.ToLower());
+
+
+
         if (existingIngredient != null)
         {
             existingIngredient.Quantity += newListItem.Quantity;
             _logger.LogInformation($"{existingIngredient} has been updated");
             _groceryRepository.UpdateGroceryList(groceryList);
-        }  
-        else if (existingItem != null)
-        {
-            existingItem.Quantity += newListItem.Quantity;
-            _logger.LogInformation($"{existingItem} has been updated");
-            _groceryRepository.UpdateGroceryList(groceryList);
         }
-        else 
+        else if (existingIngredient == null)
         {
-            var newItem = new ItemQuantity
+            var existingItem = groceryList.Items.FirstOrDefault(i =>
+                i.GroceryItem.GroceryItemName.ToLower() == newListItem.Ingredient.IngredientName.ToLower());
+            if (existingItem != null)
             {
-                ItemQuantityId = Guid.NewGuid(),
-                Quantity = newListItem.Quantity,
-                GroceryList = groceryList,
-                GroceryItem = new GroceryItem()
+                existingItem.Quantity += newListItem.Quantity;
+                _logger.LogInformation($"{existingItem} has been updated");
+                _groceryRepository.UpdateGroceryList(groceryList);
+            }
+            else
+            {
+                var newItem = new ItemQuantity
                 {
-                    GroceryItemId = newListItem.Ingredient.IngredientId,
-                    GroceryItemName = newListItem.Ingredient.IngredientName,
-                    Measurement = newListItem.Ingredient.Measurement,
-                }
-            };
-            groceryList.Items = groceryList.Items.Append(newItem).ToList();
-            _groceryRepository.AddGroceryListItem(groceryList, newItem);
-            _logger.LogInformation(newListItem.Ingredient.IngredientId + " has been added to grocery list");
+                    ItemQuantityId = Guid.NewGuid(),
+                    Quantity = newListItem.Quantity,
+                    GroceryList = groceryList,
+                    GroceryItem = new GroceryItem()
+                    {
+                        GroceryItemId = newListItem.Ingredient.IngredientId,
+                        GroceryItemName = newListItem.Ingredient.IngredientName,
+                        Measurement = newListItem.Ingredient.Measurement,
+                    }
+                };
+                groceryList.Items = groceryList.Items.Append(newItem).ToList();
+                _groceryRepository.AddGroceryListItem(groceryList, newItem);
+                _logger.LogInformation(newListItem.Ingredient.IngredientId + " has been added to grocery list");
+            }
         }
     }
 }

@@ -50,12 +50,6 @@ public class GroceryRepository : IGroceryRepository
         return groceryList;
     }
 
-    public void CreateNewGroceryList(GroceryList groceryList)
-    {
-        _ctx.GroceryLists.Add(groceryList);
-        _ctx.SaveChanges();
-    }
-
     public void CreateGroceryList(GroceryList groceryList)
     {
         _ctx.GroceryLists.Add(groceryList);
