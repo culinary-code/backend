@@ -28,8 +28,8 @@ public class MealPlannerController : ControllerBase
     public async Task<IActionResult> CreateNewPlannedMeal([FromBody] PlannedMealDto plannedMealDto)
     {
         
-        // Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers.Authorization.ToString().Substring(7));
-        Guid userId = Guid.Parse("d1ec841b-9646-4ca7-a1ef-eda7354547f3");
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers.Authorization.ToString().Substring(7));
+        // Guid userId = Guid.Parse("d1ec841b-9646-4ca7-a1ef-eda7354547f3");
         
         try
         {
@@ -44,5 +44,19 @@ public class MealPlannerController : ControllerBase
         }
     }
     
-    // method to request checking of a date in db (possible overwrite message)
+    [HttpGet("PlannedMeal/{dateTime}")]
+    public async Task<IActionResult> GetRecipeCollectionByName(DateTime dateTime)
+    {
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers.Authorization.ToString().Substring(7));
+        try
+        {
+            var plannedMeals = await _mealPlannerManager.GetPlannedMealsFromUserAfterDate(dateTime, userId);
+            return Ok(plannedMeals);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
+            return NotFound(e.Message);
+        }
+    }
 }

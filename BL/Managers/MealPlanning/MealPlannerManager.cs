@@ -28,7 +28,7 @@ public class MealPlannerManager : IMealPlannerManager
     {
         // get mealplanner for user with userid
 
-        MealPlanner mealPlanner = _mealPlannerRepository.ReadMealPlannerByIdWithNextWeek(userId);
+        MealPlanner mealPlanner = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeek(userId);
         
         // check if planned meal exists for date
         var alreadyPlannedMeal = mealPlanner.NextWeek.FirstOrDefault(pm => pm.PlannedDate.ToUniversalTime().Date == plannedMealDto.PlannedDate.ToUniversalTime().Date);
@@ -51,7 +51,6 @@ public class MealPlannerManager : IMealPlannerManager
             linkedIngredientQuantities.Add(ingredientQuantity);
         }
         
-        // create new planned meal in db
         PlannedMeal plannedMeal = new PlannedMeal()
         {
             PlannedDate = DateTime.SpecifyKind(plannedMealDto.PlannedDate.Date, DateTimeKind.Utc),
@@ -61,8 +60,22 @@ public class MealPlannerManager : IMealPlannerManager
             NextWeekMealPlanner = mealPlanner
             
         };
-        plannedMeal = await _mealPlannerRepository.CreatePlannedMeal(plannedMeal);
         
-       
+        await _mealPlannerRepository.CreatePlannedMeal(plannedMeal);
+        
+    }
+
+    public async Task<List<PlannedMealDto>> GetPlannedMealsFromUserAfterDate(DateTime dateTime, Guid userId)
+    {
+        List<PlannedMeal> plannedMeals;
+        if (dateTime.Date == DateTime.Now.Date)
+        {
+            plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMeals(dateTime, userId);
+        }
+        else
+        {
+            plannedMeals = await _mealPlannerRepository.ReadPlannedMealsAfterDate(dateTime, userId);
+        }
+        return _mapper.Map<List<PlannedMealDto>>(plannedMeals);
     }
 }
