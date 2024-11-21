@@ -30,6 +30,13 @@ public class TestPostgresContainerFixture : IAsyncLifetime
         DbContext = new CulinaryCodeDbContext(options);
         await DbContext.Database.EnsureCreatedAsync();
     }
+    
+    // Cleanup between tests
+    public async Task ResetDatabaseAsync()
+    {
+        await DbContext.Database.EnsureDeletedAsync();
+        await DbContext.Database.EnsureCreatedAsync();
+    }
 
     public async Task DisposeAsync()
     {
