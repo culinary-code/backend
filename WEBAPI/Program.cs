@@ -28,11 +28,13 @@ builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
 builder.Services.AddScoped<IPreferenceRepository, PreferenceRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 
 // Managers
 builder.Services.AddScoped<IRecipeManager, RecipeManager>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
+builder.Services.AddScoped<IReviewManager, ReviewManager>();
 
 // Services
 builder.Services.AddHttpClient<IIdentityProviderService, KeyCloakService>();
