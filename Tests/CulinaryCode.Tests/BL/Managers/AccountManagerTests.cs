@@ -6,18 +6,21 @@ using DOM.Accounts;
 using DOM.Exceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit.Abstractions;
 
 namespace CulinaryCode.Tests.BL.Managers;
 
 public class AccountManagerTests
 {
+    private readonly ITestOutputHelper _testOutputHelper;
     private readonly Mock<IAccountRepository> _mockRepository;
     private readonly Mock<ILogger<AccountManager>> _loggerMock;
     private readonly Mock<IMapper> _mockMapper;
     private readonly AccountManager _accountManager;
     
-    public AccountManagerTests()
+    public AccountManagerTests(ITestOutputHelper testOutputHelper)
     {
+        _testOutputHelper = testOutputHelper;
         _mockRepository = new Mock<IAccountRepository>();
         _loggerMock = new Mock<ILogger<AccountManager>>();
         _mockMapper = new Mock<IMapper>();
@@ -115,4 +118,87 @@ public class AccountManagerTests
         // Assert
         _mockRepository.Verify(manager => manager.CreateAccount(It.IsAny<Account>()), Times.Once);
     }
+    
+     [Fact]
+    public void GetPreferencesByUserId_ReturnsMappedPreferences_WhenPreferencesExist()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var preferenceId = Guid.NewGuid();
+        var preferenceId2 = Guid.NewGuid();
+
+        var preferences = new List<Preference>
+        {
+            new Preference { PreferenceId = preferenceId, PreferenceName = "Preference1" },
+            new Preference { PreferenceId = preferenceId2, PreferenceName = "Preference2" }
+        };
+
+        var expectedPreferences = new List<PreferenceDto>
+        {
+            new PreferenceDto { PreferenceId = preferenceId, PreferenceName = "Preference1" },
+            new PreferenceDto { PreferenceId = preferenceId2, PreferenceName = "Preference2" }
+        };
+
+        _mockRepository.Setup(manager => manager.ReadAccount(userId)).Returns(new Account { Preferences = preferences });
+        _mockMapper.Setup(mapper => mapper.Map<List<PreferenceDto>>(preferences)).Returns(expectedPreferences);
+
+        // Act
+        var result = _accountManager.GetPreferencesByUserId(userId);
+
+        // Assert
+        Assert.Equal(expectedPreferences.Count, result.Count);
+        Assert.Equal(expectedPreferences[0].PreferenceId, result[0].PreferenceId);
+    }
+
+    [Fact]
+    public void UpdatePreferences_ReturnsUpdatedAccount_WhenPreferencesAreUpdated()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var preferenceId = Guid.NewGuid();
+
+        var preferencesDto = new List<PreferenceDto>
+        {
+            new PreferenceDto { PreferenceId = preferenceId, PreferenceName = "UpdatedPreference1" }
+        };
+
+        var preferences = new List<Preference>
+        {
+            new Preference { PreferenceId = preferenceId, PreferenceName = "UpdatedPreference1" }
+        };
+
+        var existingAccount = new Account 
+        { 
+            AccountId = userId, 
+            Preferences = new List<Preference>()
+        };
+        var updatedAccount = new Account 
+        { 
+            AccountId = userId, 
+            Preferences = preferences 
+        };
+        var expectedAccountDto = new AccountDto 
+        { 
+            AccountId = userId 
+        };
+
+        foreach (var preference in updatedAccount.Preferences)
+        {
+            _testOutputHelper.WriteLine(preference.PreferenceId + " - " + preference.PreferenceName);
+        }
+
+        _mockRepository.Setup(manager => manager.ReadAccount(userId)).Returns(existingAccount);
+        _mockMapper.Setup(mapper => mapper.Map<List<Preference>>(preferencesDto)).Returns(preferences);
+        _mockRepository.Setup(manager => manager.UpdateAccount(It.IsAny<Account>())); // UpdateAccount mock setup
+        _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(expectedAccountDto);
+
+        // Act
+        var result = _accountManager.UpdatePreferences(userId, preferencesDto);
+
+        // Assert
+        Assert.NotNull(result); // Ensure result is not null
+        Assert.Equal(expectedAccountDto.AccountId, result.AccountId);
+        _mockRepository.Verify(manager => manager.UpdateAccount(It.IsAny<Account>()), Times.Once);
+    }
+
 }

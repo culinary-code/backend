@@ -14,8 +14,7 @@ public class AccountRepository : IAccountRepository
     {
         _ctx = ctx;
     }
-
-
+    
     public Account ReadAccount(Guid id)
     {
         Account? account = _ctx.Accounts.Find(id);

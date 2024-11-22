@@ -27,6 +27,12 @@ public class AccountManager : IAccountManager
         return _mapper.Map<AccountDto>(account);
     }
 
+    public List<PreferenceDto> GetPreferencesByUserId(Guid userId)
+    {
+        var account = _accountRepository.ReadAccount(userId);
+        return _mapper.Map<List<PreferenceDto>>(account.Preferences);
+    }
+
     public AccountDto UpdateAccount(AccountDto updatedAccount)
     {
         var account = _accountRepository.ReadAccount(updatedAccount.AccountId);
@@ -50,6 +56,22 @@ public class AccountManager : IAccountManager
         _accountRepository.UpdateAccount(account);
         _logger.LogInformation($"Updating user: {updatedAccount.AccountId}, new familySize: {updatedAccount.FamilySize}");
         
+        return _mapper.Map<AccountDto>(account);
+    }
+
+    public AccountDto UpdatePreferences(Guid userId, List<PreferenceDto> preferences)
+    {
+        foreach (var preference in preferences)
+        {
+            if (preference.PreferenceId == Guid.Empty)
+            {
+                preference.PreferenceId = Guid.NewGuid();
+            }
+        }
+        var account = _accountRepository.ReadAccount(userId);
+        account.Preferences = _mapper.Map<List<Preference>>(preferences);
+        
+        _accountRepository.UpdateAccount(account);
         return _mapper.Map<AccountDto>(account);
     }
 
