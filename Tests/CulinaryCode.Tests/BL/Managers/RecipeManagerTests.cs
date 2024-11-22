@@ -122,7 +122,7 @@ public class RecipeManagerTests
         );
     }
 
-    private static String SampleValidRecipeJson()
+    private static string SampleValidRecipeJson()
     {
         string recipeJson = """
                             {

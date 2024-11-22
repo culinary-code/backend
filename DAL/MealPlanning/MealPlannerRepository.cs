@@ -20,23 +20,15 @@ public class MealPlannerRepository : IMealPlannerRepository
             .FirstOrDefaultAsync(m => m.Account.AccountId == accountId);
     }
     
-    public async Task<MealPlanner> ReadMealPlannerByIdWithNextWeekWithRecipe(Guid accountId)
+    private async Task<MealPlanner> ReadMealPlannerByIdWithNextWeekWithRecipe(Guid accountId)
     {
         return await _ctx.MealPlanners
             .Include(planner => planner.NextWeek)
             .ThenInclude(p => p.Recipe)
             .FirstOrDefaultAsync(m => m.Account.AccountId == accountId);
     }
-
-    public async Task<MealPlanner> ReadMealPlannerByIdWithNextWeekAndHistory(Guid accountId)
-    {
-        return await _ctx.MealPlanners
-            .Include(planner => planner.NextWeek)
-            .Include(planner => planner.History)
-            .FirstOrDefaultAsync(m => m.Account.AccountId == accountId);
-    }
     
-    public async Task<MealPlanner> ReadMealPlannerByIdWithNextWeekAndHistoryWithRecipe(Guid accountId)
+    private async Task<MealPlanner> ReadMealPlannerByIdWithNextWeekAndHistoryWithRecipe(Guid accountId)
     {
         return await _ctx.MealPlanners
             .Include(planner => planner.NextWeek)
