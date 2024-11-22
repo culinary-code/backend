@@ -171,7 +171,7 @@ public class ReviewControllerTests
     }
 
     [Fact]
-    public async Task CreateReview_ReturnsBadRequest_WhenReviewAlreadyExists()
+    public async Task CreateReview_ReturnsConflict_WhenReviewAlreadyExists()
     {
         // Arrange
         var createReviewDto = new CreateReviewDto
@@ -197,8 +197,8 @@ public class ReviewControllerTests
         var result = await _controller.CreateReview(createReviewDto);
 
         // Assert
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.Equal(exceptionMessage, badRequestResult.Value);
+        var conflictResult = Assert.IsType<ConflictObjectResult>(result);
+        Assert.Equal(exceptionMessage, conflictResult.Value);
 
         // Optionally verify the logger was called with the correct message
         _loggerMock.Verify(
