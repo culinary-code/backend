@@ -77,7 +77,7 @@ public class ReviewManagerTests
         var existingReview = new List<Review> { new Review { Account = new Account { AccountId = accountId } } };
         _accountRepository.Setup(x => x.ReadAccount(accountId)).Returns(account);
         _recipeRepository.Setup(x => x.ReadRecipeById(recipeId)).Returns(recipe);
-        _reviewRepository.Setup(x => x.ReadReviewsWithAccountByRecipeId(recipeId)).ReturnsAsync(existingReview);
+        _reviewRepository.Setup(x => x.ReviewExistsForAccountAndRecipe(accountId, recipeId)).ReturnsAsync(true);
 
         // Act
         async Task Act() => await _reviewManager.CreateReview(accountId, recipeId, "description", 5);
