@@ -31,7 +31,7 @@ public class MealPlannerManager : IMealPlannerManager
         MealPlanner mealPlanner = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeek(userId);
         
         // check if planned meal exists for date
-        var alreadyPlannedMeal = mealPlanner.NextWeek.FirstOrDefault(pm => pm.PlannedDate.ToUniversalTime().Date == plannedMealDto.PlannedDate.ToUniversalTime().Date);
+        var alreadyPlannedMeal = mealPlanner.NextWeek.FirstOrDefault(pm => pm.PlannedDate.ToUniversalTime().Date == plannedMealDto.PlannedDate.Date);
         if (alreadyPlannedMeal != null)
         {
             await _mealPlannerRepository.DeletePlannedMeal(alreadyPlannedMeal);
