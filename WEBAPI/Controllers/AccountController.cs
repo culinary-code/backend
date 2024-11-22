@@ -41,17 +41,32 @@ public class AccountController: ControllerBase
     }
 
     [HttpPut("updateAccount")]
-    public async Task<IActionResult> UpdateAccount([FromBody] AccountDto accountDto)
+    public async Task<IActionResult> UpdateAccount([FromBody] AccountDto accountDto, [FromQuery] string actionType)
     {
-        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers.Authorization.ToString().Substring(7));
-
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
         accountDto.AccountId = userId;
         
         try
         {
-            var account = _accountManager.UpdateAccount(accountDto);
-            await _identityProviderService.UpdateUsernameAsync(account, accountDto.Name);
-            return Ok(account);
+            if (string.IsNullOrEmpty(actionType))
+            {
+                return BadRequest("Action type is required.");
+            }
+
+            switch (actionType.ToLowerInvariant())
+            {
+                case "updateusername":
+                    var updatedUsername = _accountManager.UpdateAccount(accountDto);
+                    await _identityProviderService.UpdateUsernameAsync(updatedUsername, accountDto.Name);
+                    return Ok(updatedUsername);
+                
+                case "updatefamilysize":
+                    var updatedFamilySize = _accountManager.UpdateFamilySize(accountDto);
+                    return Ok(updatedFamilySize);
+                
+                default:
+                    return BadRequest("Invalid action type.");
+            }
         }
         catch (Exception e)
         {

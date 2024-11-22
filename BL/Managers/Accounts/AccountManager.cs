@@ -38,8 +38,19 @@ public class AccountManager : IAccountManager
             throw new AccountNotFoundException("Account not found");
         }
         account.Name = updatedAccount.Name;
+
         _accountRepository.UpdateAccount(account);
         _logger.LogInformation($"Updating user: {updatedAccount.AccountId}, new username: {updatedAccount.Name}");
+        
+        return _mapper.Map<AccountDto>(account);
+    }
+    
+    public AccountDto UpdateFamilySize(AccountDto updatedAccount)
+    {
+        var account = _accountRepository.ReadAccount(updatedAccount.AccountId);
+        account.FamilySize = updatedAccount.FamilySize;
+        _accountRepository.UpdateAccount(account);
+        _logger.LogInformation($"Updating user: {updatedAccount.AccountId}, new familySize: {updatedAccount.FamilySize}");
         
         return _mapper.Map<AccountDto>(account);
     }
