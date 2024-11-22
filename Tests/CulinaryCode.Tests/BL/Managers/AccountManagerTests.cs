@@ -73,6 +73,22 @@ public class AccountManagerTests
     }
     
     [Fact]
+    public void UpdateAccount_ReturnsUpdatedAccountWithFamilySize_WhenAccountExists()
+    {
+        // Arrange
+        var accountId = Guid.NewGuid();
+        var updatedAccount = new AccountDto { AccountId = accountId, FamilySize = 14 };
+        _mockRepository.Setup(manager => manager.ReadAccount(accountId)).Returns(new Account());
+        _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(updatedAccount);
+
+        // Act
+        var result = _accountManager.UpdateAccount(updatedAccount);
+
+        // Assert
+        Assert.Equal(updatedAccount, result);
+    }
+    
+    [Fact]
     public void UpdateAccount_ThrowsAccountNotFoundException_WhenAccountDoesNotExist()
     {
         // Arrange

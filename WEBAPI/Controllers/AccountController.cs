@@ -59,4 +59,23 @@ public class AccountController: ControllerBase
             return BadRequest("Failed to update account.");
         }
     }
+
+    [HttpPut("updateFamilySize")]
+    public Task<IActionResult> UpdateFamilySize([FromBody] AccountDto accountDto)
+    {
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+        accountDto.AccountId = userId;
+        
+        try
+        {
+            var account = _accountManager.UpdateFamilySize(accountDto);
+            return Task.FromResult<IActionResult>(Ok(account));
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("An error occurred while updating account {AccountId}: {ErrorMessage}", userId, e.Message);
+            return Task.FromResult<IActionResult>(BadRequest("Failed to update account."));
+        }
+    }
+        
 }

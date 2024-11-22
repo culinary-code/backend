@@ -56,9 +56,7 @@ public class GroceryManager : IGroceryManager
         var existingIngredient = groceryList.Ingredients
             .FirstOrDefault(i =>
                 i.Ingredient.IngredientName.ToLower() == newListItem.Ingredient.IngredientName.ToLower());
-
-
-
+        
         if (existingIngredient != null)
         {
             existingIngredient.Quantity += newListItem.Quantity;
