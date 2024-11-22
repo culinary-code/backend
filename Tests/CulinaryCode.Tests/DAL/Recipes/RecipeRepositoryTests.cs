@@ -1,5 +1,6 @@
 ﻿using System;
 using CulinaryCode.Tests.util;
+using CulinaryCode.Tests.Util;
 using DAL.EF;
 using DAL.Recipes;
 using DOM.Accounts;
@@ -50,7 +51,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public void ReadRecipeById_RecipeExists_ReturnsRecipe()
     {
         // Arrange
-        var recipe = CreateRecipe();
+        var recipe = RecipeUtil.CreateRecipe();
         _dbContext.Recipes.Add(recipe);
         _dbContext.SaveChanges();
 
@@ -77,7 +78,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public void ReadRecipeByName_RecipeExists_ReturnsRecipe()
     {
         // Arrange
-        var recipe = CreateRecipe();
+        var recipe = RecipeUtil.CreateRecipe();
         _dbContext.Recipes.Add(recipe);
         _dbContext.SaveChanges();
 
@@ -104,8 +105,8 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public void ReadRecipesCollectionByName_RecipesExist_ReturnsCollection()
     {
         // Arrange
-        var recipe1 = CreateRecipe("Test Recipe 1");
-        var recipe2 = CreateRecipe("Test Recipe 2");
+        var recipe1 = RecipeUtil.CreateRecipe("Test Recipe 1");
+        var recipe2 = RecipeUtil.CreateRecipe("Test Recipe 2");
         _dbContext.Recipes.Add(recipe1);
         _dbContext.Recipes.Add(recipe2);
         _dbContext.SaveChanges();
@@ -132,7 +133,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public void CreateRecipe_ValidRecipe_CreatesRecipe()
     {
         // Arrange
-        var recipe = CreateRecipe();
+        var recipe = RecipeUtil.CreateRecipe();
 
         // Act
         _recipeRepository.CreateRecipe(recipe);
@@ -148,7 +149,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public void UpdateRecipe_ValidRecipe_UpdatesRecipe()
     {
         // Arrange
-        var recipe = CreateRecipe();
+        var recipe = RecipeUtil.CreateRecipe();
         _dbContext.Recipes.Add(recipe);
         _dbContext.SaveChanges();
 
@@ -168,9 +169,9 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public async Task GetFilteredRecipesAsync_FilterByName_ReturnsMatchingRecipes()
     {
         // Arrange
-        var recipe1 = CreateRecipe("Spaghetti Bolognese");
-        var recipe2 = CreateRecipe("Chicken Curry");
-        var recipe3 = CreateRecipe("Spaghetti Carbonara");
+        var recipe1 = RecipeUtil.CreateRecipe("Spaghetti Bolognese");
+        var recipe2 = RecipeUtil.CreateRecipe("Chicken Curry");
+        var recipe3 = RecipeUtil.CreateRecipe("Spaghetti Carbonara");
         _dbContext.Recipes.AddRange(recipe1, recipe2, recipe3);
         await _dbContext.SaveChangesAsync();
 
@@ -189,10 +190,10 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public async Task GetFilteredRecipesAsync_FilterByDifficulty_ReturnsMatchingRecipes()
     {
         // Arrange
-        var recipe1 = CreateRecipe("Easy Dish");
+        var recipe1 = RecipeUtil.CreateRecipe("Easy Dish");
         recipe1.Difficulty = Difficulty.Easy;
 
-        var recipe2 = CreateRecipe("Medium Dish");
+        var recipe2 = RecipeUtil.CreateRecipe("Medium Dish");
         recipe2.Difficulty = Difficulty.Intermediate;
 
         _dbContext.Recipes.AddRange(recipe1, recipe2);
@@ -212,10 +213,10 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public async Task GetFilteredRecipesAsync_FilterByRecipeType_ReturnsMatchingRecipes()
     {
         // Arrange
-        var recipe1 = CreateRecipe("Soup");
+        var recipe1 = RecipeUtil.CreateRecipe("Soup");
         recipe1.RecipeType = RecipeType.Dinner;
 
-        var recipe2 = CreateRecipe("Salad");
+        var recipe2 = RecipeUtil.CreateRecipe("Salad");
         recipe2.RecipeType = RecipeType.Breakfast;
 
         _dbContext.Recipes.AddRange(recipe1, recipe2);
@@ -236,11 +237,9 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public async Task GetFilteredRecipesAsync_FilterByCookingTime_ReturnsMatchingRecipes()
     {
         // Arrange
-        var recipe1 = CreateRecipe("Quick Dish");
-        recipe1.CookingTime = 15;
+        var recipe1 = RecipeUtil.CreateRecipe(recipeName: "Quick Dish", cookTime: 15);
 
-        var recipe2 = CreateRecipe("Slow Dish");
-        recipe2.CookingTime = 60;
+        var recipe2 = RecipeUtil.CreateRecipe(recipeName: "Slow Dish", cookTime: 60);
 
         _dbContext.Recipes.AddRange(recipe1, recipe2);
         await _dbContext.SaveChangesAsync();
@@ -259,22 +258,22 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public async Task GetFilteredRecipesAsync_FilterByIngredients_ReturnsMatchingRecipes()
     {
         // Arrange
-        var ingredient1 = new Ingredient { IngredientName = "Tomato" };
-        var ingredient2 = new Ingredient { IngredientName = "Basil" };
-        var ingredient3 = new Ingredient { IngredientName = "Chicken" };
+        var ingredient1 = IngredientUtil.CreateIngredient("Tomato");
+        var ingredient2 = IngredientUtil.CreateIngredient("Basil");
+        var ingredient3 = IngredientUtil.CreateIngredient("Chicken");
 
         _dbContext.Ingredients.AddRange(ingredient1, ingredient2, ingredient3);
 
-        var iq1 = new IngredientQuantity { Ingredient = ingredient1, Quantity = 5 };
-        var iq2 = new IngredientQuantity { Ingredient = ingredient2, Quantity = 1 };
-        var iq3 = new IngredientQuantity { Ingredient = ingredient3, Quantity = 4 };
+        var iq1 = IngredientQuantityUtil.CreateIngredientQuantity(5, ingredient1);
+        var iq2 = IngredientQuantityUtil.CreateIngredientQuantity(1, ingredient2);
+        var iq3 = IngredientQuantityUtil.CreateIngredientQuantity(4, ingredient3);
 
         _dbContext.IngredientQuantities.AddRange(iq1, iq2, iq3);
 
-        var recipe1 = CreateRecipe("Tomato Soup");
+        var recipe1 = RecipeUtil.CreateRecipe("Tomato Soup");
         recipe1.Ingredients = new List<IngredientQuantity> { iq1, iq2 };
 
-        var recipe2 = CreateRecipe("Chicken Curry");
+        var recipe2 = RecipeUtil.CreateRecipe("Chicken Curry");
         recipe2.Ingredients = new List<IngredientQuantity> { iq3 };
 
         _dbContext.Recipes.AddRange(recipe1, recipe2);
@@ -311,22 +310,20 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public async Task GetFilteredRecipesAsync_FilterByNameAndCookTime_ReturnsMatchingRecipes()
     {
         // Arrange
-        var ingredient1 = new Ingredient { IngredientName = "Tomato" };
-        var ingredient2 = new Ingredient { IngredientName = "Onion" };
+        var ingredient1 = IngredientUtil.CreateIngredient("Tomato");
+        var ingredient2 = IngredientUtil.CreateIngredient("Onion");
 
         _dbContext.Ingredients.AddRange(ingredient1, ingredient2);
 
-        var iq1 = new IngredientQuantity { Ingredient = ingredient1, Quantity = 3 };
-        var iq2 = new IngredientQuantity { Ingredient = ingredient2, Quantity = 2 };
+        var iq1 = IngredientQuantityUtil.CreateIngredientQuantity(3, ingredient1);
+        var iq2 = IngredientQuantityUtil.CreateIngredientQuantity(2, ingredient2);
 
         _dbContext.IngredientQuantities.AddRange(iq1, iq2);
 
-        var recipe1 = CreateRecipe("Quick Tomato Pasta");
-        recipe1.CookingTime = 20;
+        var recipe1 = RecipeUtil.CreateRecipe(recipeName: "Quick Tomato Pasta", cookTime: 20);
         recipe1.Ingredients = new List<IngredientQuantity> { iq1, iq2 };
 
-        var recipe2 = CreateRecipe("Slow-Cooked Onion Soup");
-        recipe2.CookingTime = 120;
+        var recipe2 = RecipeUtil.CreateRecipe(recipeName: "Slow-Cooked Onion Soup", cookTime: 120);
         recipe2.Ingredients = new List<IngredientQuantity> { iq2 };
 
         _dbContext.Recipes.AddRange(recipe1, recipe2);
@@ -347,22 +344,21 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public async Task GetFilteredRecipesAsync_FilterByDifficultyAndIngredients_ReturnsMatchingRecipes()
     {
         // Arrange
-        var ingredient1 = new Ingredient { IngredientName = "Chicken" };
-        var ingredient2 = new Ingredient { IngredientName = "Garlic" };
-
+        var ingredient1 = IngredientUtil.CreateIngredient("Chicken");
+        var ingredient2 = IngredientUtil.CreateIngredient("Garlic");
         _dbContext.Ingredients.AddRange(ingredient1, ingredient2);
 
-        var iq1 = new IngredientQuantity { Ingredient = ingredient1, Quantity = 2 };
-        var iq2 = new IngredientQuantity { Ingredient = ingredient2, Quantity = 1 };
-        var iq3 = new IngredientQuantity { Ingredient = ingredient2, Quantity = 2 };
+        var iq1 = IngredientQuantityUtil.CreateIngredientQuantity(2, ingredient1);
+        var iq2 = IngredientQuantityUtil.CreateIngredientQuantity(1, ingredient2);
+        var iq3 = IngredientQuantityUtil.CreateIngredientQuantity(2, ingredient2);
 
         _dbContext.IngredientQuantities.AddRange(iq1, iq2);
 
-        var recipe1 = CreateRecipe("Garlic Chicken");
+        var recipe1 = RecipeUtil.CreateRecipe("Garlic Chicken");
         recipe1.Difficulty = Difficulty.Intermediate;
         recipe1.Ingredients = new List<IngredientQuantity> { iq1, iq2 };
 
-        var recipe2 = CreateRecipe("Simple Garlic Bread");
+        var recipe2 = RecipeUtil.CreateRecipe("Simple Garlic Bread");
         recipe2.Difficulty = Difficulty.Easy;
         recipe2.Ingredients = new List<IngredientQuantity> { iq3 };
 
@@ -384,17 +380,12 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public async Task GetFilteredRecipesAsync_FilterByTypeAndCookTime_ReturnsMatchingRecipes()
     {
         // Arrange
-        var recipe1 = CreateRecipe("Vegetarian Pizza");
-        recipe1.RecipeType = RecipeType.Dinner;
-        recipe1.CookingTime = 30;
+        var recipe1 =
+            RecipeUtil.CreateRecipe(recipeName: "Vegetarian Pizza", cookTime: 30, recipeType: RecipeType.Dinner);
 
-        var recipe2 = CreateRecipe("Granola Bar");
-        recipe2.RecipeType = RecipeType.Snack;
-        recipe2.CookingTime = 25;
+        var recipe2 = RecipeUtil.CreateRecipe(recipeName: "Granola Bar", cookTime: 25, recipeType: RecipeType.Snack);
 
-        var recipe3 = CreateRecipe("Vegan Salad");
-        recipe3.RecipeType = RecipeType.Dinner;
-        recipe3.CookingTime = 10;
+        var recipe3 = RecipeUtil.CreateRecipe(recipeName: "Vegan Salad", cookTime: 10, recipeType: RecipeType.Dinner);
 
         _dbContext.Recipes.AddRange(recipe1, recipe2, recipe3);
         await _dbContext.SaveChangesAsync();
@@ -415,27 +406,23 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     public async Task GetFilteredRecipesAsync_FilterByAllCriteria_ReturnsMatchingRecipes()
     {
         // Arrange
-        var ingredient1 = new Ingredient { IngredientName = "Rice" };
-        var ingredient2 = new Ingredient { IngredientName = "Chicken" };
+        var ingredient1 = IngredientUtil.CreateIngredient("Rice");
+        var ingredient2 = IngredientUtil.CreateIngredient("Chicken");
 
         _dbContext.Ingredients.AddRange(ingredient1, ingredient2);
 
-        var iq1 = new IngredientQuantity { Ingredient = ingredient1, Quantity = 1 };
-        var iq2 = new IngredientQuantity { Ingredient = ingredient1, Quantity = 2 };
-        var iq3 = new IngredientQuantity { Ingredient = ingredient2, Quantity = 2 };
+        var iq1 = IngredientQuantityUtil.CreateIngredientQuantity(1, ingredient1);
+        var iq2 = IngredientQuantityUtil.CreateIngredientQuantity(2, ingredient2);
+        var iq3 = IngredientQuantityUtil.CreateIngredientQuantity(2, ingredient2);
 
         _dbContext.IngredientQuantities.AddRange(iq1, iq2);
 
-        var recipe1 = CreateRecipe("Chicken Fried Rice");
-        recipe1.Difficulty = Difficulty.Easy;
-        recipe1.RecipeType = RecipeType.Dinner;
-        recipe1.CookingTime = 20;
+        var recipe1 = RecipeUtil.CreateRecipe(recipeName: "Chicken Fried Rice", cookTime: 20,
+            recipeType: RecipeType.Dinner, difficulty: Difficulty.Easy);
         recipe1.Ingredients = new List<IngredientQuantity> { iq1, iq3 };
 
-        var recipe2 = CreateRecipe("Granola Bar");
-        recipe2.Difficulty = Difficulty.Easy;
-        recipe2.RecipeType = RecipeType.Snack;
-        recipe2.CookingTime = 20;
+        var recipe2 = RecipeUtil.CreateRecipe(recipeName: "Granola Bar", cookTime: 20,
+            recipeType: RecipeType.Snack, difficulty: Difficulty.Easy);
         recipe2.Ingredients = new List<IngredientQuantity> { iq2 };
 
         _dbContext.Recipes.AddRange(recipe1, recipe2);
