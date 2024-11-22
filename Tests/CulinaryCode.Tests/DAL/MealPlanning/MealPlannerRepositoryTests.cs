@@ -1,4 +1,5 @@
-﻿using DAL.EF;
+﻿using CulinaryCode.Tests.util;
+using DAL.EF;
 using DAL.MealPlanning;
 using DOM.Accounts;
 using DOM.MealPlanning;
@@ -8,45 +9,29 @@ using Testcontainers.PostgreSql;
 
 namespace CulinaryCode.Tests.DAL.MealPlanning;
 
-public class MealPlannerRepositoryTests : IAsyncLifetime
+public class MealPlannerRepositoryTests : IClassFixture<TestPostgresContainerFixture>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgresContainer;
+    private readonly TestPostgresContainerFixture _fixture;
     private CulinaryCodeDbContext _dbContext;
     private IMealPlannerRepository _mealPlannerRepository;
 
-    public MealPlannerRepositoryTests()
+    public MealPlannerRepositoryTests(TestPostgresContainerFixture fixture)
     {
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithDatabase("culinarycode_test")
-            .WithUsername("testuser")
-            .WithPassword("testpassword")
-            .Build();
+        _dbContext = fixture.DbContext;
+        _mealPlannerRepository = new MealPlannerRepository(_dbContext);
+        _fixture = fixture;
     }
-    
+
     public async Task InitializeAsync()
     {
-        // Start the container
-        await _postgresContainer.StartAsync();
-
-        // Configure the DbContext with the container's connection string
-        var options = new DbContextOptionsBuilder<CulinaryCodeDbContext>()
-            .UseNpgsql(_postgresContainer.GetConnectionString())
-            .Options;
-
-        _dbContext = new CulinaryCodeDbContext(options);
-        _mealPlannerRepository = new MealPlannerRepository(_dbContext);
-
-        // Ensure database is created
-        await _dbContext.Database.EnsureCreatedAsync();
+        await _fixture.ResetDatabaseAsync();
     }
-    
-    public async Task DisposeAsync()
+
+    public Task DisposeAsync()
     {
-        // Dispose DbContext and stop the container
-        await _dbContext.DisposeAsync();
-        await _postgresContainer.StopAsync();
+        return Task.CompletedTask;
     }
-    
+
     [Fact]
     public async Task ReadMealPlannerByIdWithNextWeek_Exists_ReturnsMealPlannerWithNextWeek()
     {
@@ -132,11 +117,13 @@ public class MealPlannerRepositoryTests : IAsyncLifetime
         var userId = Guid.NewGuid();
         var plannedMealsHistory = new List<PlannedMeal>
         {
-            new PlannedMeal { PlannedDate = DateTime.UtcNow.AddDays(-5), Recipe = new Recipe { RecipeName = "History Recipe" } }
+            new PlannedMeal
+                { PlannedDate = DateTime.UtcNow.AddDays(-5), Recipe = new Recipe { RecipeName = "History Recipe" } }
         };
         var plannedMealsNextWeek = new List<PlannedMeal>
         {
-            new PlannedMeal { PlannedDate = DateTime.UtcNow.AddDays(2), Recipe = new Recipe { RecipeName = "Next Week Recipe" } }
+            new PlannedMeal
+                { PlannedDate = DateTime.UtcNow.AddDays(2), Recipe = new Recipe { RecipeName = "Next Week Recipe" } }
         };
         var mealPlanner = new MealPlanner
         {
@@ -152,7 +139,7 @@ public class MealPlannerRepositoryTests : IAsyncLifetime
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(1, result.Count); // Should only return the meal in NextWeek
-        Assert.Equal("Next Week Recipe", result.First().Recipe.RecipeName);
+        Assert.Single(result); // Should only return the meal in NextWeek
+        Assert.Equal("Next Week Recipe", result.First().Recipe?.RecipeName);
     }
 }
