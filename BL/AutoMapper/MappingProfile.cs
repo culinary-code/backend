@@ -23,7 +23,8 @@ public class MappingProfile : Profile
         CreateMap<PreferenceDto, Preference>(); // From PreferenceDto to Preference
 
         // Review mappings
-        CreateMap<Review, ReviewDto>(); // From Review to ReviewDto
+        CreateMap<Review, ReviewDto>()
+            .ForMember(dest => dest.ReviewerUsername, opt => opt.MapFrom(src => src.Account!.Name)); // From Review to ReviewDto
         CreateMap<ReviewDto, Review>(); // From ReviewDto to Review
 
         // GroceryList mappings

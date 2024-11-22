@@ -23,6 +23,8 @@ public class Recipe
     public DateTime CreatedAt { get; set; }
     public ICollection<InstructionStep> Instructions { get; set; } = new List<InstructionStep>();
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public double AverageRating { get; set; } = 0;
+    public int AmountOfRatings { get; set; } = 0;
     
     // navigation properties
     public IEnumerable<PlannedMeal> PlannedMeals { get; set; } = new List<PlannedMeal>();
