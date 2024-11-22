@@ -72,7 +72,7 @@ public class ReviewController : ControllerBase
         catch (ReviewAlreadyExistsException e)
         {
             _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
-            return BadRequest(e.Message);
+            return Conflict(e.Message);
         }
     }
 }
