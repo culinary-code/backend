@@ -1,4 +1,5 @@
 ﻿using DAL.EF;
+using DOM.Exceptions;
 using DOM.MealPlanning;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,17 +16,22 @@ public class MealPlannerRepository : IMealPlannerRepository
 
     public async Task<MealPlanner> ReadMealPlannerByIdWithNextWeek(Guid accountId)
     {
-        return await _ctx.MealPlanners
+        var mealPlanner = await _ctx.MealPlanners
             .Include(planner => planner.NextWeek)
             .FirstOrDefaultAsync(m => m.Account.AccountId == accountId);
+        if (mealPlanner == null) throw new MealPlannerNotFoundException();
+        return mealPlanner;
     }
     
     private async Task<MealPlanner> ReadMealPlannerByIdWithNextWeekWithRecipe(Guid accountId)
     {
-        return await _ctx.MealPlanners
+        var mealPlanner = await _ctx.MealPlanners
             .Include(planner => planner.NextWeek)
             .ThenInclude(p => p.Recipe)
             .FirstOrDefaultAsync(m => m.Account.AccountId == accountId);
+        
+        if (mealPlanner == null) throw new MealPlannerNotFoundException();
+        return mealPlanner;
     }
     
     private async Task<MealPlanner> ReadMealPlannerByIdWithNextWeekAndHistoryWithRecipe(Guid accountId)

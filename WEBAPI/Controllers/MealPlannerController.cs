@@ -1,6 +1,7 @@
 ﻿using BL.DTOs.MealPlanning;
 using BL.Managers.MealPlanning;
 using BL.Services;
+using DOM.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,7 @@ namespace WEBAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-// [Authorize]
+[Authorize]
 public class MealPlannerController : ControllerBase
 {
     private readonly ILogger<AccountController> _logger;
@@ -37,14 +38,14 @@ public class MealPlannerController : ControllerBase
 
             return Ok();
         }
-        catch (Exception e) // TODO: change exception type
+        catch (MealPlannerNotFoundException e)
         {
             _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
             return BadRequest(e.Message);
         }
     }
     
-    [HttpGet("PlannedMeal/{dateTime}")]
+    [HttpGet("{dateTime}")]
     public async Task<IActionResult> GetRecipeCollectionByName(DateTime dateTime)
     {
         Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers.Authorization.ToString().Substring(7));
@@ -53,7 +54,7 @@ public class MealPlannerController : ControllerBase
             var plannedMeals = await _mealPlannerManager.GetPlannedMealsFromUserAfterDate(dateTime, userId);
             return Ok(plannedMeals);
         }
-        catch (Exception e)
+        catch (MealPlannerNotFoundException e)
         {
             _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
             return NotFound(e.Message);
