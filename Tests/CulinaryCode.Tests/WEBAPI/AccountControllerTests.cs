@@ -109,7 +109,7 @@ public class AccountControllerTests
         };
 
         // Act
-        var result = await _controller.UpdateAccount(accountDto);
+        var result = await _controller.UpdateAccount(accountDto, "updateusername");
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -150,7 +150,7 @@ public class AccountControllerTests
         };
 
         // Act
-        var result = await _controller.UpdateAccount(accountDto);
+        var result = await _controller.UpdateAccount(accountDto, "updateusername");
 
         // Assert 1: Ensure the result is a BadRequestObjectResult with the expected message
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);

@@ -36,6 +36,7 @@ public class AccountManager : IAccountManager
             throw new AccountNotFoundException("Account not found");
         }
         account.Name = updatedAccount.Name;
+
         _accountRepository.UpdateAccount(account);
         _logger.LogInformation($"Updating user: {updatedAccount.AccountId}, new username: {updatedAccount.Name}");
         
