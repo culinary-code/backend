@@ -32,12 +32,14 @@ builder.Services.AddScoped<IPreferenceRepository, PreferenceRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IGroceryRepository, GroceryRepository>();
 builder.Services.AddScoped<IMealPlannerRepository, MealPlannerRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 
 // Managers
 builder.Services.AddScoped<IRecipeManager, RecipeManager>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
 builder.Services.AddScoped<IGroceryManager, GroceryManager>();
+builder.Services.AddScoped<IReviewManager, ReviewManager>();
 
 // Services
 builder.Services.AddHttpClient<IIdentityProviderService, KeyCloakService>();
