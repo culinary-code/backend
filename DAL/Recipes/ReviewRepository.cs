@@ -14,7 +14,7 @@ public class ReviewRepository : IReviewRepository
         _ctx = ctx;
     }
 
-    public async Task<Review> ReadReviewById(Guid id)
+    public async Task<Review> ReadReviewWithAccountByReviewId(Guid id)
     {
         var review = await _ctx.Reviews
             .Include(r => r.Account)
@@ -27,7 +27,7 @@ public class ReviewRepository : IReviewRepository
         return review;
     }
 
-    public async Task<ICollection<Review>> ReadReviewsByRecipeId(Guid recipeId)
+    public async Task<ICollection<Review>> ReadReviewsWithAccountByRecipeId(Guid recipeId)
     {
         var reviews = await _ctx.Reviews
             .Where(r => r.Recipe != null && r.Recipe.RecipeId == recipeId)
@@ -41,5 +41,11 @@ public class ReviewRepository : IReviewRepository
     {
         _ctx.Reviews.Add(review);
         await _ctx.SaveChangesAsync();
+    }
+    
+    public async Task<bool> ReviewExistsForAccountAndRecipe(Guid accountId, Guid recipeId)
+    {
+        return await _ctx.Reviews
+            .AnyAsync(r => r.Account!.AccountId == accountId && r.Recipe!.RecipeId == recipeId);
     }
 }

@@ -32,7 +32,7 @@ public class ReviewRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.ReadReviewById(review.ReviewId);
+        var result = await _recipeRepository.ReadReviewWithAccountByReviewId(review.ReviewId);
 
         // Assert
         Assert.NotNull(result);
@@ -48,7 +48,7 @@ public class ReviewRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         var reviewId = Guid.NewGuid();
 
         // Act
-        async Task Act() => await _recipeRepository.ReadReviewById(reviewId);
+        async Task Act() => await _recipeRepository.ReadReviewWithAccountByReviewId(reviewId);
 
         // Assert
         await Assert.ThrowsAsync<ReviewNotFoundException>(Act);
@@ -76,7 +76,7 @@ public class ReviewRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.ReadReviewsByRecipeId(recipe.RecipeId);
+        var result = await _recipeRepository.ReadReviewsWithAccountByRecipeId(recipe.RecipeId);
 
         // Assert
         Assert.NotNull(result);
@@ -92,7 +92,7 @@ public class ReviewRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         var recipeId = Guid.NewGuid();
 
         // Act
-        var result = await _recipeRepository.ReadReviewsByRecipeId(recipeId);
+        var result = await _recipeRepository.ReadReviewsWithAccountByRecipeId(recipeId);
 
         // Assert
         Assert.NotNull(result);

@@ -5,7 +5,8 @@ namespace DAL.Recipes;
 
 public interface IReviewRepository
 {
-    Task<Review> ReadReviewById(Guid id);
-    Task<ICollection<Review>> ReadReviewsByRecipeId(Guid recipeId);
+    Task<Review> ReadReviewWithAccountByReviewId(Guid id);
+    Task<ICollection<Review>> ReadReviewsWithAccountByRecipeId(Guid recipeId);
     Task CreateReview(Review review);
+    Task<bool> ReviewExistsForAccountAndRecipe(Guid accountId, Guid recipeId);
 }
