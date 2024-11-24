@@ -2,6 +2,7 @@
 using DAL.EF;
 using DOM.Accounts;
 using DOM.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Accounts;
 
@@ -22,6 +23,20 @@ public class AccountRepository : IAccountRepository
         {
             throw new AccountNotFoundException("Account not found");
         }
+        return account;
+    }
+
+    public Account ReadPreferencesByAccountId(Guid id)
+    {
+        var account = _ctx.Accounts
+            .Include(a => a.Preferences)
+            .FirstOrDefault(a => a.AccountId == id);
+        
+        if (account == null)
+        {
+            throw new AccountNotFoundException("Account not found");
+        }
+        
         return account;
     }
 

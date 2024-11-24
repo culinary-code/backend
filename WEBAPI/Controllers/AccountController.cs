@@ -80,6 +80,30 @@ public class AccountController: ControllerBase
     {
         try
         {
+            string token = Request.Headers["Authorization"].ToString().Substring(7);
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
+        
+            var preferences = _accountManager.GetPreferencesByUserId(userId);
+            return Ok(preferences);
+        }
+        catch (AccountNotFoundException ex)
+        {
+            _logger.LogWarning("Account not found: {ErrorMessage}", ex.Message);
+            return NotFound("Account not found.");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("An error occurred trying to fetch user preferences: {ErrorMessage}", e.Message);
+            return BadRequest("Failed to get user preferences.");
+        }
+    }
+
+    
+    /*[HttpGet("getPreferences")]
+    public IActionResult GetUserPreferences()
+    {
+        try
+        {
             Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
             var preferences = _accountManager.GetPreferencesByUserId(userId);
             return Ok(preferences);
@@ -89,7 +113,7 @@ public class AccountController: ControllerBase
             _logger.LogError("An error occured trying to fetch user preferences: {ErrorMessage}", e.Message);
             return BadRequest("Failed to get user preferences.");
         }
-    }
+    }*/
 
     [HttpPut("updatePreferences")]
     public IActionResult UpdateUserPreferences([FromBody] List<PreferenceDto> preferences)

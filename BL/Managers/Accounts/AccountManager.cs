@@ -31,8 +31,12 @@ public class AccountManager : IAccountManager
 
     public List<PreferenceDto> GetPreferencesByUserId(Guid userId)
     {
-        var account = _accountRepository.ReadAccount(userId);
-        return _mapper.Map<List<PreferenceDto>>(account.Preferences);
+        var account = _accountRepository.ReadPreferencesByAccountId(userId);
+        var preferences = account.Preferences ?? new List<Preference>();
+        return _mapper.Map<List<PreferenceDto>>(preferences);
+        
+        //var account = _accountRepository.ReadAccount(userId);
+        //return _mapper.Map<List<PreferenceDto>>(account.Preferences);
     }
 
     public AccountDto UpdateAccount(AccountDto updatedAccount)
@@ -91,13 +95,19 @@ public class AccountManager : IAccountManager
 
     public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto)
     {
-        var account = _accountRepository.ReadAccount(accountId);
+        var account = _accountRepository.ReadPreferencesByAccountId(accountId);
         if (account == null)
         {
             _logger.LogError("Account not found");
             throw new AccountNotFoundException("Account not found");
         }
 
+        if (account.Preferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
+        {
+            _logger.LogError("Account already has this preference");
+            return _mapper.Map<AccountDto>(account);
+        }
+        
         var preference = _mapper.Map<Preference>(preferenceDto);
 
         // Add preference to account
