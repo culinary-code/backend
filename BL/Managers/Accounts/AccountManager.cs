@@ -3,6 +3,8 @@ using BL.DTOs.Accounts;
 using DAL.Accounts;
 using DOM.Accounts;
 using DOM.Exceptions;
+using DOM.MealPlanning;
+using DOM.Recipes;
 using Microsoft.Extensions.Logging;
 
 namespace BL.Managers.Accounts;
@@ -81,7 +83,8 @@ public class AccountManager : IAccountManager
             {
                 AccountId = userId,
                 Name = username,
-                Email = email
+                Email = email,
+                
             }
         );
     }
