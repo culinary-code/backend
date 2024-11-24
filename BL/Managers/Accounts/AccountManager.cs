@@ -88,4 +88,26 @@ public class AccountManager : IAccountManager
             }
         );
     }
+
+    public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto)
+    {
+        var account = _accountRepository.ReadAccount(accountId);
+        if (account == null)
+        {
+            _logger.LogError("Account not found");
+            throw new AccountNotFoundException("Account not found");
+        }
+
+        var preference = _mapper.Map<Preference>(preferenceDto);
+
+        // Add preference to account
+        var preferences = account.Preferences.ToList();
+        preferences.Add(preference);
+        account.Preferences = preferences;
+
+        _accountRepository.UpdateAccount(account);
+        _logger.LogInformation($"Added preference '{preference.PreferenceName}' to account {accountId}");
+
+        return _mapper.Map<AccountDto>(account);
+    }
 }

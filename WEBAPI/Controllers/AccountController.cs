@@ -106,4 +106,28 @@ public class AccountController: ControllerBase
             return BadRequest("Failed to update user preferences.");
         }
     } 
+    
+    
+    [HttpPost("addPreference")]
+    public async Task<IActionResult> AddPreference([FromBody] PreferenceDto preferenceDto)
+    {
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+
+        try
+        {
+            var updatedAccount = _accountManager.AddPreferenceToAccount(userId, preferenceDto);
+            return Ok(updatedAccount);
+        }
+        catch (AccountNotFoundException e)
+        {
+            _logger.LogError("An error occurred while adding preference to account {AccountId}: {ErrorMessage}", userId, e.Message);
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("An error occurred while adding preference: {ErrorMessage}", e.Message);
+            return BadRequest("Failed to add preference.");
+        }
+    }
+
 }
