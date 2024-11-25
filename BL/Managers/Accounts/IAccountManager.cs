@@ -10,5 +10,6 @@ public interface IAccountManager
     public AccountDto UpdateFamilySize(AccountDto updatedAccount);
     void CreateAccount(string username, string email, Guid userId);
 
-    public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto);
+    AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto);
+    void RemovePreferenceFromAccount(Guid accountId, Guid preferenceId);
 }

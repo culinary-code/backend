@@ -118,4 +118,28 @@ public class AccountController: ControllerBase
             return BadRequest("Failed to add preference.");
         }
     }
+    
+    [HttpDelete("deletePreference/{preferenceId}")]
+    public IActionResult DeletePreference(Guid preferenceId)
+    {
+        try
+        {
+            string token = Request.Headers["Authorization"].ToString().Substring(7); 
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
+            
+            _accountManager.RemovePreferenceFromAccount(userId, preferenceId);
+
+            return Ok("Preference deleted successfully.");
+        }
+        catch (AccountNotFoundException ex)
+        {
+            _logger.LogWarning("Account not found: {ErrorMessage}", ex.Message);
+            return NotFound("Account not found.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error occurred while deleting preference: {ErrorMessage}", ex.Message);
+            return BadRequest("Failed to delete preference.");
+        }
+    }
 }

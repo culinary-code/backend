@@ -25,7 +25,7 @@ public class AccountRepository : IAccountRepository
         return account;
     }
 
-    public Account ReadPreferencesByAccountId(Guid id)
+    public Account ReadAccountPreferencesByAccountId(Guid id)
     {
         var account = _ctx.Accounts
             .Include(a => a.Preferences)
@@ -50,4 +50,26 @@ public class AccountRepository : IAccountRepository
         _ctx.Accounts.Add(account);
         _ctx.SaveChanges(); 
     }
+
+    public void DeletePreferenceFromAccount(Guid accountId, Guid preferenceId)
+    {
+        var account = _ctx.Accounts
+            .Include(a => a.Preferences)
+            .FirstOrDefault(a => a.AccountId == accountId);
+
+        if (account == null)
+        {
+            throw new AccountNotFoundException("Account not found");
+        }
+
+        var preferenceToRemove = account.Preferences?.FirstOrDefault(p => p.PreferenceId == preferenceId);
+        if (preferenceToRemove == null)
+        {
+            throw new Exception("Preference not found for this account");
+        }
+
+        _ctx.Preferences.Remove(preferenceToRemove);
+        _ctx.SaveChanges();
+    }
+
 }

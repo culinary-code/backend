@@ -149,56 +149,60 @@ public class AccountManagerTests
         Assert.Equal(expectedPreferences.Count, result.Count);
         Assert.Equal(expectedPreferences[0].PreferenceId, result[0].PreferenceId);
     }
-
+    
     [Fact]
-    public void UpdatePreferences_ReturnsUpdatedAccount_WhenPreferencesAreUpdated()
+    public void DeletePreference_CallsDelete_WhenPreferenceIsDeleted()
     {
         // Arrange
-        var userId = Guid.NewGuid();
+        var accountId = Guid.NewGuid();
         var preferenceId = Guid.NewGuid();
 
-        var preferencesDto = new List<PreferenceDto>
+        var account = new Account
         {
-            new PreferenceDto { PreferenceId = preferenceId, PreferenceName = "UpdatedPreference1" }
+            AccountId = accountId,
+            Preferences = new List<Preference>
+            {
+                new Preference { PreferenceId = preferenceId, PreferenceName = "Preference1" }
+            }
         };
 
-        var preferences = new List<Preference>
-        {
-            new Preference { PreferenceId = preferenceId, PreferenceName = "UpdatedPreference1" }
-        };
+        _mockRepository.Setup(r => r.ReadAccountPreferencesByAccountId(accountId)).Returns(account);
 
-        var existingAccount = new Account 
-        { 
-            AccountId = userId, 
-            Preferences = new List<Preference>()
-        };
-        var updatedAccount = new Account 
-        { 
-            AccountId = userId, 
-            Preferences = preferences 
-        };
-        var expectedAccountDto = new AccountDto 
-        { 
-            AccountId = userId 
-        };
-
-        foreach (var preference in updatedAccount.Preferences)
-        {
-            _testOutputHelper.WriteLine(preference.PreferenceId + " - " + preference.PreferenceName);
-        }
-
-        _mockRepository.Setup(manager => manager.ReadAccount(userId)).Returns(existingAccount);
-        _mockMapper.Setup(mapper => mapper.Map<List<Preference>>(preferencesDto)).Returns(preferences);
-        _mockRepository.Setup(manager => manager.UpdateAccount(It.IsAny<Account>())); // UpdateAccount mock setup
-        _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(expectedAccountDto);
+        _mockRepository.Setup(r => r.DeletePreferenceFromAccount(accountId, preferenceId)).Verifiable();
 
         // Act
-        var result = _accountManager.UpdatePreferences(userId, preferencesDto);
+        _accountManager.RemovePreferenceFromAccount(accountId, preferenceId);
 
         // Assert
-        Assert.NotNull(result); // Ensure result is not null
-        Assert.Equal(expectedAccountDto.AccountId, result.AccountId);
-        _mockRepository.Verify(manager => manager.UpdateAccount(It.IsAny<Account>()), Times.Once);
+        _mockRepository.Verify(r => r.DeletePreferenceFromAccount(accountId, preferenceId), Times.Once); // Ensure delete was called once
+    }
+    
+    [Fact]
+    public void DeletePreference_ThrowsAccountNotFoundException_WhenAccountDoesNotExist()
+    {
+        // Arrange
+        var accountId = Guid.NewGuid();
+        var preferenceId = Guid.NewGuid();
+
+        _mockRepository.Setup(r => r.ReadAccountPreferencesByAccountId(accountId)).Returns((Account)null);
+
+        // Act & Assert
+        var exception = Assert.Throws<AccountNotFoundException>(() => _accountManager.RemovePreferenceFromAccount(accountId, preferenceId));
+        Assert.Equal("Account not found", exception.Message);
+    }
+
+    [Fact]
+    public void DeletePreference_ThrowsException_WhenUnexpectedErrorOccurs()
+    {
+        // Arrange
+        var accountId = Guid.NewGuid();
+        var preferenceId = Guid.NewGuid();
+
+        _mockRepository.Setup(r => r.ReadAccountPreferencesByAccountId(accountId)).Throws(new Exception("Unexpected error"));
+
+        // Act & Assert
+        var exception = Assert.Throws<Exception>(() => _accountManager.RemovePreferenceFromAccount(accountId, preferenceId));
+        Assert.Equal("Unexpected error", exception.Message);
     }
 
 }
