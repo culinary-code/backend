@@ -54,5 +54,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'culinarycode'
-          package: .
+          package: ${{env.DOTNET_ROOT}}/myapp
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C77C11C2FFBE4418A8AA35CBBA978D7C }}
