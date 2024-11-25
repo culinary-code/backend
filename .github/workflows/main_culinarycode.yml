@@ -28,16 +28,13 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish ./WEBAPI/WEBAPI.csproj -c Release -o ./myapp
-
-      - name: List files in the myapp directory
-        run: ls -la ./myapp
+        run: dotnet publish WEBAPI/WEBAPI.csproj -c Release -r linux-x64 --self-contained false -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ./myapp
+          path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
     runs-on: ubuntu-latest
@@ -57,5 +54,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'culinarycode'
-          package: ./myapp
+          package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C77C11C2FFBE4418A8AA35CBBA978D7C }}
