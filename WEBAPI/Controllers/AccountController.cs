@@ -1,8 +1,6 @@
-﻿using AutoMapper;
-using BL.DTOs.Accounts;
+﻿using BL.DTOs.Accounts;
 using BL.Managers.Accounts;
 using BL.Services;
-using DOM.Accounts;
 using DOM.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -97,39 +95,6 @@ public class AccountController: ControllerBase
             return BadRequest("Failed to get user preferences.");
         }
     }
-
-    
-    /*[HttpGet("getPreferences")]
-    public IActionResult GetUserPreferences()
-    {
-        try
-        {
-            Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
-            var preferences = _accountManager.GetPreferencesByUserId(userId);
-            return Ok(preferences);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError("An error occured trying to fetch user preferences: {ErrorMessage}", e.Message);
-            return BadRequest("Failed to get user preferences.");
-        }
-    }*/
-
-    [HttpPut("updatePreferences")]
-    public IActionResult UpdateUserPreferences([FromBody] List<PreferenceDto> preferences)
-    {
-        try
-        {
-            Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
-            var updatedAccount = _accountManager.UpdatePreferences(userId, preferences);
-            return Ok(updatedAccount);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError("Error updating user preferences: {Message}", e.Message);
-            return BadRequest("Failed to update user preferences.");
-        }
-    } 
     
     
     [HttpPost("addPreference")]
@@ -153,5 +118,4 @@ public class AccountController: ControllerBase
             return BadRequest("Failed to add preference.");
         }
     }
-
 }

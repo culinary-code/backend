@@ -3,8 +3,6 @@ using BL.DTOs.Accounts;
 using DAL.Accounts;
 using DOM.Accounts;
 using DOM.Exceptions;
-using DOM.MealPlanning;
-using DOM.Recipes;
 using Microsoft.Extensions.Logging;
 
 namespace BL.Managers.Accounts;
@@ -34,9 +32,6 @@ public class AccountManager : IAccountManager
         var account = _accountRepository.ReadPreferencesByAccountId(userId);
         var preferences = account.Preferences ?? new List<Preference>();
         return _mapper.Map<List<PreferenceDto>>(preferences);
-        
-        //var account = _accountRepository.ReadAccount(userId);
-        //return _mapper.Map<List<PreferenceDto>>(account.Preferences);
     }
 
     public AccountDto UpdateAccount(AccountDto updatedAccount)
@@ -65,21 +60,6 @@ public class AccountManager : IAccountManager
         return _mapper.Map<AccountDto>(account);
     }
 
-    public AccountDto UpdatePreferences(Guid userId, List<PreferenceDto> preferences)
-    {
-        foreach (var preference in preferences)
-        {
-            if (preference.PreferenceId == Guid.Empty)
-            {
-                preference.PreferenceId = Guid.NewGuid();
-            }
-        }
-        var account = _accountRepository.ReadAccount(userId);
-        account.Preferences = _mapper.Map<List<Preference>>(preferences);
-        
-        _accountRepository.UpdateAccount(account);
-        return _mapper.Map<AccountDto>(account);
-    }
 
     public void CreateAccount(string username, string email, Guid userId)
     {
