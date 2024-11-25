@@ -21,6 +21,9 @@ jobs:
         with:
           dotnet-version: '8.x'
 
+      - name: Show DOTNET_ROOT
+        run: echo "DOTNET_ROOT is $DOTNET_ROOT"
+
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
