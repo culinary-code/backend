@@ -53,6 +53,13 @@ public class RecipeManager : IRecipeManager
         return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 
+    public async Task<ICollection<RecipeDto>> GetFilteredRecipeCollection(string recipeName, Difficulty difficulty,
+        RecipeType recipeType, int cooktime, List<string> ingredients)
+    {
+        var recipes = await _recipeRepository.GetFilteredRecipesAsync(recipeName, difficulty, recipeType, cooktime, ingredients);
+        return _mapper.Map<ICollection<RecipeDto>>(recipes);
+    }
+
     public RecipeDto? CreateRecipe(string name)
     {
         byte attempts = 0;

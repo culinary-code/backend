@@ -4,7 +4,7 @@ public class ReviewDto
 {
     public Guid ReviewId { get; set; }
 
-    public Guid? AccountId { get; set; } // To reference the associated account if needed
+    public required string ReviewerUsername { get; set; } // To reference the associated account if needed
     
     public Guid? RecipeId { get; set; } // To reference the associated recipe if needed
     

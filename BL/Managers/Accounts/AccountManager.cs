@@ -3,6 +3,8 @@ using BL.DTOs.Accounts;
 using DAL.Accounts;
 using DOM.Accounts;
 using DOM.Exceptions;
+using DOM.MealPlanning;
+using DOM.Recipes;
 using Microsoft.Extensions.Logging;
 
 namespace BL.Managers.Accounts;
@@ -20,7 +22,6 @@ public class AccountManager : IAccountManager
         _mapper = mapper;
     }
     
-    
     public AccountDto GetAccountById(string id)
     {
         Guid parsedGuid = Guid.Parse(id);
@@ -37,8 +38,19 @@ public class AccountManager : IAccountManager
             throw new AccountNotFoundException("Account not found");
         }
         account.Name = updatedAccount.Name;
+
         _accountRepository.UpdateAccount(account);
         _logger.LogInformation($"Updating user: {updatedAccount.AccountId}, new username: {updatedAccount.Name}");
+        
+        return _mapper.Map<AccountDto>(account);
+    }
+    
+    public AccountDto UpdateFamilySize(AccountDto updatedAccount)
+    {
+        var account = _accountRepository.ReadAccount(updatedAccount.AccountId);
+        account.FamilySize = updatedAccount.FamilySize;
+        _accountRepository.UpdateAccount(account);
+        _logger.LogInformation($"Updating user: {updatedAccount.AccountId}, new familySize: {updatedAccount.FamilySize}");
         
         return _mapper.Map<AccountDto>(account);
     }
@@ -49,7 +61,8 @@ public class AccountManager : IAccountManager
             {
                 AccountId = userId,
                 Name = username,
-                Email = email
+                Email = email,
+                
             }
         );
     }

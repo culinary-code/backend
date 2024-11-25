@@ -27,6 +27,8 @@ public class RecipeDto
     public string ImagePath { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; }
+    public double AverageRating { get; set; } = 0;
+    public int AmountOfRatings { get; set; } = 0;
 
     public List<InstructionStepDto> Instructions { get; set; } = new List<InstructionStepDto>(); // Include DTO for instruction steps
 

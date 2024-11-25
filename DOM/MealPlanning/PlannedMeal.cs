@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
 
@@ -12,6 +10,8 @@ public class PlannedMeal
     public int AmountOfPeople { get; set; }
     public IEnumerable<IngredientQuantity> Ingredients { get; set; } = new List<IngredientQuantity>();
     public Recipe? Recipe { get; set; }
+    
+    public DateTime PlannedDate { get; set; }
     
     // navigation properties
     public MealPlanner? NextWeekMealPlanner { get; set; }

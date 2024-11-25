@@ -17,6 +17,7 @@ public class CulinaryCodeDbContext : DbContext
     public DbSet<MealPlanner> MealPlanners { get; set; }
     public DbSet<PlannedMeal> PlannedMeals { get; set; }
     public DbSet<Ingredient> Ingredients { get; set; }
+    public DbSet<GroceryItem> GroceryItems { get; set; }
     public DbSet<FavoriteRecipe> FavoriteRecipes { get; set; }
     public DbSet<Recipe> Recipes { get; set; }
     public DbSet<InstructionStep> InstructionSteps { get; set; }
@@ -25,7 +26,7 @@ public class CulinaryCodeDbContext : DbContext
 
     public CulinaryCodeDbContext(DbContextOptions options) : base(options)
     {
-        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: false);
+        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: true);
     }
 
 
@@ -57,11 +58,13 @@ public class CulinaryCodeDbContext : DbContext
 
         modelBuilder.Entity<PlannedMeal>()
             .HasOne(p => p.Recipe)
-            .WithMany(r => r.PlannedMeals);
+            .WithMany(r => r.PlannedMeals)
+            .OnDelete(DeleteBehavior.Restrict);
         
         modelBuilder.Entity<PlannedMeal>()
             .HasMany(p => p.Ingredients)
-            .WithOne(i => i.PlannedMeal);
+            .WithOne(i => i.PlannedMeal)
+            .OnDelete(DeleteBehavior.Cascade);
         
         modelBuilder.Entity<MealPlanner>()
             .HasMany(m => m.NextWeek)
@@ -100,6 +103,10 @@ public class CulinaryCodeDbContext : DbContext
         modelBuilder.Entity<IngredientQuantity>()
             .HasOne(i => i.Ingredient)
             .WithMany(i => i.IngredientQuantities);
+        
+        modelBuilder.Entity<ItemQuantity>()
+            .HasOne(i => i.GroceryItem)
+            .WithMany(i => i.ItemQuantities);
         
         modelBuilder.Entity<FavoriteRecipe>()
             .HasOne(f => f.Recipe)

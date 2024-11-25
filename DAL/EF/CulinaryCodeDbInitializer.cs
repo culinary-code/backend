@@ -1,7 +1,11 @@
 ﻿using System;
+using System.ComponentModel.Design;
+using DAL.Groceries;
 using DOM.Accounts;
+using DOM.MealPlanning;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
+using Microsoft.EntityFrameworkCore;
 
 namespace DAL.EF;
 
@@ -263,18 +267,116 @@ internal static class CulinaryCodeDbInitializer
         };
         context.Recipes.Add(recipe1);
         context.Recipes.Add(recipe2);
-        context.Recipes.Add(recipe3);
+        context.Recipes.Add(recipe3); 
+        
+        // Testcode Boodschappenlijst
+        
+        var ingredient11 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Wortel", Measurement = MeasurementType.Kilogram };
+        var ingredient22 = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Appel", Measurement = MeasurementType.Gram };
 
-        Account account1 = new Account()
+        context.Ingredients.Add(ingredient11);
+        context.Ingredients.Add(ingredient22);
+        
+        var meal1 = new PlannedMeal
         {
-            AccountId = Guid.Parse("a75e963c-6943-4a9c-8f79-4a4c6f954427"),
-            Name = "Kim",
-            Email = "Kim@n.com",
-            FamilySize = 3
+            Ingredients = new List<IngredientQuantity>
+            {
+                new IngredientQuantity { Ingredient = ingredient11, Quantity = 1 },
+                new IngredientQuantity { Ingredient = ingredient22, Quantity = 150 }
+            }
         };
         
-        context.Accounts.Add(account1);
+        context.PlannedMeals.Add(meal1);
 
+        var meal2 = new PlannedMeal
+        {
+            Ingredients = new List<IngredientQuantity>
+            {
+                new IngredientQuantity { Ingredient = ingredient11, Quantity = 2 },
+                new IngredientQuantity { Ingredient = ingredient22, Quantity = 100 }
+            }
+        };
+        
+        GroceryList groceryList = new GroceryList
+                {
+                    GroceryListId = Guid.NewGuid(),
+                    Ingredients = meal1.Ingredients,
+                };
+                
+                context.GroceryLists.Add(groceryList);
+                
+                
+        context.PlannedMeals.Add(meal2);
+        
+        Account account1 = new Account
+                {
+                    AccountId = Guid.Parse("d1ec841b-9646-4ca7-a1ef-eda7354547f3"),
+                    Name = "nis",
+                    Email = "nis@n.n",
+                    FamilySize = 4,
+                    GroceryList = groceryList
+                };
+        
+        context.Accounts.Add(account1);
+        account1.GroceryList = groceryList;
+
+        
+        MealPlanner mealPlanner = new MealPlanner
+        {
+            MealPlannerId = Guid.NewGuid(),
+            NextWeek = new List<PlannedMeal> { meal1, meal2 },
+            Account = account1,
+        };
+        
+        context.MealPlanners.Add(mealPlanner);
+        context.Accounts.Add(account1);
+       
+        // Test adding item to GroceryList
+        
+        var ingredient = new Ingredient { IngredientId = Guid.Parse("351934e5-c237-4069-a6f7-be572cb809c4"), IngredientName = "Appel", Measurement = MeasurementType.Gram };
+        var newIngredient = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Aardappel", Measurement = MeasurementType.Kilogram };
+        var newItem = new GroceryItem { GroceryItemId = Guid.NewGuid(), GroceryItemName = "Waspoeder" };
+
+        var addItem = new ItemQuantity
+        {
+            GroceryItem = new GroceryItem
+            {
+                GroceryItemId = ingredient.IngredientId,
+                GroceryItemName = ingredient.IngredientName,
+            },
+            GroceryList = groceryList,
+            Quantity = 2
+        };
+        
+        var addNewItem = new ItemQuantity
+        {
+            GroceryItem = new GroceryItem
+            {
+                GroceryItemId = newIngredient.IngredientId,
+                GroceryItemName = newIngredient.IngredientName,
+            },
+            GroceryList = groceryList,
+            Quantity = 2
+        };
+        
+        var addNewItem2 = new ItemQuantity
+        {
+            GroceryItem = new GroceryItem
+            {
+                GroceryItemId = newItem.GroceryItemId,
+                GroceryItemName = newItem.GroceryItemName,
+            },
+            GroceryList = groceryList,
+            Quantity = 7
+        };
+        
+        context.ItemQuantities.Add(addItem);
+        context.ItemQuantities.Add(addNewItem);
+        context.ItemQuantities.Add(addNewItem2);
+        context.GroceryLists.Add(groceryList);
+        
+        // Einde Testcode Boodschappenlijst
+        
         // Save changes
         context.SaveChanges();
 

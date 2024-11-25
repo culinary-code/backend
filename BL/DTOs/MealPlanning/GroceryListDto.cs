@@ -1,4 +1,6 @@
-﻿using BL.DTOs.Recipes.Ingredients;
+﻿using BL.DTOs.Accounts;
+using BL.DTOs.Recipes.Ingredients;
+using DOM.Recipes.Ingredients;
 
 namespace BL.DTOs.MealPlanning;
 
