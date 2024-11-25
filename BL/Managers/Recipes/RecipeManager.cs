@@ -60,15 +60,16 @@ public class RecipeManager : IRecipeManager
         return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 
-    public RecipeDto? CreateRecipe(string name)
+    public RecipeDto? CreateRecipe(RecipeFilterDto request)
     {
         byte attempts = 0;
-
+        var prompt = LlmSettingsService.BuildPrompt(request);
         while (attempts < 3)
         {
             try
             {
-                var generatedRecipeJson = _llmService.GenerateRecipe(name);
+                
+                var generatedRecipeJson = _llmService.GenerateRecipe(prompt);
 
                 if (!RecipeValidation(generatedRecipeJson))
                 {

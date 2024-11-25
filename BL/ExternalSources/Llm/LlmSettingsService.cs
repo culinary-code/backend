@@ -12,60 +12,7 @@ public class LlmSettingsService
     static LlmSettingsService()
     {
         RecipeJsonSchema = """
-                           {
-                               "type": "object",
-                               "properties": {
-                                   "recipeName": { "type": "string" },
-                                   "description": { "type": "string" },
-                                   "diet": { "type": "string" },
-                               "recipeType": {
-                                   "type": "string",
-                                   "enum": ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"]
-                               },
-                               "cookingTime": { "type": "integer" },
-                               "difficulty": {
-                                   "type": "string",
-                                   "enum": ["NotAvailable", "Easy", "Intermediate", "Difficult"]
-                               },
-                                "amount_of_people": { "type": "number" },
-                                   "ingredients": {
-                                       "type": "array",
-                                       "items": {
-                                           "type": "object",
-                                           "properties": {
-                                               "name": { "type": "string" },
-                                               "amount": { "type": "number" },
-                                               "measurementType": {
-                                                   "type": "string",
-                                                   "enum": ["Kilogram", "Litre", "Pound", "Ounce", "Teaspoon", "Tablespoon", "Piece", "Millilitre", "Gram", "Pinch", "ToTaste", "Clove"]
-                                               }
-                                           },
-                                           "required": ["name", "amount", "measurementType"]
-                                       }
-                                   },
-                                   "recipeSteps": {
-                                       "type": "array",
-                                       "items": {
-                                           "type": "object",
-                                           "properties": {
-                                               "stepNumber": { "type": "number" },
-                                               "instruction": { "type": "string" }
-                                           },
-                                           "required": ["stepNumber", "instruction"]
-                                       }
-                                   }
-                               },
-                               "required": [
-                                   "recipeName",
-                                   "description",
-                                   "ingredients",
-                                   "diet",
-                                   "recipeType",
-                                   "cookingTime",
-                                   "difficulty",
-                                   "recipeSteps"
-                               ]
-                           }
+                           {"type":"object","properties":{"recipeName":{"type":"string"},"description":{"type":"string"},"diet":{"type":"string"},"recipeType":{"type":"string","enum":["Breakfast","Lunch","Dinner","Dessert","Snack"]},"cookingTime":{"type":"integer"},"difficulty":{"type":"string","enum":["NotAvailable","Easy","Intermediate","Difficult"]},"amount_of_people":{"type":"number"},"ingredients":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"},"amount":{"type":"number"},"measurementType":{"type":"string","enum":["Kilogram","Litre","Pound","Ounce","Teaspoon","Tablespoon","Piece","Millilitre","Gram","Pinch","ToTaste","Clove"]}},"required":["name","amount","measurementType"]}},"recipeSteps":{"type":"array","items":{"type":"object","properties":{"stepNumber":{"type":"number"},"instruction":{"type":"string"}},"required":["stepNumber","instruction"]}}},"required":["recipeName","description","ingredients","diet","recipeType","cookingTime","difficulty","recipeSteps"]}
                            """;
 
         SystemPrompt = """
@@ -75,19 +22,26 @@ public class LlmSettingsService
                           - If the user asks for a specific recipe by name, provide the recipe in JSON format.
                           - If the recipe name is not available or the recipe is not edible, respond with `"NOT_POSSIBLE with this reason {reason}"`.
                           - Return the values of the recipe in the dutch language.
+                          - The user input will happen in the dutch language.
 
                        2. **User Provides Ingredients**: 
                           - If the user lists ingredients, generate a recipe that utilizes those ingredients. Feel free to add more ingredients to complete the recipe, but always prioritize the user's listed ingredients.
                           - For large quantities of ingredients, use logical or reasonable amounts.
                           - If the list of ingredients contains any non-edible item, return `"NOT_POSSIBLE with this reason {reason}"`.
                           - If the user provides an excessive number of ingredients, focus on the most common ones for the recipe.
+                          - Return the values of the recipe in the dutch language.
+                          - The user input will happen in the dutch language.
 
                        3. **User Specifies Additional Fields (e.g., Difficulty or Recipe Type)**: 
                           - If the user specifies any fields such as `"difficulty"`, `"recipeType"`, `"diet"`, or `"cookingTime"`, reflect their preferences directly in the JSON output. 
+                          - If the user specifies any fields such as `"difficulty"`, `"recipeType"`, `"diet"`, or `"cookingTime"`, make sure to use values for recipe name and recipe steps that align with this input.
                           - For fields the user does not specify, infer logical values or use reasonable defaults. For example:
                              - `"difficulty"` defaults to `"NotAvailable"`.
                              - `"diet"` defaults to `"None"`.
+                          - Make sure the generated recipe is in line with and relevant to the given user input.
                           - Always ensure the generated recipe adheres to the JSON schema and aligns with user input.
+                          - Return the values of the recipe in the dutch language.
+                          - The user input will happen in the english language.
 
                        4. **Random Recipe**: 
                           - If the user requests a random recipe, provide a relevant and delicious recipe in JSON format.
