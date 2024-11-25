@@ -58,11 +58,13 @@ public class CulinaryCodeDbContext : DbContext
 
         modelBuilder.Entity<PlannedMeal>()
             .HasOne(p => p.Recipe)
-            .WithMany(r => r.PlannedMeals);
+            .WithMany(r => r.PlannedMeals)
+            .OnDelete(DeleteBehavior.Restrict);
         
         modelBuilder.Entity<PlannedMeal>()
             .HasMany(p => p.Ingredients)
-            .WithOne(i => i.PlannedMeal);
+            .WithOne(i => i.PlannedMeal)
+            .OnDelete(DeleteBehavior.Cascade);
         
         modelBuilder.Entity<MealPlanner>()
             .HasMany(m => m.NextWeek)
