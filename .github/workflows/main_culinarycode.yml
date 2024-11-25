@@ -30,6 +30,9 @@ jobs:
       - name: dotnet publish
         run: dotnet publish ./WEBAPI/WEBAPI.csproj -c Release -o ./myapp
 
+      - name: List files in the myapp directory
+        run: ls -la ./myapp
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
