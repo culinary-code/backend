@@ -90,7 +90,6 @@ public class AccountManager : IAccountManager
         
         var preference = _mapper.Map<Preference>(preferenceDto);
 
-        // Add preference to account
         var preferences = account.Preferences.ToList();
         preferences.Add(preference);
         account.Preferences = preferences;
