@@ -103,13 +103,19 @@ public class LlmSettingsService
         {
             
             Enum.TryParse<Difficulty>(request.Difficulty, out var difficultyEnum);
-            promptBuilder.AppendLine($"The recipe difficulty should be {difficultyEnum.ToString()}.");
+            if (difficultyEnum != Difficulty.NotAvailable)
+            {
+                promptBuilder.AppendLine($"The recipe difficulty should be {difficultyEnum.ToString()}.");
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(request.MealType))
         {
             Enum.TryParse<RecipeType>(request.MealType, out var mealTypeEnum);
-            promptBuilder.AppendLine($"It should be a {mealTypeEnum.ToString()} recipe.");
+            if (mealTypeEnum != RecipeType.NotAvailable)
+            {
+                promptBuilder.AppendLine($"It should be a {mealTypeEnum.ToString()} recipe.");
+            }
         }
 
         if (request.CookTime > 0)
