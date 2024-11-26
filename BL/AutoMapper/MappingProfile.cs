@@ -52,9 +52,20 @@ public class MappingProfile : Profile
         CreateMap<IngredientQuantityDto, IngredientQuantity>(); // From IngredientQuantityDto to IngredientQuantity
 
         // ItemQuantity mappings
-        CreateMap<ItemQuantity, ItemQuantityDto>(); // From ItemQuantity to ItemQuantityDto
+        //CreateMap<ItemQuantity, ItemQuantityDto>(); // From ItemQuantity to ItemQuantityDto
+        //CreateMap<ItemQuantityDto, ItemQuantity>(); // From ItemQuantityDto to ItemQuantity
+        
+        CreateMap<ItemQuantity, ItemQuantityDto>()
+            .ForMember(dest => dest.IngredientQuantityId, opt => opt.MapFrom(src => src.ItemQuantityId))  // Make sure src has ItemQuantityId set
+            .ForMember(dest => dest.Ingredient, opt => opt.MapFrom(src => src.GroceryItem != null ? new IngredientDto
+            {
+                IngredientId = src.GroceryItem.GroceryItemId,
+                IngredientName = src.GroceryItem.GroceryItemName,
+                Measurement = src.GroceryItem.Measurement
+            } : null));
+        
         CreateMap<ItemQuantityDto, ItemQuantity>(); // From ItemQuantityDto to ItemQuantity
-
+        
         // FavoriteRecipe mappings
         CreateMap<FavoriteRecipe, FavoriteRecipeDto>(); // From FavoriteRecipe to FavoriteRecipeDto
         CreateMap<FavoriteRecipeDto, FavoriteRecipe>(); // From FavoriteRecipeDto to FavoriteRecipe

@@ -10,4 +10,5 @@ public interface IGroceryRepository
     void CreateGroceryList(GroceryList groceryList);
     void UpdateGroceryList(GroceryList groceryList);
     void AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem);
+    Task DeleteItemFromGroceryList(Guid groceryListId, Guid itemId);
 }

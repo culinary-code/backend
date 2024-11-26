@@ -83,4 +83,29 @@ public class GroceryController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+    
+    // GroceryListController.cs
+
+    [HttpDelete("{groceryListId}/items/{itemQuantityId}")]
+    public async Task<IActionResult> DeleteItemFromList(Guid groceryListId, Guid itemQuantityId)
+    {
+        try
+        {
+            await _groceryManager.RemoveItemFromGroceryList(groceryListId, itemQuantityId); // Assume async
+            _logger.LogInformation("Item {ItemQuantityId} deleted from grocery list {GroceryListId}.", itemQuantityId, groceryListId);
+            return Ok(new { message = "Item deleted successfully." });
+        }
+        catch (GroceryListNotFoundException)
+        {
+            _logger.LogWarning("Grocery list {GroceryListId} or item {ItemQuantityId} not found.", groceryListId, itemQuantityId);
+            return NotFound(new { message = "Grocery list or item not found." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("An error occurred while deleting item {ItemQuantityId} from grocery list {GroceryListId}: {ErrorMessage}", itemQuantityId, groceryListId, ex.Message);
+            return StatusCode(500, new { message = "An unexpected error occurred." });
+        }
+    }
+
+
 }

@@ -59,4 +59,20 @@ public class MealPlannerController : ControllerBase
             return NotFound(e.Message);
         }
     }
+    
+    [HttpGet("NextWeekIngredients")]
+    public async Task<IActionResult> GetNextWeekIngredients()
+    {
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers.Authorization.ToString().Substring(7));
+        try
+        {
+            var ingredients = await _mealPlannerManager.GetNextWeekIngredients(userId);
+            return Ok(ingredients);
+        }
+        catch (MealPlannerNotFoundException e)
+        {
+            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
+            return NotFound(e.Message);
+        }
+    }
 }
