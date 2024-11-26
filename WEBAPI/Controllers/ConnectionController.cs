@@ -14,8 +14,15 @@ public class ConnectionController : ControllerBase
     }
     
     [HttpGet]
-    public Task<bool> Get()
+    public async Task<IActionResult> Get()
     {
-        return Task.FromResult(true);
+        _logger.LogInformation("Get Keycloak URL");
+        string? keycloakUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? null;
+        if (keycloakUrl == null)
+        {
+            _logger.LogError("Keycloak URL was not found, ensure the environment variable KEYCLOAK_BASE_URL is set");
+            return NotFound("Keycloak URL werd niet gevonden");
+        }
+        return Ok(keycloakUrl);
     }
 }
