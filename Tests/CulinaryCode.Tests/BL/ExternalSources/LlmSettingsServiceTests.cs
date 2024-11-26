@@ -5,6 +5,8 @@ namespace CulinaryCode.Tests.BL.ExternalSources;
 
 public class LlmSettingsServiceTests
 {
+    private string NormalizeLineEndings(string input) => input.Replace("\r\n", "\n").Replace("\r", "\n");
+
     [Fact]
     public void BuildPrompt_OnlyRecipeNameProvided_ReturnsPromptWithRecipeName()
     {
@@ -18,7 +20,7 @@ public class LlmSettingsServiceTests
         var prompt = LlmSettingsService.BuildPrompt(recipeDto);
 
         // Assert
-        Assert.Equal("I want a recipe for Pasta.", prompt);
+        Assert.Equal(NormalizeLineEndings("I want a recipe for Pasta."), NormalizeLineEndings(prompt));
     }
 
     [Fact]
@@ -31,7 +33,8 @@ public class LlmSettingsServiceTests
         var prompt = LlmSettingsService.BuildPrompt(recipeDto);
 
         // Assert
-        Assert.Equal("I want a random recipe.", prompt);
+        Assert.Equal(NormalizeLineEndings("I want a random recipe."),
+            NormalizeLineEndings(prompt));
     }
 
     [Fact]
@@ -48,8 +51,9 @@ public class LlmSettingsServiceTests
 
         // Assert
         Assert.Equal(
-            "I want a random recipe.\r\nHere are the ingredients I have:\r\nTomato, Cheese, Basil",
-            prompt
+            NormalizeLineEndings(
+                "I want a random recipe.\nHere are the ingredients I have:\nTomato, Cheese, Basil"),
+            NormalizeLineEndings(prompt)
         );
     }
 
@@ -71,8 +75,9 @@ public class LlmSettingsServiceTests
 
         // Assert
         Assert.Equal(
-            "I want a recipe for Pizza.\r\nHere are the ingredients I have:\r\nFlour, Tomato, Mozzarella\r\nThe recipe difficulty should be Intermediate.\r\nIt should be a Dinner recipe.\r\nThe cooking time should be around 30 minutes.",
-            prompt
+            NormalizeLineEndings(
+                "I want a recipe for Pizza.\nHere are the ingredients I have:\nFlour, Tomato, Mozzarella\nThe recipe difficulty should be Intermediate.\nIt should be a Dinner recipe.\nThe cooking time should be around 30 minutes."),
+            NormalizeLineEndings(prompt)
         );
     }
 
@@ -90,7 +95,7 @@ public class LlmSettingsServiceTests
         var prompt = LlmSettingsService.BuildPrompt(recipeDto);
 
         // Assert
-        Assert.Equal("I want a random recipe.", prompt);
+        Assert.Equal(NormalizeLineEndings("I want a random recipe."), NormalizeLineEndings(prompt));
     }
 
     [Fact]
@@ -106,6 +111,7 @@ public class LlmSettingsServiceTests
         var prompt = LlmSettingsService.BuildPrompt(recipeDto);
 
         // Assert
-        Assert.Equal("I want a random recipe.\r\nThe cooking time should be around 15 minutes.", prompt);
+        Assert.Equal(NormalizeLineEndings("I want a random recipe.\nThe cooking time should be around 15 minutes."),
+            NormalizeLineEndings(prompt));
     }
 }
