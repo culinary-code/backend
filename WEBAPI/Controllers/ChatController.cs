@@ -1,4 +1,5 @@
 using BL.DTOs.Llm;
+using BL.DTOs.Recipes;
 using BL.ExternalSources.Llm;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,9 +22,10 @@ public class ChatController : ControllerBase
     }
 
     [HttpPost("getchat")]
-    public string GetChat([FromBody] ChatRequestDto request)
+    public string GetChat([FromBody] RecipeFilterDto request)
     {
-        var message = _llmService.GenerateRecipe(request.Prompt);
+        var prompt = LlmSettingsService.BuildPrompt(request);
+        var message = _llmService.GenerateRecipe(prompt);
         return message;
     }
     
