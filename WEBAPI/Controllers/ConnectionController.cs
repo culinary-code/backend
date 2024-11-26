@@ -16,7 +16,7 @@ public class ConnectionController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        _logger.LogInformation("Get Keycloak URL");
+        _logger.LogInformation("Connection request received.");
         string? keycloakUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? null;
         if (keycloakUrl == null)
         {
