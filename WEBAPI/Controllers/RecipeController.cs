@@ -87,11 +87,11 @@ public class RecipeController : ControllerBase
     }
 
     [HttpPost("Create")]
-    public IActionResult CreateRecipe([FromBody] CreateRecipeDto createRecipeDto)
+    public IActionResult CreateRecipe([FromBody] RecipeFilterDto request)
     {
         try
         {
-            var recipe = _recipeManager.CreateRecipe(createRecipeDto.Name);
+            var recipe = _recipeManager.CreateRecipe(request);
 
             if (recipe is null)
             {
