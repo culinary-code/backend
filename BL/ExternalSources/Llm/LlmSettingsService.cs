@@ -32,13 +32,14 @@ public class LlmSettingsService
                           - Return the values of the recipe in the dutch language.
                           - The user input will happen in the dutch language.
 
-                       3. **User Specifies Additional Fields (e.g., Difficulty or Recipe Type)**: 
+                       3. **User Specifies Additional Fields (e.g., Difficulty or Recipe Type or cookingTime or diet)**: 
                           - If the user specifies any fields such as `"difficulty"`, `"recipeType"`, `"diet"`, or `"cookingTime"`, reflect their preferences directly in the JSON output. 
                           - If the user specifies any fields such as `"difficulty"`, `"recipeType"`, `"diet"`, or `"cookingTime"`, make sure to use values for recipe name and recipe steps that align with this input.
                           - For fields the user does not specify, infer logical values or use reasonable defaults. For example:
                              - `"difficulty"` defaults to `"NotAvailable"`.
                              - `"diet"` defaults to `"None"`.
                           - Make sure the generated recipe is in line with and relevant to the given user input.
+                          - If the cookTime is provided, make sure the recipe is in line with and relevant to the given user input. You can provide recipes that take less time but NEVER more time. Make sure the time is realistic and calculated from the recipesteps with the amount of ingredients!
                           - Always ensure the generated recipe adheres to the JSON schema and aligns with user input.
                           - Return the values of the recipe in the dutch language.
                           - The user input will happen in the english language.
