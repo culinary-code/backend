@@ -4,6 +4,7 @@ using BL.ExternalSources.Llm;
 using BL.Managers.Accounts;
 using BL.Managers.MealPlanning;
 using BL.Managers.Groceries;
+using BL.Scheduled;
 using BL.Services;
 using DAL.Accounts;
 using DAL.EF;
@@ -14,6 +15,10 @@ using DOM.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Quartz;
+using Quartz.Impl;
+using Quartz.Simpl;
+using Quartz.Spi;
 
 // load environment variables
 DotNetEnv.Env.Load("../.env");
@@ -131,6 +136,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
+
+// Scheduled jobs
+builder.Services.AddQuartz(q =>
+{
+    // Register the job and trigger
+    q.AddJob<RefreshRecipeDatabaseJob>(opts => opts.WithIdentity("RefreshRecipeDatabaseJob"));
+    q.AddTrigger(opts => opts
+        .ForJob("RefreshRecipeDatabaseJob") // Link to the registered job
+        .WithIdentity("RefreshRecipeDatabaseJob-trigger") // Name of the trigger
+        .WithCronSchedule("0 1 16 * * ?")); // CRON for 2:00 PM daily
+});
+
+// Add the Quartz Hosted Service
+builder.Services.AddQuartzHostedService(options =>
+{
+    options.WaitForJobsToComplete = true; // Optional: Wait for jobs to complete before shutting down
+});
 
 var app = builder.Build();
 

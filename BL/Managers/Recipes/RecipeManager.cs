@@ -56,7 +56,8 @@ public class RecipeManager : IRecipeManager
     public async Task<ICollection<RecipeDto>> GetFilteredRecipeCollection(string recipeName, Difficulty difficulty,
         RecipeType recipeType, int cooktime, List<string> ingredients)
     {
-        var recipes = await _recipeRepository.GetFilteredRecipesAsync(recipeName, difficulty, recipeType, cooktime, ingredients);
+        var recipes =
+            await _recipeRepository.GetFilteredRecipesAsync(recipeName, difficulty, recipeType, cooktime, ingredients);
         return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 
@@ -68,7 +69,6 @@ public class RecipeManager : IRecipeManager
         {
             try
             {
-                
                 var generatedRecipeJson = _llmService.GenerateRecipe(prompt);
 
                 if (!RecipeValidation(generatedRecipeJson))
@@ -80,18 +80,19 @@ public class RecipeManager : IRecipeManager
                 var recipe = ConvertGeneratedRecipe(generatedRecipeJson);
 
                 _recipeRepository.CreateRecipe(recipe);
-                
+
                 if (!string.IsNullOrEmpty(recipe.ImagePath))
                 {
                     return _mapper.Map<RecipeDto>(recipe);
                 }
-                
-                var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
-                if (imageUri is not null)
-                {
-                    recipe.ImagePath = imageUri!.ToString();
-                    _recipeRepository.UpdateRecipe(recipe);
-                }
+
+                //TODO: enable
+                // var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
+                // if (imageUri is not null)
+                // {
+                //     recipe.ImagePath = imageUri!.ToString();
+                //     _recipeRepository.UpdateRecipe(recipe);
+                // }
 
                 return _mapper.Map<RecipeDto>(recipe);
             }
@@ -129,15 +130,38 @@ public class RecipeManager : IRecipeManager
         foreach (var recipe in recipeArray)
         {
             var recipeString = recipe.ToString();
-            
+
             var createdRecipe = ConvertGeneratedRecipe(recipeString);
 
             _recipeRepository.CreateRecipe(createdRecipe);
-            
+
             recipes.Add(_mapper.Map<RecipeDto>(createdRecipe));
         }
-        
+
         return recipes;
+    }
+
+    public void CreateBatchRandomRecipes(int amount)
+    {
+        Random random = new Random();
+        // temp implementation: call upon single method many times
+        RecipeFilterDto request = new RecipeFilterDto();
+        int amountOfDifficulties = Enum.GetValues(typeof(Difficulty)).Length;
+        int amountOfMealtypes = Enum.GetValues(typeof(RecipeType)).Length;
+        for (int i = 0; i < amount; i++)
+        {
+            // Difficulty is a random enum value
+            request.Difficulty = random.Next(1, amountOfDifficulties).ToString();
+
+            // MealType is a random enum value
+            request.MealType = random.Next(1, amountOfMealtypes).ToString();
+
+            // CookTime is a random value between 10 and 240
+            request.CookTime = random.Next(1, 25) * 10;
+            CreateRecipe(request);
+        }
+
+        //TODO: call chatgpt batch for multiple recipes
     }
 
     private bool RecipeValidation(string recipeJson)
@@ -178,11 +202,11 @@ public class RecipeManager : IRecipeManager
         generatedRecipeJson.TryGetValue("cookingTime", out var cookingTime);
         generatedRecipeJson.TryGetValue("difficulty", out var difficulty);
         generatedRecipeJson.TryGetValue("amount_of_people", out var amountOfPeople);
-        
+
 
         generatedRecipeJson.TryGetValue("ingredients", out var ingredients);
         generatedRecipeJson.TryGetValue("recipeSteps", out var instructions);
-        
+
         generatedRecipeJson.TryGetValue("image_path", out var imagePath);
 
         Enum.TryParse<RecipeType>(recipeType!.ToString(), out var recipeTypeEnum);

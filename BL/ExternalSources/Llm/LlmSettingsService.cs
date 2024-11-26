@@ -46,6 +46,10 @@ public class LlmSettingsService
 
                        4. **Random Recipe**: 
                           - If the user requests a random recipe, provide a relevant and delicious recipe in JSON format.
+                          - Make a meal with a cooktime between 10 - 240 minutes.
+                          - Make a meal where the main ingredient is a type of fish OR a vegetable OR a type of meat OR a type of fruit OR ... .
+                          - Make the choice of main ingredient randomly at each request for a random recipe.
+                          - Reflect on what mealtype the meal is best considered
 
                        5. **JSON Schema**: Ensure the recipe is always provided in this JSON format, with the following fields:
                           - `"recipeName"`: The name of the recipe.

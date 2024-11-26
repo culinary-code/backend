@@ -12,4 +12,5 @@ public interface IRecipeManager
         RecipeType recipeType, int cooktime, List<string> ingredients);
     RecipeDto? CreateRecipe(RecipeFilterDto request);
     ICollection<RecipeDto> CreateBatchRecipes(string input);
+    void CreateBatchRandomRecipes(int amount);
 }
