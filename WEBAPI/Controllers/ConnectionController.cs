@@ -21,7 +21,7 @@ public class ConnectionController : ControllerBase
         if (keycloakUrl == null)
         {
             _logger.LogError("Keycloak URL was not found, ensure the environment variable KEYCLOAK_BASE_URL is set");
-            return NotFound("Keycloak URL werd niet gevonden");
+            return NotFound();
         }
         return Ok(keycloakUrl);
     }
