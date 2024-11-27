@@ -16,7 +16,6 @@ namespace BL.Testing
 {
     public class GroceryManagerTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
         private readonly Mock<IGroceryRepository> _mockGroceryRepository;
         private readonly Mock<IAccountRepository> _mockAccountRepository;
         private readonly Mock<IMealPlannerRepository> _mockMealPlannerRepository;
@@ -24,9 +23,8 @@ namespace BL.Testing
         private readonly GroceryManager _groceryManager;
         private readonly Mock<ILogger<GroceryManager>> _mockLogger;
 
-        public GroceryManagerTests(ITestOutputHelper testOutputHelper)
+        public GroceryManagerTests()
         {
-            _testOutputHelper = testOutputHelper;
             _mockLogger = new Mock<ILogger<GroceryManager>>();
             _mockGroceryRepository = new Mock<IGroceryRepository>();
             _mockAccountRepository = new Mock<IAccountRepository>();
