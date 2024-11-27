@@ -57,7 +57,7 @@ public class MealPlannerRepository : IMealPlannerRepository
         return plannedMeal;
     }
 
-    public async Task<List<PlannedMeal>> ReadNextWeekPlannedMeals(DateTime dateTime, Guid userId)
+    public async Task<List<PlannedMeal>> ReadNextWeekPlannedMeals(Guid userId)
     {
         var mealPlanner = await ReadMealPlannerByIdWithNextWeekWithRecipe(userId);
         return mealPlanner.NextWeek.ToList();
