@@ -10,6 +10,9 @@ public interface IRecipeManager
     ICollection<RecipeDto> GetRecipesCollectionByName(string name);
     Task<ICollection<RecipeDto>> GetFilteredRecipeCollection(string recipeName, Difficulty difficulty,
         RecipeType recipeType, int cooktime, List<string> ingredients);
+    Task<int> GetAmountOfRecipesAsync();
     RecipeDto? CreateRecipe(RecipeFilterDto request);
+    Task<RecipeDto?> CreateRecipeAsync(RecipeFilterDto request);
     ICollection<RecipeDto> CreateBatchRecipes(string input);
+    Task CreateBatchRandomRecipes(int amount);
 }

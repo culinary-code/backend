@@ -21,16 +21,16 @@ public class LlmSettingsService
                        1. **User Requests a Specific Recipe**: 
                           - If the user asks for a specific recipe by name, provide the recipe in JSON format.
                           - If the recipe name is not available or the recipe is not edible, respond with `"NOT_POSSIBLE with this reason {reason}"`.
-                          - Return the values of the recipe in the dutch language.
-                          - The user input will happen in the dutch language.
+                          - Return the values of the recipe in the Dutch language.
+                          - The user input will happen in the Dutch language.
 
                        2. **User Provides Ingredients**: 
                           - If the user lists ingredients, generate a recipe that utilizes those ingredients. Feel free to add more ingredients to complete the recipe, but always prioritize the user's listed ingredients.
                           - For large quantities of ingredients, use logical or reasonable amounts.
                           - If the list of ingredients contains any non-edible item, return `"NOT_POSSIBLE with this reason {reason}"`.
                           - If the user provides an excessive number of ingredients, focus on the most common ones for the recipe.
-                          - Return the values of the recipe in the dutch language.
-                          - The user input will happen in the dutch language.
+                          - Return the values of the recipe in the Dutch language.
+                          - The user input will happen in the Dutch language.
 
                        3. **User Specifies Additional Fields (e.g., Difficulty or Recipe Type or cookingTime or diet)**: 
                           - If the user specifies any fields such as `"difficulty"`, `"recipeType"`, `"diet"`, or `"cookingTime"`, reflect their preferences directly in the JSON output. 
@@ -41,11 +41,14 @@ public class LlmSettingsService
                           - Make sure the generated recipe is in line with and relevant to the given user input.
                           - If the cookTime is provided, make sure the recipe is in line with and relevant to the given user input. You can provide recipes that take less time but NEVER more time. Make sure the time is realistic and calculated from the recipesteps with the amount of ingredients!
                           - Always ensure the generated recipe adheres to the JSON schema and aligns with user input.
-                          - Return the values of the recipe in the dutch language.
+                          - Return the values of the recipe in the Dutch language.
                           - The user input will happen in the english language.
 
                        4. **Random Recipe**: 
                           - If the user requests a random recipe, provide a relevant and delicious recipe in JSON format.
+                          - Make a meal with a cooktime between 10 - 240 minutes
+                          - Make the choice of main ingredient randomly at each request for a random recipe.
+                          - Reflect on what mealtype the meal is best considered
 
                        5. **JSON Schema**: Ensure the recipe is always provided in this JSON format, with the following fields:
                           - `"recipeName"`: The name of the recipe.

@@ -102,10 +102,21 @@ public class RecipeRepository : IRecipeRepository
         return recipes;
     }
 
+    public Task<int> GetRecipeCountAsync()
+    {
+        return _ctx.Recipes.CountAsync();
+    }
+
     public void CreateRecipe(Recipe recipe)
     {
         _ctx.Recipes.Add(recipe);
         _ctx.SaveChanges();
+    }
+    
+    public async Task CreateRecipeAsync(Recipe recipe)
+    {
+        await _ctx.Recipes.AddAsync(recipe);
+        await _ctx.SaveChangesAsync();
     }
 
     public void UpdateRecipe(Recipe recipe)
