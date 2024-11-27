@@ -206,8 +206,9 @@ public class RecipeManager : IRecipeManager
 
     public async Task CreateBatchRandomRecipes(int amount)
     {
+        if (amount <=0) return;  
         var recipeNames = _llmService.GenerateMultipleRecipeNamesAndDescriptions("random", amount);
-
+        
         // List to hold all the tasks for concurrent execution
         var tasks = new List<Task>();
 

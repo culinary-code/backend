@@ -1,4 +1,5 @@
 ﻿using BL.Managers.Recipes;
+using DOM.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace BL.Scheduled;
@@ -20,7 +21,8 @@ public class RefreshRecipeDatabaseJob : IJob
     
     public async Task Execute(IJobExecutionContext context)
     {
-        int minAmountInDatabase = 100;
+        var minAmountString = Environment.GetEnvironmentVariable("DATABASE_JOB_MIN_AMOUNT") ?? throw new EnvironmentVariableNotAvailableException("DATABASE_JOB_MIN_AMOUNT environment variable is not set.");
+        int minAmountInDatabase = int.Parse(minAmountString);
         // TODO: add clearing of unused recipes here (other issue)
         
         // Count amount of recipes
