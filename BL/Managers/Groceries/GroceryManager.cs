@@ -31,10 +31,6 @@ public class GroceryManager : IGroceryManager
     {
         Guid groceryId = Guid.Parse(id);
         var groceryList = _groceryRepository.ReadGroceryListById(groceryId);
-        foreach (var item in groceryList.Items)
-        {
-            Console.WriteLine($"ItemQuantityId: {item.ItemQuantityId}");
-        }
         return _mapper.Map<GroceryListDto>(groceryList);
     }
 
