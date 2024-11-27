@@ -1,4 +1,5 @@
 ﻿using System.ClientModel;
+using System.Collections.ObjectModel;
 using System.Net.Mime;
 using Azure;
 using Azure.AI.OpenAI;
@@ -52,7 +53,7 @@ public class AzureOpenAIService : ILlmService
         _imageClient = _azureClient.GetImageClient("dall-e-3");
     }
 
-    public string GenerateMultipleRecipes(string message, int amount)
+    public string[] GenerateMultipleRecipeNamesAndDescriptions(string message, int amount)
     {
         ChatCompletionOptions completionOptions = new ChatCompletionOptions
         {
@@ -62,14 +63,20 @@ public class AzureOpenAIService : ILlmService
         
         ChatCompletion completion = _chatClient.CompleteChat(
         [
-            new SystemChatMessage($"Based on the input, generate {amount} different recipe names along with a short description. Place each recipe on its own line, no new line between them. Do not add order numbers, name and description should be on the same line. Output no other information. Always respond in the user's language."),
+            new SystemChatMessage($"Based on the input, generate {amount} different recipe names along with a short description. Place each recipe on its own line, no new line between them. Do not add order numbers, name and description should be on the same line. Output no other information. Always respond in the dutch language."),
 
             new UserChatMessage(message),
         ], completionOptions);
 
         var response = completion.Content[0].Text;
         
-        ICollection<string> recipePrompts = response.Split("\n");
+        var recipePrompts = response.Split("\n");
+        return recipePrompts;
+    }
+
+    public string GenerateMultipleRecipes(string message, int amount)
+    {
+        ICollection<string> recipePrompts = GenerateMultipleRecipeNamesAndDescriptions(message, amount);
         
         var output = "{ \"recipes\": [";
         foreach (var recipePrompt in recipePrompts)

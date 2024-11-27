@@ -18,11 +18,17 @@ public class RefreshRecipeDatabaseJob : IJob
         _recipeManager = recipeManager;
     }
     
-    public Task Execute(IJobExecutionContext context)
+    public async Task Execute(IJobExecutionContext context)
     {
-        _recipeManager.CreateBatchRandomRecipes(2);
+        int minAmountInDatabase = 100;
+        // TODO: add clearing of unused recipes here (other issue)
+        
+        // Count amount of recipes
+        var count = await _recipeManager.GetAmountOfRecipesAsync();
+
+        var amountToCreate = minAmountInDatabase - count;
+        await _recipeManager.CreateBatchRandomRecipes(amountToCreate);
+        
         _logger.LogInformation($"DatabaseJob executed at {DateTime.Now}");
-        // Add your database logic here
-        return Task.CompletedTask;
     }
 }

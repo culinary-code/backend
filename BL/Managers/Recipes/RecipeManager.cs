@@ -61,6 +61,11 @@ public class RecipeManager : IRecipeManager
         return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 
+    public Task<int> GetAmountOfRecipesAsync()
+    {
+        return _recipeRepository.GetRecipeCountAsync();
+    }
+
     public RecipeDto? CreateRecipe(RecipeFilterDto request)
     {
         byte attempts = 0;
@@ -86,13 +91,71 @@ public class RecipeManager : IRecipeManager
                     return _mapper.Map<RecipeDto>(recipe);
                 }
 
-                //TODO: enable
-                // var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
-                // if (imageUri is not null)
-                // {
-                //     recipe.ImagePath = imageUri!.ToString();
-                //     _recipeRepository.UpdateRecipe(recipe);
-                // }
+                var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
+                if (imageUri is not null)
+                {
+                    recipe.ImagePath = imageUri!.ToString();
+                    _recipeRepository.UpdateRecipe(recipe);
+                }
+
+                return _mapper.Map<RecipeDto>(recipe);
+            }
+            catch (JsonReaderException ex)
+            {
+                _logger.LogError("Failed to parse JSON: {ErrorMessage}", ex.Message);
+                _logger.LogInformation("Attempt: {Attempts}", attempts);
+                _logger.LogInformation("Retrying to create recipe");
+                attempts++;
+            }
+            catch (RecipeNotAllowedException ex)
+            {
+                _logger.LogError("Recipe not allowed: {ErrorMessage}", ex.ReasonMessage);
+                throw new RecipeNotAllowedException(reasonMessage: ex.ReasonMessage);
+            }
+            catch (RecipeValidationFailException ex)
+            {
+                _logger.LogError("Failed to create recipe: {ErrorMessage}", ex.Message);
+                _logger.LogInformation("Attempt: {Attempts}", attempts);
+                _logger.LogInformation("Retrying to create recipe");
+                attempts++;
+            }
+        }
+
+        _logger.LogError("Failed to create recipe after 3 attempts");
+        return null;
+    }
+
+    public async Task<RecipeDto?> CreateRecipeAsync(RecipeFilterDto request)
+    {
+        byte attempts = 0;
+        var prompt = LlmSettingsService.BuildPrompt(request);
+        while (attempts < 3)
+        {
+            try
+            {
+                var generatedRecipeJson = _llmService.GenerateRecipe(prompt);
+
+                if (!RecipeValidation(generatedRecipeJson))
+                {
+                    _logger.LogError("Recipe validation failed");
+                    throw new RecipeValidationFailException("Recipe validation failed");
+                }
+
+                var recipe = ConvertGeneratedRecipe(generatedRecipeJson);
+
+                await _recipeRepository.CreateRecipeAsync(recipe);
+
+                if (!string.IsNullOrEmpty(recipe.ImagePath))
+                {
+                    return _mapper.Map<RecipeDto>(recipe);
+                }
+                
+                var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
+                if (imageUri is not null)
+                {
+                    recipe.ImagePath = imageUri!.ToString();
+                    _recipeRepository.UpdateRecipe(recipe);
+                }
 
                 return _mapper.Map<RecipeDto>(recipe);
             }
@@ -141,27 +204,30 @@ public class RecipeManager : IRecipeManager
         return recipes;
     }
 
-    public void CreateBatchRandomRecipes(int amount)
+    public async Task CreateBatchRandomRecipes(int amount)
     {
-        Random random = new Random();
-        // temp implementation: call upon single method many times
-        RecipeFilterDto request = new RecipeFilterDto();
-        int amountOfDifficulties = Enum.GetValues(typeof(Difficulty)).Length;
-        int amountOfMealtypes = Enum.GetValues(typeof(RecipeType)).Length;
-        for (int i = 0; i < amount; i++)
+        var recipeNames = _llmService.GenerateMultipleRecipeNamesAndDescriptions("random", amount);
+
+        // List to hold all the tasks for concurrent execution
+        var tasks = new List<Task>();
+
+        for (int i = 0; i < recipeNames.Length && i < amount; i++)
         {
-            // Difficulty is a random enum value
-            request.Difficulty = random.Next(1, amountOfDifficulties).ToString();
+            // Capture the current index in the loop to avoid closure issues
+            var recipeName = recipeNames[i];
 
-            // MealType is a random enum value
-            request.MealType = random.Next(1, amountOfMealtypes).ToString();
+            // Create a new request for each recipe
+            var request = new RecipeFilterDto
+            {
+                RecipeName = recipeName
+            };
 
-            // CookTime is a random value between 10 and 240
-            request.CookTime = random.Next(1, 25) * 10;
-            CreateRecipe(request);
+            // Add the task to the list
+            tasks.Add(CreateRecipeAsync(request));
         }
 
-        //TODO: call chatgpt batch for multiple recipes
+        // Await all tasks to complete
+        await Task.WhenAll(tasks);
     }
 
     private bool RecipeValidation(string recipeJson)
