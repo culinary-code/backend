@@ -231,6 +231,11 @@ public class RecipeManager : IRecipeManager
         await Task.WhenAll(tasks);
     }
 
+    public async Task RemoveUnusedRecipesAsync()
+    {
+        await _recipeRepository.DeleteUnusedRecipesAsync();
+    }
+
     private bool RecipeValidation(string recipeJson)
     {
         if (recipeJson.StartsWith("\"NOT_POSSIBLE"))
@@ -294,6 +299,7 @@ public class RecipeManager : IRecipeManager
             CookingTime = int.Parse(cookingTime!.ToString()),
             Difficulty = difficultyEnum,
             CreatedAt = DateTime.UtcNow,
+            LastUsedAt = DateTime.UtcNow,
             AmountOfPeople = int.Parse(amountOfPeople!.ToString()),
             ImagePath = imagePath?.ToString() ?? string.Empty,
 

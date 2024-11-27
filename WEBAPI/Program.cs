@@ -137,7 +137,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// TODO: uncomment when in production
 // Scheduled jobs
 
 builder.Services.AddQuartz(q =>
@@ -147,7 +146,7 @@ builder.Services.AddQuartz(q =>
     q.AddTrigger(opts => opts
         .ForJob("RefreshRecipeDatabaseJob") // Link to the registered job
         .WithIdentity("RefreshRecipeDatabaseJob-trigger") // Name of the trigger
-        .WithCronSchedule("0 0 2 * * ?")); // CRON trigger at 2am
+        .WithCronSchedule("0 37 15 * * ?")); // CRON trigger at 2am
 });
 
 // Add the Quartz Hosted Service

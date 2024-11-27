@@ -67,6 +67,8 @@ public class MealPlannerManager : IMealPlannerManager
             
         };
         
+        linkedRecipe.LastUsedAt = DateTime.UtcNow;
+        
         await _mealPlannerRepository.CreatePlannedMeal(plannedMeal);
         _groceryRepository.UpdateGroceryList(groceryList);
         

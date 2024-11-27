@@ -56,6 +56,7 @@ public class ReviewManager : IReviewManager
             AmountOfStars = amountOfStars,
             CreatedAt = DateTime.UtcNow
         };
+        recipe.LastUsedAt = DateTime.UtcNow;
         await _reviewRepository.CreateReview(review);
         _logger.LogInformation($"Review created with id {review.ReviewId}");
         

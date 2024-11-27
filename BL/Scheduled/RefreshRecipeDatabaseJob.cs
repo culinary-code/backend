@@ -23,12 +23,14 @@ public class RefreshRecipeDatabaseJob : IJob
     {
         var minAmountString = Environment.GetEnvironmentVariable("DATABASE_JOB_MIN_AMOUNT") ?? throw new EnvironmentVariableNotAvailableException("DATABASE_JOB_MIN_AMOUNT environment variable is not set.");
         int minAmountInDatabase = int.Parse(minAmountString);
-        // TODO: add clearing of unused recipes here (other issue)
+
+        await _recipeManager.RemoveUnusedRecipesAsync();
         
         // Count amount of recipes
         var count = await _recipeManager.GetAmountOfRecipesAsync();
 
         var amountToCreate = minAmountInDatabase - count;
+        
         await _recipeManager.CreateBatchRandomRecipes(amountToCreate);
         
         _logger.LogInformation($"DatabaseJob executed at {DateTime.Now}");

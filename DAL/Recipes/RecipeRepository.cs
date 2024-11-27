@@ -27,11 +27,12 @@ public class RecipeRepository : IRecipeRepository
             .Include(r => r.Reviews)
             .ThenInclude(r => r.Account)
             .Include(r => r.Preferences)
-            .FirstOrDefault(r => r.RecipeId == id );
+            .FirstOrDefault(r => r.RecipeId == id);
         if (recipe is null)
         {
             throw new RecipeNotFoundException($"No recipe found with id {id}");
         }
+
         return recipe;
     }
 
@@ -44,9 +45,10 @@ public class RecipeRepository : IRecipeRepository
         {
             throw new RecipeNotFoundException($"No recipe found with name {name}");
         }
+
         return recipe;
     }
-    
+
     public ICollection<Recipe> ReadRecipesCollectionByName(string name)
     {
         string lowerName = name.ToLower();
@@ -55,10 +57,12 @@ public class RecipeRepository : IRecipeRepository
         {
             throw new RecipeNotFoundException($"No recipes found with name {name}");
         }
+
         return recipes;
     }
 
-    public async Task<ICollection<Recipe>> GetFilteredRecipesAsync(string recipeName, Difficulty difficulty, RecipeType recipeType, int cooktime, List<String> ingredientStrings)
+    public async Task<ICollection<Recipe>> GetFilteredRecipesAsync(string recipeName, Difficulty difficulty,
+        RecipeType recipeType, int cooktime, List<String> ingredientStrings)
     {
         var query = _ctx.Recipes.AsQueryable();
 
@@ -88,13 +92,13 @@ public class RecipeRepository : IRecipeRepository
         {
             // Filter based on whether all ingredients in ingredientStrings exist in the recipe
             query = query.Where(r => ingredientStrings.All(ingredient =>
-                r.Ingredients.Any(iq => iq.Ingredient != null && 
-                                        (iq.Ingredient.IngredientName.ToLower().StartsWith(ingredient.ToLower()) || 
+                r.Ingredients.Any(iq => iq.Ingredient != null &&
+                                        (iq.Ingredient.IngredientName.ToLower().StartsWith(ingredient.ToLower()) ||
                                          iq.Ingredient.IngredientName.ToLower().Contains(" " + ingredient.ToLower()))
                 )
             ));
         }
-        
+
         // Execute the query and return the results
         var recipes = await query
             .ToListAsync();
@@ -112,7 +116,7 @@ public class RecipeRepository : IRecipeRepository
         _ctx.Recipes.Add(recipe);
         _ctx.SaveChanges();
     }
-    
+
     public async Task CreateRecipeAsync(Recipe recipe)
     {
         await _ctx.Recipes.AddAsync(recipe);
@@ -123,5 +127,20 @@ public class RecipeRepository : IRecipeRepository
     {
         _ctx.Recipes.Update(recipe);
         _ctx.SaveChanges();
+    }
+
+    public async Task DeleteUnusedRecipesAsync()
+    {
+        var thresholdDate = DateTime.UtcNow.AddDays(-31);
+
+        // Delete recipes with no favorites and older than 31 days
+        var recipesToDelete = _ctx.Recipes
+            .Where(r => r.LastUsedAt < thresholdDate && !r.FavoriteRecipes.Any());
+
+        // Remove them in bulk
+        _ctx.Recipes.RemoveRange(recipesToDelete);
+
+        // Save changes
+        await _ctx.SaveChangesAsync();
     }
 }
