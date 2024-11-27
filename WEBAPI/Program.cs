@@ -139,7 +139,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // TODO: uncomment when in production
 // Scheduled jobs
-/***
+
 builder.Services.AddQuartz(q =>
 {
     // Register the job and trigger
@@ -155,7 +155,7 @@ builder.Services.AddQuartzHostedService(options =>
 {
     options.WaitForJobsToComplete = true; // Optional: Wait for jobs to complete before shutting down
 });
-***/
+
 
 
 var app = builder.Build();
