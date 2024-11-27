@@ -149,13 +149,14 @@ builder.Services.AddQuartz(q =>
         .WithIdentity("RefreshRecipeDatabaseJob-trigger") // Name of the trigger
         .WithCronSchedule("0 0 2 * * ?")); // CRON trigger at 2am
 });
-***/
 
 // Add the Quartz Hosted Service
 builder.Services.AddQuartzHostedService(options =>
 {
     options.WaitForJobsToComplete = true; // Optional: Wait for jobs to complete before shutting down
 });
+***/
+
 
 var app = builder.Build();
 
