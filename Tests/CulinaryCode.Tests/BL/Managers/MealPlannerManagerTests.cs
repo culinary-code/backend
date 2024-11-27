@@ -117,7 +117,7 @@ public class MealPlannerManagerTests
         };
 
         _mealPlannerRepositoryMock
-            .Setup(repo => repo.ReadNextWeekPlannedMeals(dateTime, userId))
+            .Setup(repo => repo.ReadNextWeekPlannedMeals(userId))
             .ReturnsAsync(plannedMeals);
 
         _mapperMock
@@ -130,7 +130,7 @@ public class MealPlannerManagerTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(plannedMealDtos.Count, result.Count);
-        _mealPlannerRepositoryMock.Verify(repo => repo.ReadNextWeekPlannedMeals(dateTime, userId), Times.Once);
+        _mealPlannerRepositoryMock.Verify(repo => repo.ReadNextWeekPlannedMeals(userId), Times.Once);
         _mapperMock.Verify(mapper => mapper.Map<List<PlannedMealDto>>(plannedMeals), Times.Once);
     }
 
