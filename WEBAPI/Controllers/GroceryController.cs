@@ -84,14 +84,12 @@ public class GroceryController : ControllerBase
         }
     }
     
-    // GroceryListController.cs
-
     [HttpDelete("{groceryListId}/items/{itemQuantityId}")]
     public async Task<IActionResult> DeleteItemFromList(Guid groceryListId, Guid itemQuantityId)
     {
         try
         {
-            await _groceryManager.RemoveItemFromGroceryList(groceryListId, itemQuantityId); // Assume async
+            await _groceryManager.RemoveItemFromGroceryList(groceryListId, itemQuantityId);
             _logger.LogInformation("Item {ItemQuantityId} deleted from grocery list {GroceryListId}.", itemQuantityId, groceryListId);
             return Ok(new { message = "Item deleted successfully." });
         }

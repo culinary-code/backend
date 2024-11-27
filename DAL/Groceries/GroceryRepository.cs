@@ -84,10 +84,11 @@ public class GroceryRepository : IGroceryRepository
 
     public async Task DeleteItemFromGroceryList(Guid groceryListId, Guid itemId)
     {
-        // Load grocery list with its related items
         var groceryList = await _ctx.GroceryLists
-            .Include(gl => gl.Items) // Eagerly load the items
-            .ThenInclude(i => i.GroceryItem) // If needed, load related items
+            .Include(gl => gl.Items) 
+            .ThenInclude(i => i.GroceryItem)
+            .Include(gl => gl.Ingredients)
+            .ThenInclude(i => i.Ingredient)
             .FirstOrDefaultAsync(gl => gl.GroceryListId == groceryListId);
 
         if (groceryList == null)
@@ -95,34 +96,30 @@ public class GroceryRepository : IGroceryRepository
             _logger.LogWarning("Grocery list {GroceryListId} not found.", groceryListId);
             throw new GroceryListNotFoundException("Grocery list not found.");
         }
+        
+        
+        var itemToDelete = groceryList.Items?.FirstOrDefault(i => i.ItemQuantityId == itemId); 
 
-        // Log the number of items in the grocery list
-        _logger.LogInformation("Found {ItemCount} items in grocery list {GroceryListId}.",
-            groceryList.Items?.Count() ?? 0, groceryListId);
-
-        // Find the item to delete
-        var itemToDelete =
-            groceryList.Items?.FirstOrDefault(i => i.ItemQuantityId == itemId); // Make sure 'Id' is correct
-        var ingredientToDelete = groceryList.Ingredients?.FirstOrDefault(i => i.IngredientQuantityId == itemId);
-
-        if (itemToDelete == null && ingredientToDelete == null)
+        if (itemToDelete != null)
         {
-            _logger.LogWarning("Item with ID {ItemId} not found in grocery list {GroceryListId}.", itemId,
-                groceryListId);
-            throw new GroceryListNotFoundException("Item not found.");
-        }
-        else if (ingredientToDelete != null)
-        {
-            _ctx.IngredientQuantities.Remove(ingredientToDelete);
+            _ctx.ItemQuantities.Remove(itemToDelete);
         }
         else
+        {
+            var ingredientToDelete = groceryList.Ingredients?.FirstOrDefault(i => i.IngredientQuantityId == itemId);
+            if (ingredientToDelete != null)
+            {
+                _ctx.IngredientQuantities.Remove(ingredientToDelete);
+            }
+            else
+            {
+                _logger.LogWarning("Item with ID {ItemId} not found in grocery list {GroceryListId}.", itemId, groceryListId);
+                throw new GroceryListNotFoundException("Item not found.");
+            }
+        }
 
-            // Remove the item from the list
-            _ctx.ItemQuantities.Remove(itemToDelete);
-
+        
         await _ctx.SaveChangesAsync();
-
-        _logger.LogInformation("Item {ItemId} successfully removed from grocery list {GroceryListId}.", itemId,
-            groceryListId);
+        _logger.LogInformation("Item {ItemId} successfully removed from grocery list {GroceryListId}.", itemId, groceryListId);
     }
 }
