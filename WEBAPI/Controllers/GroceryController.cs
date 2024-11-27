@@ -98,12 +98,5 @@ public class GroceryController : ControllerBase
             _logger.LogWarning("Grocery list {GroceryListId} or item {ItemQuantityId} not found.", groceryListId, itemQuantityId);
             return NotFound(new { message = "Grocery list or item not found." });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError("An error occurred while deleting item {ItemQuantityId} from grocery list {GroceryListId}: {ErrorMessage}", itemQuantityId, groceryListId, ex.Message);
-            return StatusCode(500, new { message = "An unexpected error occurred." });
-        }
     }
-
-
 }

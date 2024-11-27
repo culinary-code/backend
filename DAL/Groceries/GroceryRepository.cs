@@ -10,12 +10,10 @@ namespace DAL.Groceries;
 public class GroceryRepository : IGroceryRepository
 {
     private readonly CulinaryCodeDbContext _ctx;
-    ILogger<GroceryRepository> _logger;
 
-    public GroceryRepository(CulinaryCodeDbContext ctx, ILogger<GroceryRepository> logger)
+    public GroceryRepository(CulinaryCodeDbContext ctx)
     {
         _ctx = ctx;
-        _logger = logger;
     }
 
     public GroceryList ReadGroceryListById(Guid id)
@@ -79,9 +77,7 @@ public class GroceryRepository : IGroceryRepository
 
         _ctx.SaveChanges();
     }
-
-    // GroceryListRepository.cs
-
+    
     public async Task DeleteItemFromGroceryList(Guid groceryListId, Guid itemId)
     {
         var groceryList = await _ctx.GroceryLists
@@ -93,10 +89,8 @@ public class GroceryRepository : IGroceryRepository
 
         if (groceryList == null)
         {
-            _logger.LogWarning("Grocery list {GroceryListId} not found.", groceryListId);
             throw new GroceryListNotFoundException("Grocery list not found.");
         }
-        
         
         var itemToDelete = groceryList.Items?.FirstOrDefault(i => i.ItemQuantityId == itemId); 
 
@@ -113,13 +107,9 @@ public class GroceryRepository : IGroceryRepository
             }
             else
             {
-                _logger.LogWarning("Item with ID {ItemId} not found in grocery list {GroceryListId}.", itemId, groceryListId);
                 throw new GroceryListNotFoundException("Item not found.");
             }
         }
-
-        
         await _ctx.SaveChangesAsync();
-        _logger.LogInformation("Item {ItemId} successfully removed from grocery list {GroceryListId}.", itemId, groceryListId);
     }
 }

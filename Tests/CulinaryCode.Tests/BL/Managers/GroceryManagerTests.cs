@@ -101,7 +101,7 @@ namespace BL.Testing
                 {
                     Assert.NotNull(createdAccount.GroceryList);
 
-                    var groceryList = createdAccount.GroceryList;
+                    groceryList = createdAccount.GroceryList;
                     Assert.NotNull(groceryList);
                     Assert.Empty(groceryList.Ingredients);
                     Assert.Empty(groceryList.Items);
@@ -303,22 +303,15 @@ namespace BL.Testing
         [Fact]
         public async Task RemoveItemFromGroceryList_ShouldCallRepositoryMethod_WhenItemExists()
         {
-            // Arrange
             var groceryListId = Guid.NewGuid();
             var itemId = Guid.NewGuid();
 
-            // Mock the repository to simulate a successful deletion
             _mockGroceryRepository
                 .Setup(repo => repo.DeleteItemFromGroceryList(groceryListId, itemId))
                 .Returns(Task.CompletedTask);
 
-            // Act
             await _groceryManager.RemoveItemFromGroceryList(groceryListId, itemId);
 
-            // Log to output
-            _testOutputHelper.WriteLine($"Successfully deleted item with ID {itemId} from grocery list {groceryListId}.");
-
-            // Assert
             _mockGroceryRepository.Verify(
                 repo => repo.DeleteItemFromGroceryList(groceryListId, itemId),
                 Times.Once // Ensure the method was called exactly once
@@ -328,23 +321,19 @@ namespace BL.Testing
         [Fact]
         public async Task RemoveItemFromGroceryList_ShouldThrowException_WhenGroceryListNotFound()
         {
-            // Arrange
             var groceryListId = Guid.NewGuid();
             var itemId = Guid.NewGuid();
 
-            // Mock the repository to throw an exception
             _mockGroceryRepository
                 .Setup(repo => repo.DeleteItemFromGroceryList(groceryListId, itemId))
                 .ThrowsAsync(new GroceryListNotFoundException("Grocery list not found."));
 
-            // Act & Assert
             var exception = await Assert.ThrowsAsync<GroceryListNotFoundException>(() =>
                 _groceryManager.RemoveItemFromGroceryList(groceryListId, itemId)
             );
 
             Assert.Equal("Grocery list not found.", exception.Message);
 
-            // Ensure the repository method was called
             _mockGroceryRepository.Verify(
                 repo => repo.DeleteItemFromGroceryList(groceryListId, itemId),
                 Times.Once
@@ -354,23 +343,19 @@ namespace BL.Testing
         [Fact]
         public async Task RemoveItemFromGroceryList_ShouldThrowException_WhenUnexpectedErrorOccurs()
         {
-            // Arrange
             var groceryListId = Guid.NewGuid();
             var itemId = Guid.NewGuid();
 
-            // Mock the repository to throw a general exception
             _mockGroceryRepository
                 .Setup(repo => repo.DeleteItemFromGroceryList(groceryListId, itemId))
                 .ThrowsAsync(new Exception("Unexpected error."));
 
-            // Act & Assert
             var exception = await Assert.ThrowsAsync<Exception>(() =>
                 _groceryManager.RemoveItemFromGroceryList(groceryListId, itemId)
             );
 
             Assert.Equal("Unexpected error.", exception.Message);
 
-            // Ensure the repository method was called
             _mockGroceryRepository.Verify(
                 repo => repo.DeleteItemFromGroceryList(groceryListId, itemId),
                 Times.Once
