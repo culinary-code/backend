@@ -7,6 +7,7 @@ using DOM.Accounts;
 using DOM.Exceptions;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
+using Microsoft.EntityFrameworkCore;
 
 namespace CulinaryCode.Tests.DAL.Recipes;
 
@@ -437,5 +438,39 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         Assert.NotNull(result);
         Assert.Single(result);
         Assert.Equal("Chicken Fried Rice", result.First().RecipeName);
+    }
+    
+    [Fact]
+    public async Task DeleteUnusedRecipesAsync_ShouldRemoveRecipesOlderThan31Days_WithNoFavorites()
+    {
+        // Arrange
+        var thresholdDate = DateTime.UtcNow.AddDays(-31);
+
+        var recipe1 = RecipeUtil.CreateRecipe(recipeName: "Garlic Chicken");
+        recipe1.LastUsedAt = thresholdDate.AddDays(-1);
+        recipe1.FavoriteRecipes = new List<FavoriteRecipe>();
+
+        var recipe2 = RecipeUtil.CreateRecipe(recipeName: "Garlic Chicken");
+        recipe2.LastUsedAt = thresholdDate.AddDays(-10);
+        recipe2.FavoriteRecipes = new List<FavoriteRecipe>();
+
+        var recipe3 = RecipeUtil.CreateRecipe(recipeName: "Garlic Chicken");
+        recipe3.LastUsedAt = thresholdDate.AddDays(-1);
+        recipe3.FavoriteRecipes = new List<FavoriteRecipe> { new FavoriteRecipe() };
+
+        var recipe4 = RecipeUtil.CreateRecipe(recipeName: "Garlic Chicken");
+        recipe4.LastUsedAt = thresholdDate.AddDays(1);
+        recipe4.FavoriteRecipes = new List<FavoriteRecipe>();
+
+        await _dbContext.Recipes.AddRangeAsync(recipe1, recipe2, recipe3, recipe4);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        await _recipeRepository.DeleteUnusedRecipesAsync();
+
+        // Assert
+        var remainingRecipes = await _dbContext.Recipes.ToListAsync();
+        Assert.Equal(2, remainingRecipes.Count); // Only recipes 3 and 4 should remain
+        Assert.DoesNotContain(remainingRecipes, r => r.RecipeId == recipe1.RecipeId || r.RecipeId == recipe2.RecipeId);
     }
 }
