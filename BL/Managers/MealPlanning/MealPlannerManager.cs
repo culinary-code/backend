@@ -77,7 +77,7 @@ public class MealPlannerManager : IMealPlannerManager
         List<PlannedMeal> plannedMeals;
         if (dateTime.Date == DateTime.Now.Date)
         {
-            plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMeals(dateTime, userId);
+            plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMeals(userId);
         }
         else
         {
@@ -89,7 +89,7 @@ public class MealPlannerManager : IMealPlannerManager
     public async Task<List<IngredientQuantityDto>> GetNextWeekIngredients(Guid userId)
     {
         // Get all planned meals for next week
-        List<PlannedMeal> plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMeals(DateTime.Now, userId);
+        List<PlannedMeal> plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMeals(userId);
     
         // Aggregate the ingredients
         var aggregatedIngredients = new Dictionary<Guid, IngredientQuantityDto>();
