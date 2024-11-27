@@ -63,7 +63,7 @@ public class AzureOpenAIService : ILlmService
         
         ChatCompletion completion = _chatClient.CompleteChat(
         [
-            new SystemChatMessage($"Based on the input, generate {amount} different recipe names along with a short description. Place each recipe on its own line, no new line between them. Do not add order numbers, name and description should be on the same line. Output no other information. Always respond in the dutch language."),
+            new SystemChatMessage($"Based on the input, generate {amount} different recipe names along with a short description. Place each recipe on its own line, no new line between them. Do not add order numbers, name and description should be on the same line. Output no other information. Always respond in the Dutch language."),
 
             new UserChatMessage(message),
         ], completionOptions);
