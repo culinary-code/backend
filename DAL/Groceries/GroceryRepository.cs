@@ -3,6 +3,7 @@ using DOM.Exceptions;
 using DOM.MealPlanning;
 using DOM.Recipes.Ingredients;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace DAL.Groceries;
 
@@ -21,7 +22,7 @@ public class GroceryRepository : IGroceryRepository
             .Include(gl => gl.Ingredients)
             .ThenInclude(i => i.Ingredient)
             .Include(gl => gl.Items)
-            .ThenInclude(i => i. GroceryItem)
+            .ThenInclude(i => i.GroceryItem)
             .Include(gl => gl.Account)
             .FirstOrDefault(gl => gl.GroceryListId == id);
         if (groceryList == null)
@@ -75,5 +76,40 @@ public class GroceryRepository : IGroceryRepository
         _ctx.GroceryItems.Add(newItem.GroceryItem);
 
         _ctx.SaveChanges();
+    }
+    
+    public async Task DeleteItemFromGroceryList(Guid groceryListId, Guid itemId)
+    {
+        var groceryList = await _ctx.GroceryLists
+            .Include(gl => gl.Items) 
+            .ThenInclude(i => i.GroceryItem)
+            .Include(gl => gl.Ingredients)
+            .ThenInclude(i => i.Ingredient)
+            .FirstOrDefaultAsync(gl => gl.GroceryListId == groceryListId);
+
+        if (groceryList == null)
+        {
+            throw new GroceryListNotFoundException("Grocery list not found.");
+        }
+        
+        var itemToDelete = groceryList.Items?.FirstOrDefault(i => i.ItemQuantityId == itemId); 
+
+        if (itemToDelete != null)
+        {
+            _ctx.ItemQuantities.Remove(itemToDelete);
+        }
+        else
+        {
+            var ingredientToDelete = groceryList.Ingredients?.FirstOrDefault(i => i.IngredientQuantityId == itemId);
+            if (ingredientToDelete != null)
+            {
+                _ctx.IngredientQuantities.Remove(ingredientToDelete);
+            }
+            else
+            {
+                throw new GroceryListNotFoundException("Item not found.");
+            }
+        }
+        await _ctx.SaveChangesAsync();
     }
 }

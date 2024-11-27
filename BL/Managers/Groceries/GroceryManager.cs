@@ -1,10 +1,7 @@
 ﻿using AutoMapper;
-using BL.DTOs.Accounts;
 using BL.DTOs.MealPlanning;
 using BL.DTOs.Recipes.Ingredients;
-using DAL.Accounts;
 using DAL.Groceries;
-using DAL.Recipes;
 using DOM.Exceptions;
 using DOM.MealPlanning;
 using DOM.Recipes.Ingredients;
@@ -92,5 +89,10 @@ public class GroceryManager : IGroceryManager
                 _logger.LogInformation(newListItem.Ingredient.IngredientId + " has been added to grocery list");
             }
         }
+    }
+    
+    public async Task RemoveItemFromGroceryList(Guid groceryListId, Guid itemId)
+    {
+        await _groceryRepository.DeleteItemFromGroceryList(groceryListId, itemId);
     }
 }
