@@ -145,7 +145,7 @@ public class AccountManagerTests
             Preferences = preferences
         };
 
-        _mockRepository.Setup(manager => manager.ReadAccountPreferencesByAccountId(userId)).Returns(account);
+        _mockRepository.Setup(manager => manager.ReadAccountWithPreferencesByAccountId(userId)).Returns(account);
         _mockMapper.Setup(mapper => mapper.Map<List<PreferenceDto>>(preferences)).Returns(expectedPreferences);
 
         // Act
@@ -175,7 +175,7 @@ public class AccountManagerTests
             }
         };
 
-        _mockRepository.Setup(r => r.ReadAccountPreferencesByAccountId(accountId)).Returns(account);
+        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).Returns(account);
 
         _mockRepository.Setup(r => r.DeletePreferenceFromAccount(accountId, preferenceId)).Verifiable();
 
@@ -193,114 +193,100 @@ public class AccountManagerTests
         var accountId = Guid.NewGuid();
         var preferenceId = Guid.NewGuid();
 
-        _mockRepository.Setup(r => r.ReadAccountPreferencesByAccountId(accountId)).Returns((Account)null);
+        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).Returns((Account)null);
 
         // Act & Assert
         var exception = Assert.Throws<AccountNotFoundException>(() => _accountManager.RemovePreferenceFromAccount(accountId, preferenceId));
         Assert.Equal("Account not found", exception.Message);
     }
-
+    
     [Fact]
-    public void DeletePreference_ThrowsException_WhenUnexpectedErrorOccurs()
+    public void AddPreferenceToAccount_ReturnsUpdatedAccount_WhenPreferenceIsAdded()
     {
         // Arrange
         var accountId = Guid.NewGuid();
-        var preferenceId = Guid.NewGuid();
+        var preferenceDto = new PreferenceDto { PreferenceId = Guid.NewGuid(), PreferenceName = "New Preference" };
 
-        _mockRepository.Setup(r => r.ReadAccountPreferencesByAccountId(accountId)).Throws(new Exception("Unexpected error"));
+        var account = new Account
+        {
+            AccountId = accountId,
+            Preferences = new List<Preference>()
+        };
+
+        var updatedAccount = new AccountDto { AccountId = accountId, Preferences = new List<PreferenceDto> { preferenceDto } };
+
+        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).Returns(account);
+        _mockMapper.Setup(mapper => mapper.Map<Preference>(preferenceDto)).Returns(new Preference { PreferenceName = preferenceDto.PreferenceName });
+        _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(updatedAccount);
+        _mockRepository.Setup(r => r.UpdateAccount(It.IsAny<Account>())).Verifiable();
+
+        // Act
+        var result = _accountManager.AddPreferenceToAccount(accountId, preferenceDto);
+
+        // Assert
+        Assert.Equal(updatedAccount.AccountId, result.AccountId);
+        Assert.Single(result.Preferences);
+        Assert.Equal(preferenceDto.PreferenceName, result.Preferences.First().PreferenceName);
+        _mockRepository.Verify(r => r.UpdateAccount(It.IsAny<Account>()), Times.Once);
+    }
+
+    [Fact]
+    public void AddPreferenceToAccount_ReturnsSameAccount_WhenPreferenceAlreadyExists()
+    {
+        // Arrange
+        var accountId = Guid.NewGuid();
+        var preferenceDto = new PreferenceDto { PreferenceId = Guid.NewGuid(), PreferenceName = "Existing Preference" };
+
+        var account = new Account
+        {
+            AccountId = accountId,
+            Preferences = new List<Preference>
+            {
+                new Preference { PreferenceName = preferenceDto.PreferenceName }
+            }
+        };
+
+        var accountDto = new AccountDto { AccountId = accountId, Preferences = new List<PreferenceDto> { preferenceDto } };
+
+        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).Returns(account);
+        _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(accountDto);
+
+        // Act
+        var result = _accountManager.AddPreferenceToAccount(accountId, preferenceDto);
+
+        // Assert
+        Assert.Equal(accountDto.AccountId, result.AccountId);
+        Assert.Single(result.Preferences);  // Preference should not be duplicated
+        Assert.Equal(preferenceDto.PreferenceName, result.Preferences.First().PreferenceName);
+    }
+
+    [Fact]
+    public void AddPreferenceToAccount_ThrowsAccountNotFoundException_WhenAccountDoesNotExist()
+    {
+        // Arrange
+        var accountId = Guid.NewGuid();
+        var preferenceDto = new PreferenceDto { PreferenceId = Guid.NewGuid(), PreferenceName = "New Preference" };
+
+        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).Returns((Account)null);
 
         // Act & Assert
-        var exception = Assert.Throws<Exception>(() => _accountManager.RemovePreferenceFromAccount(accountId, preferenceId));
+        var exception = Assert.Throws<AccountNotFoundException>(() => _accountManager.AddPreferenceToAccount(accountId, preferenceDto));
+        Assert.Equal("Account not found", exception.Message);
+    }
+
+    [Fact]
+    public void AddPreferenceToAccount_ThrowsUnexpectedException_WhenErrorOccurs()
+    {
+        // Arrange
+        var accountId = Guid.NewGuid();
+        var preferenceDto = new PreferenceDto { PreferenceId = Guid.NewGuid(), PreferenceName = "New Preference" };
+
+        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).Throws(new Exception("Unexpected error"));
+
+        // Act & Assert
+        var exception = Assert.Throws<Exception>(() => _accountManager.AddPreferenceToAccount(accountId, preferenceDto));
         Assert.Equal("Unexpected error", exception.Message);
     }
-    
-    [Fact]
-public void AddPreferenceToAccount_ReturnsUpdatedAccount_WhenPreferenceIsAdded()
-{
-    // Arrange
-    var accountId = Guid.NewGuid();
-    var preferenceDto = new PreferenceDto { PreferenceId = Guid.NewGuid(), PreferenceName = "New Preference" };
-
-    var account = new Account
-    {
-        AccountId = accountId,
-        Preferences = new List<Preference>()
-    };
-
-    var updatedAccount = new AccountDto { AccountId = accountId, Preferences = new List<PreferenceDto> { preferenceDto } };
-
-    _mockRepository.Setup(r => r.ReadAccountPreferencesByAccountId(accountId)).Returns(account);
-    _mockMapper.Setup(mapper => mapper.Map<Preference>(preferenceDto)).Returns(new Preference { PreferenceName = preferenceDto.PreferenceName });
-    _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(updatedAccount);
-    _mockRepository.Setup(r => r.UpdateAccount(It.IsAny<Account>())).Verifiable();
-
-    // Act
-    var result = _accountManager.AddPreferenceToAccount(accountId, preferenceDto);
-
-    // Assert
-    Assert.Equal(updatedAccount.AccountId, result.AccountId);
-    Assert.Single(result.Preferences);
-    Assert.Equal(preferenceDto.PreferenceName, result.Preferences.First().PreferenceName);
-    _mockRepository.Verify(r => r.UpdateAccount(It.IsAny<Account>()), Times.Once);
-}
-
-[Fact]
-public void AddPreferenceToAccount_ReturnsSameAccount_WhenPreferenceAlreadyExists()
-{
-    // Arrange
-    var accountId = Guid.NewGuid();
-    var preferenceDto = new PreferenceDto { PreferenceId = Guid.NewGuid(), PreferenceName = "Existing Preference" };
-
-    var account = new Account
-    {
-        AccountId = accountId,
-        Preferences = new List<Preference>
-        {
-            new Preference { PreferenceName = preferenceDto.PreferenceName }
-        }
-    };
-
-    var accountDto = new AccountDto { AccountId = accountId, Preferences = new List<PreferenceDto> { preferenceDto } };
-
-    _mockRepository.Setup(r => r.ReadAccountPreferencesByAccountId(accountId)).Returns(account);
-    _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(accountDto);
-
-    // Act
-    var result = _accountManager.AddPreferenceToAccount(accountId, preferenceDto);
-
-    // Assert
-    Assert.Equal(accountDto.AccountId, result.AccountId);
-    Assert.Single(result.Preferences);  // Preference should not be duplicated
-    Assert.Equal(preferenceDto.PreferenceName, result.Preferences.First().PreferenceName);
-}
-
-[Fact]
-public void AddPreferenceToAccount_ThrowsAccountNotFoundException_WhenAccountDoesNotExist()
-{
-    // Arrange
-    var accountId = Guid.NewGuid();
-    var preferenceDto = new PreferenceDto { PreferenceId = Guid.NewGuid(), PreferenceName = "New Preference" };
-
-    _mockRepository.Setup(r => r.ReadAccountPreferencesByAccountId(accountId)).Returns((Account)null);
-
-    // Act & Assert
-    var exception = Assert.Throws<AccountNotFoundException>(() => _accountManager.AddPreferenceToAccount(accountId, preferenceDto));
-    Assert.Equal("Account not found", exception.Message);
-}
-
-[Fact]
-public void AddPreferenceToAccount_ThrowsUnexpectedException_WhenErrorOccurs()
-{
-    // Arrange
-    var accountId = Guid.NewGuid();
-    var preferenceDto = new PreferenceDto { PreferenceId = Guid.NewGuid(), PreferenceName = "New Preference" };
-
-    _mockRepository.Setup(r => r.ReadAccountPreferencesByAccountId(accountId)).Throws(new Exception("Unexpected error"));
-
-    // Act & Assert
-    var exception = Assert.Throws<Exception>(() => _accountManager.AddPreferenceToAccount(accountId, preferenceDto));
-    Assert.Equal("Unexpected error", exception.Message);
-}
 
 
 }

@@ -25,7 +25,7 @@ public class AccountRepository : IAccountRepository
         return account;
     }
 
-    public Account ReadAccountPreferencesByAccountId(Guid id)
+    public Account ReadAccountWithPreferencesByAccountId(Guid id)
     {
         var account = _ctx.Accounts
             .Include(a => a.Preferences)

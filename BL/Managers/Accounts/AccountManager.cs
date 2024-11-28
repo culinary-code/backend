@@ -29,7 +29,7 @@ public class AccountManager : IAccountManager
 
     public List<PreferenceDto> GetPreferencesByUserId(Guid userId)
     {
-        var account = _accountRepository.ReadAccountPreferencesByAccountId(userId);
+        var account = _accountRepository.ReadAccountWithPreferencesByAccountId(userId);
         var preferences = account.Preferences ?? new List<Preference>();
         return _mapper.Map<List<PreferenceDto>>(preferences);
     }
@@ -75,13 +75,7 @@ public class AccountManager : IAccountManager
 
     public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto)
     {
-        var account = _accountRepository.ReadAccountPreferencesByAccountId(accountId);
-        if (account == null)
-        {
-            _logger.LogError("Account not found");
-            throw new AccountNotFoundException("Account not found");
-        }
-
+        var account = _accountRepository.ReadAccountWithPreferencesByAccountId(accountId);
         if (account.Preferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
         {
             _logger.LogError("Account already has this preference");
@@ -102,7 +96,7 @@ public class AccountManager : IAccountManager
 
     public void RemovePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
-        var account = _accountRepository.ReadAccountPreferencesByAccountId(accountId);
+        var account = _accountRepository.ReadAccountWithPreferencesByAccountId(accountId);
         if (account == null)
         {
             _logger.LogError("Account not found");
