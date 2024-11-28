@@ -295,7 +295,7 @@ namespace BL.Testing
             
             var updatedGroceryList = groceryList.Ingredients.FirstOrDefault(i => i.Ingredient.IngredientId == ingredient.IngredientId);
             Assert.NotNull(updatedGroceryList);
-            Assert.Equal(3, updatedGroceryList.Quantity);
+            Assert.Equal(2, updatedGroceryList.Quantity);
         }
         
         [Fact]
