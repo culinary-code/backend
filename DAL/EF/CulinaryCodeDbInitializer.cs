@@ -104,9 +104,31 @@ internal static class CulinaryCodeDbInitializer
             StandardPreference = true
         };
 
+        Preference preference4 = new Preference()
+        {
+            PreferenceName = "Vegan",
+            StandardPreference = true
+        };
+        
+        Preference preference5 = new Preference()
+        {
+            PreferenceName = "Vegetarisch",
+            StandardPreference = true
+        };
+        
+        Preference preference6 = new Preference()
+        {
+            PreferenceName = "Lactose Intolerant'",
+            StandardPreference = true
+        };
+
         context.Preferences.Add(preference1);
         context.Preferences.Add(preference2);
+        
         context.Preferences.Add(preference3);
+        context.Preferences.Add(preference4);
+        context.Preferences.Add(preference5);
+        context.Preferences.Add(preference6);
 
         //Instructions
         InstructionStep instructionStep1 = new InstructionStep()

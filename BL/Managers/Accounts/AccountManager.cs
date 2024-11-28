@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BL.DTOs.Accounts;
 using DAL.Accounts;
+using DAL.Recipes;
 using DOM.Accounts;
 using DOM.Exceptions;
 using Microsoft.Extensions.Logging;
@@ -10,14 +11,16 @@ namespace BL.Managers.Accounts;
 public class AccountManager : IAccountManager
 {
     private readonly IAccountRepository _accountRepository;
+    private readonly IPreferenceRepository _preferenceRepository;
     private readonly ILogger<AccountManager> _logger;
     private readonly IMapper _mapper;
 
-    public AccountManager(IAccountRepository accountRepository, ILogger<AccountManager> logger, IMapper mapper)
+    public AccountManager(IAccountRepository accountRepository, ILogger<AccountManager> logger, IMapper mapper, IPreferenceRepository preferenceRepository)
     {
         _accountRepository = accountRepository;
         _logger = logger;
         _mapper = mapper;
+        _preferenceRepository = preferenceRepository;
     }
     
     public AccountDto GetAccountById(string id)
@@ -73,26 +76,46 @@ public class AccountManager : IAccountManager
         );
     }
 
-    public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto)
+public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto)
+{
+    var account = _accountRepository.ReadAccountWithPreferencesByAccountId(accountId);
+    
+    if (account.Preferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
     {
-        var account = _accountRepository.ReadAccountWithPreferencesByAccountId(accountId);
-        if (account.Preferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
-        {
-            _logger.LogError("Account already has this preference");
-            return _mapper.Map<AccountDto>(account);
-        }
-        
-        var preference = _mapper.Map<Preference>(preferenceDto);
+        _logger.LogError("Account already has this preference");
+        return _mapper.Map<AccountDto>(account);
+    }
 
-        var preferences = account.Preferences.ToList();
-        preferences.Add(preference);
+    var standardPreferences = _preferenceRepository.ReadStandardPreferences();
+
+    var preference = _mapper.Map<Preference>(preferenceDto);
+    
+    var preferences = account.Preferences.ToList();
+
+    if (standardPreferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
+    {
+        var standardPreference = standardPreferences.First(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower());
+        preferences.Add(standardPreference); 
+
         account.Preferences = preferences;
 
         _accountRepository.UpdateAccount(account);
-        _logger.LogInformation($"Added preference '{preference.PreferenceName}' to account {accountId}");
+        
+        _logger.LogInformation($"Added standard preference '{standardPreference.PreferenceName}' to account {accountId}");
 
         return _mapper.Map<AccountDto>(account);
     }
+
+    preferences.Add(preference);
+    account.Preferences = preferences;
+
+    _accountRepository.UpdateAccount(account);
+
+    _logger.LogInformation($"Added custom preference '{preference.PreferenceName}' to account {accountId}");
+
+    return _mapper.Map<AccountDto>(account);
+}
+    
 
     public void RemovePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
