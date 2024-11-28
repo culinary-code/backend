@@ -21,7 +21,9 @@ public class RefreshRecipeDatabaseJob : IJob
     
     public async Task Execute(IJobExecutionContext context)
     {
-        var minAmountString = Environment.GetEnvironmentVariable("DATABASE_JOB_MIN_AMOUNT") ?? throw new EnvironmentVariableNotAvailableException("DATABASE_JOB_MIN_AMOUNT environment variable is not set.");
+        _logger.LogInformation($"DatabaseJob started at {DateTime.Now}");
+        
+        var minAmountString = Environment.GetEnvironmentVariable("RECIPE_JOB_MIN_AMOUNT") ?? throw new EnvironmentVariableNotAvailableException("RECIPE_JOB_MIN_AMOUNT environment variable is not set.");
         int minAmountInDatabase = int.Parse(minAmountString);
         // TODO: add clearing of unused recipes here (other issue)
         
