@@ -140,6 +140,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // TODO: uncomment when in production
 // Scheduled jobs
 
+var cronSchedule = Environment.GetEnvironmentVariable("RECIPE_JOB_CRON_SCHEDULE") ?? throw new EnvironmentVariableNotAvailableException("RECIPE_JOB_CRON_SCHEDULE environment variable is not set.");
+
 builder.Services.AddQuartz(q =>
 {
     // Register the job and trigger
@@ -147,7 +149,7 @@ builder.Services.AddQuartz(q =>
     q.AddTrigger(opts => opts
         .ForJob("RefreshRecipeDatabaseJob") // Link to the registered job
         .WithIdentity("RefreshRecipeDatabaseJob-trigger") // Name of the trigger
-        .WithCronSchedule("0 0 2 * * ?")); // CRON trigger at 2am
+        .WithCronSchedule(cronSchedule)); // CRON trigger at 2am
 });
 
 // Add the Quartz Hosted Service
