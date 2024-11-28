@@ -79,6 +79,7 @@ public class AccountManager : IAccountManager
 public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto)
 {
     var account = _accountRepository.ReadAccountWithPreferencesByAccountId(accountId);
+    Preference newPreference;
     
     if (account.Preferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
     {
@@ -86,25 +87,24 @@ public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenc
         return _mapper.Map<AccountDto>(account);
     }
 
-    var standardPreferences = _preferenceRepository.ReadStandardPreferences();
-    var preference = _mapper.Map<Preference>(preferenceDto);
-    var preferences = account.Preferences.ToList();
+    var preference = _preferenceRepository.ReadPreferenceByName(preferenceDto.PreferenceName);
 
-    if (standardPreferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
+    if (preference == null)
     {
-        var standardPreference = standardPreferences.First(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower());
-        preferences.Add(standardPreference); 
-        account.Preferences = preferences;
-        _accountRepository.UpdateAccount(account);
-        _logger.LogInformation($"Added standard preference '{standardPreference.PreferenceName}' to account {accountId}");
-
-        return _mapper.Map<AccountDto>(account);
+        newPreference = _preferenceRepository.CreatePreference(new Preference()
+        {
+            PreferenceName = preferenceDto.PreferenceName,
+            StandardPreference = false
+        });
     }
-
-    preferences.Add(preference);
-    account.Preferences = preferences;
+    else
+    {
+        newPreference = preference;
+    }
+    
+    account.Preferences.Add(newPreference);
     _accountRepository.UpdateAccount(account);
-    _logger.LogInformation($"Added custom preference '{preference.PreferenceName}' to account {accountId}");
+    _logger.LogInformation($"Added custom preference '{newPreference.PreferenceName}' to account {accountId}");
     
     return _mapper.Map<AccountDto>(account);
 }
