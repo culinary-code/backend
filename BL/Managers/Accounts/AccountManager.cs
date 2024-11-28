@@ -87,20 +87,15 @@ public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenc
     }
 
     var standardPreferences = _preferenceRepository.ReadStandardPreferences();
-
     var preference = _mapper.Map<Preference>(preferenceDto);
-    
     var preferences = account.Preferences.ToList();
 
     if (standardPreferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
     {
         var standardPreference = standardPreferences.First(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower());
         preferences.Add(standardPreference); 
-
         account.Preferences = preferences;
-
         _accountRepository.UpdateAccount(account);
-        
         _logger.LogInformation($"Added standard preference '{standardPreference.PreferenceName}' to account {accountId}");
 
         return _mapper.Map<AccountDto>(account);
@@ -108,23 +103,15 @@ public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenc
 
     preferences.Add(preference);
     account.Preferences = preferences;
-
     _accountRepository.UpdateAccount(account);
-
     _logger.LogInformation($"Added custom preference '{preference.PreferenceName}' to account {accountId}");
-
+    
     return _mapper.Map<AccountDto>(account);
 }
     
 
     public void RemovePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
-        var account = _accountRepository.ReadAccountWithPreferencesByAccountId(accountId);
-        if (account == null)
-        {
-            _logger.LogError("Account not found");
-            throw new AccountNotFoundException("Account not found");
-        }
         _accountRepository.DeletePreferenceFromAccount(accountId, preferenceId);
         _logger.LogInformation($"Removed preference with ID {preferenceId} from account {accountId}");
     }

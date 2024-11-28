@@ -118,7 +118,7 @@ internal static class CulinaryCodeDbInitializer
         
         Preference preference6 = new Preference()
         {
-            PreferenceName = "Lactose Intolerant'",
+            PreferenceName = "Lactose Intolerant",
             StandardPreference = true
         };
 

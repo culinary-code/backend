@@ -61,19 +61,22 @@ public class AccountRepository : IAccountRepository
         {
             throw new AccountNotFoundException("Account not found");
         }
-        
+
         var preferenceToRemove = account.Preferences?.FirstOrDefault(p => p.PreferenceId == preferenceId);
         if (preferenceToRemove == null)
         {
             throw new Exception("Preference not found for this account");
         }
 
-        if (preferenceToRemove.StandardPreference == true)
+        if (preferenceToRemove.StandardPreference)
         {
-            
-        } 
+            account.Preferences = account.Preferences.Where(p => p.PreferenceId != preferenceId).ToList();
+        }
+        else
+        {
+            _ctx.Preferences.Remove(preferenceToRemove);
+        }
 
-        _ctx.Preferences.Remove(preferenceToRemove);
         _ctx.SaveChanges();
     }
 
