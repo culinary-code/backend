@@ -54,27 +54,12 @@ public class AccountRepository : IAccountRepository
     public void DeletePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
         var account = ReadAccountWithPreferencesByAccountId(accountId);
-
-        if (account == null)
-        {
-            throw new AccountNotFoundException("Account not found");
-        }
-
         var preferenceToRemove = account.Preferences?.FirstOrDefault(p => p.PreferenceId == preferenceId);
         if (preferenceToRemove == null)
         {
-            throw new Exception("Preference not found for this account");
-        }
-
-        if (preferenceToRemove.StandardPreference)
-        {
-            account.Preferences = account.Preferences.Where(p => p.PreferenceId != preferenceId).ToList();
-        }
-        else
-        {
-            _ctx.Preferences.Remove(preferenceToRemove);
-        }
-
+            throw new PreferenceNotFoundException("Preference not found for this account");
+        } 
+        account.Preferences = account.Preferences.Where(p => p.PreferenceId != preferenceId).ToList(); 
         _ctx.SaveChanges();
     }
 
