@@ -33,8 +33,7 @@ public class RefreshRecipeDatabaseJob : IJob
 
         var amountToCreate = minAmountInDatabase - count;
         
-        // TODO: uit comment halen
-        // await _recipeManager.CreateBatchRandomRecipes(amountToCreate);
+        await _recipeManager.CreateBatchRandomRecipes(amountToCreate);
         
         _logger.LogInformation($"DatabaseJob executed at {DateTime.Now}");
     }

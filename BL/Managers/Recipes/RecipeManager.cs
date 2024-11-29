@@ -69,7 +69,6 @@ public class RecipeManager : IRecipeManager
         return _recipeRepository.GetRecipeCountAsync();
     }
 
-    // TODO: changes terugzetten
     public RecipeDto? CreateRecipe(RecipeFilterDto request, List<PreferenceDto> preferences)
     {
         byte attempts = 0;
@@ -207,7 +206,8 @@ public class RecipeManager : IRecipeManager
 
         return recipes;
     }
-
+    
+    // TODO: Not sure of preferences hier goed gebruikt worden
     public async Task CreateBatchRandomRecipes(int amount)
     {
         if (amount <=0) return;  
@@ -226,10 +226,12 @@ public class RecipeManager : IRecipeManager
             {
                 RecipeName = recipeName
             };
+            
+            var preferences = new List<PreferenceDto>();
 
             // Add the task to the list
-            // TODO: uit comment halen
-            // tasks.Add(CreateRecipeAsync(request));
+
+            tasks.Add(CreateRecipeAsync(request, preferences));
         }
 
         // Await all tasks to complete
