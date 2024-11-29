@@ -11,7 +11,7 @@ public class Account
     [Key] public Guid AccountId { get; set; }
     public string Name { get; set; } = "Default username";
     public string Email { get; set; } = string.Empty;
-    public IEnumerable<Preference> Preferences { get; set; } = new List<Preference>();
+    public ICollection<Preference> Preferences { get; set; } = new List<Preference>();
     public MealPlanner? Planner { get; set; } = new MealPlanner();
     public ICollection<FavoriteRecipe> FavoriteRecipes { get; set; } = new List<FavoriteRecipe>();
     public int FamilySize { get; set; }

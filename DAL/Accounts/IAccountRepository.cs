@@ -6,6 +6,9 @@ namespace DAL.Accounts;
 public interface IAccountRepository
 {
     Account ReadAccount(Guid id);
+    Account ReadAccountWithPreferencesByAccountId(Guid id);
     void UpdateAccount(Account account);
     void CreateAccount(Account account);
+    void DeletePreferenceFromAccount(Guid accountId, Guid preferenceId);
+
 }

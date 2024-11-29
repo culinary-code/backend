@@ -1,7 +1,7 @@
-﻿using System;
-using DAL.EF;
+﻿using DAL.EF;
 using DOM.Accounts;
 using DOM.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Accounts;
 
@@ -14,8 +14,7 @@ public class AccountRepository : IAccountRepository
     {
         _ctx = ctx;
     }
-
-
+    
     public Account ReadAccount(Guid id)
     {
         Account? account = _ctx.Accounts.Find(id);
@@ -23,6 +22,20 @@ public class AccountRepository : IAccountRepository
         {
             throw new AccountNotFoundException("Account not found");
         }
+        return account;
+    }
+
+    public Account ReadAccountWithPreferencesByAccountId(Guid id)
+    {
+        var account = _ctx.Accounts
+            .Include(a => a.Preferences)
+            .FirstOrDefault(a => a.AccountId == id);
+        
+        if (account == null)
+        {
+            throw new AccountNotFoundException("Account not found");
+        }
+        
         return account;
     }
 
@@ -37,4 +50,17 @@ public class AccountRepository : IAccountRepository
         _ctx.Accounts.Add(account);
         _ctx.SaveChanges(); 
     }
+
+    public void DeletePreferenceFromAccount(Guid accountId, Guid preferenceId)
+    {
+        var account = ReadAccountWithPreferencesByAccountId(accountId);
+        var preferenceToRemove = account.Preferences?.FirstOrDefault(p => p.PreferenceId == preferenceId);
+        if (preferenceToRemove == null)
+        {
+            throw new PreferenceNotFoundException("Preference not found for this account");
+        } 
+        account.Preferences = account.Preferences.Where(p => p.PreferenceId != preferenceId).ToList(); 
+        _ctx.SaveChanges();
+    }
+
 }

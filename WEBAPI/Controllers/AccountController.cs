@@ -1,8 +1,6 @@
-﻿using AutoMapper;
-using BL.DTOs.Accounts;
+﻿using BL.DTOs.Accounts;
 using BL.Managers.Accounts;
 using BL.Services;
-using DOM.Accounts;
 using DOM.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -72,6 +70,76 @@ public class AccountController: ControllerBase
         {
             _logger.LogError("An error occurred while updating account {AccountId}: {ErrorMessage}", userId, e.Message);
             return BadRequest("Failed to update account.");
+        }
+    }
+    
+    [HttpGet("getPreferences")]
+    public IActionResult GetUserPreferences()
+    {
+        try
+        {
+            string token = Request.Headers["Authorization"].ToString().Substring(7);
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
+        
+            var preferences = _accountManager.GetPreferencesByUserId(userId);
+            return Ok(preferences);
+        }
+        catch (AccountNotFoundException ex)
+        {
+            _logger.LogWarning("Account not found: {ErrorMessage}", ex.Message);
+            return NotFound("Account not found.");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("An error occurred trying to fetch user preferences: {ErrorMessage}", e.Message);
+            return BadRequest("Failed to get user preferences.");
+        }
+    }
+    
+    
+    [HttpPost("addPreference")]
+    public async Task<IActionResult> AddPreference([FromBody] PreferenceDto preferenceDto)
+    {
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+
+        try
+        {
+            var updatedAccount = _accountManager.AddPreferenceToAccount(userId, preferenceDto);
+            return Ok(updatedAccount);
+        }
+        catch (AccountNotFoundException e)
+        {
+            _logger.LogError("An error occurred while adding preference to account {AccountId}: {ErrorMessage}", userId, e.Message);
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("An error occurred while adding preference: {ErrorMessage}", e.Message);
+            return BadRequest("Failed to add preference.");
+        }
+    }
+    
+    [HttpDelete("deletePreference/{preferenceId}")]
+    public IActionResult DeletePreference(Guid preferenceId)
+    {
+        try
+        {
+            string token = Request.Headers["Authorization"].ToString().Substring(7); 
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
+            
+            _accountManager.RemovePreferenceFromAccount(userId, preferenceId);
+
+            return Ok("Preference deleted successfully.");
+        }
+        catch (AccountNotFoundException ex)
+        {
+            _logger.LogWarning("Account not found: {ErrorMessage}", ex.Message);
+            return NotFound("Account not found.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error occurred while deleting preference: {ErrorMessage}", ex.Message);
+            return BadRequest("Failed to delete preference.");
         }
     }
 }
