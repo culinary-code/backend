@@ -8,7 +8,8 @@ public static class RecipeUtil
 {
     public static Recipe CreateRecipe(string recipeName = "Test Recipe",
         RecipeType recipeType = RecipeType.NotAvailable, int cookTime = 0,
-        Difficulty difficulty = Difficulty.NotAvailable, string description = "", int amountOfPeople = 4)
+        Difficulty difficulty = Difficulty.NotAvailable, string description = "",
+        int amountOfPeople = 4)
     {
         return new Recipe
         {

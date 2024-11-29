@@ -137,7 +137,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// TODO: uncomment when in production
 // Scheduled jobs
 
 var cronSchedule = Environment.GetEnvironmentVariable("RECIPE_JOB_CRON_SCHEDULE") ?? throw new EnvironmentVariableNotAvailableException("RECIPE_JOB_CRON_SCHEDULE environment variable is not set.");

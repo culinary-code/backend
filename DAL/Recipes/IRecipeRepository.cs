@@ -15,4 +15,5 @@ public interface IRecipeRepository
     void CreateRecipe(Recipe recipe);
     Task CreateRecipeAsync(Recipe recipe);
     void UpdateRecipe(Recipe recipe);
+    Task DeleteUnusedRecipesAsync();
 }

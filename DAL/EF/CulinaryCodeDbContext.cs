@@ -26,7 +26,7 @@ public class CulinaryCodeDbContext : DbContext
 
     public CulinaryCodeDbContext(DbContextOptions options) : base(options)
     {
-        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: false);
+        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: true);
     }
 
 
@@ -41,7 +41,8 @@ public class CulinaryCodeDbContext : DbContext
     {
         modelBuilder.Entity<Recipe>()
             .HasMany(r => r.Ingredients)
-            .WithOne(i => i.Recipe);
+            .WithOne(i => i.Recipe)
+            .OnDelete(DeleteBehavior.Cascade);
         
         //TODO: many to many relationship, make our own class definition?
         modelBuilder.Entity<Recipe>()
@@ -50,16 +51,18 @@ public class CulinaryCodeDbContext : DbContext
 
         modelBuilder.Entity<Recipe>()
             .HasMany(r => r.Reviews)
-            .WithOne(r => r.Recipe);
+            .WithOne(r => r.Recipe)
+            .OnDelete(DeleteBehavior.Cascade);
         
         modelBuilder.Entity<Recipe>()
             .HasMany(r => r.Instructions)
-            .WithOne(i => i.Recipe);
+            .WithOne(i => i.Recipe)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<PlannedMeal>()
             .HasOne(p => p.Recipe)
             .WithMany(r => r.PlannedMeals)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
         
         modelBuilder.Entity<PlannedMeal>()
             .HasMany(p => p.Ingredients)
@@ -110,6 +113,7 @@ public class CulinaryCodeDbContext : DbContext
         
         modelBuilder.Entity<FavoriteRecipe>()
             .HasOne(f => f.Recipe)
-            .WithMany(r => r.FavoriteRecipes);
+            .WithMany(r => r.FavoriteRecipes)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
