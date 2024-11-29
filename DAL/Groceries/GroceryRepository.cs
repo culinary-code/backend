@@ -96,7 +96,9 @@ public class GroceryRepository : IGroceryRepository
 
         if (itemToDelete != null)
         {
+            GroceryItem? item = itemToDelete.GroceryItem;
             _ctx.ItemQuantities.Remove(itemToDelete);
+            if (item != null) _ctx.GroceryItems.Remove(item);
         }
         else
         {
