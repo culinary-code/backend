@@ -10,4 +10,5 @@ public interface IGroceryManager
     GroceryListDto GetGroceryList(string id);
     GroceryListDto GetGroceryListByAccountId(string accountId);
     void AddItemToGroceryList(Guid groceryListId, ItemQuantityDto addItem);
+    Task RemoveItemFromGroceryList(Guid groceryListId, Guid itemId);
 }

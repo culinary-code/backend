@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using BL.DTOs.MealPlanning;
+using BL.DTOs.Recipes.Ingredients;
 using DAL.Accounts;
+using DAL.Groceries;
 using DAL.MealPlanning;
 using DAL.Recipes;
 using DOM.MealPlanning;
@@ -13,15 +15,17 @@ public class MealPlannerManager : IMealPlannerManager
     private readonly IMealPlannerRepository _mealPlannerRepository;
     private readonly IRecipeRepository _recipeRepository;
     private readonly IIngredientRepository _ingredientRepository;
+    private readonly IGroceryRepository _groceryRepository;
     private readonly IMapper _mapper;
 
     public MealPlannerManager(IMealPlannerRepository mealPlannerRepository, IMapper mapper,
-        IRecipeRepository recipeRepository, IIngredientRepository ingredientRepository)
+        IRecipeRepository recipeRepository, IIngredientRepository ingredientRepository, IGroceryRepository groceryRepository)
     {
         _mealPlannerRepository = mealPlannerRepository;
         _mapper = mapper;
         _recipeRepository = recipeRepository;
         _ingredientRepository = ingredientRepository;
+        _groceryRepository = groceryRepository;
     }
 
     public async Task CreateNewPlannedMeal(Guid userId, PlannedMealDto plannedMealDto)
@@ -39,11 +43,14 @@ public class MealPlannerManager : IMealPlannerManager
 
         var linkedRecipe = _recipeRepository.ReadRecipeById(plannedMealDto.Recipe.RecipeId);
         var linkedIngredientQuantities = new List<IngredientQuantity>();
+        
+        GroceryList groceryList = _groceryRepository.ReadGroceryListByAccountId(userId);
 
         foreach (var ingredientQuantityDto in plannedMealDto.Ingredients)
         {
             var ingredientQuantity = new IngredientQuantity()
             {
+                GroceryList = groceryList,
                 Quantity = ingredientQuantityDto.Quantity,
                 Ingredient = _ingredientRepository.ReadIngredientById(ingredientQuantityDto.Ingredient.IngredientId)
             };
@@ -60,7 +67,10 @@ public class MealPlannerManager : IMealPlannerManager
             
         };
         
+        linkedRecipe.LastUsedAt = DateTime.UtcNow;
+        
         await _mealPlannerRepository.CreatePlannedMeal(plannedMeal);
+        _groceryRepository.UpdateGroceryList(groceryList);
         
     }
 
@@ -69,12 +79,46 @@ public class MealPlannerManager : IMealPlannerManager
         List<PlannedMeal> plannedMeals;
         if (dateTime.Date == DateTime.Now.Date)
         {
-            plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMeals(dateTime, userId);
+            plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMeals(userId);
         }
         else
         {
             plannedMeals = await _mealPlannerRepository.ReadPlannedMealsAfterDate(dateTime, userId);
         }
         return _mapper.Map<List<PlannedMealDto>>(plannedMeals);
+    }
+    
+    public async Task<List<IngredientQuantityDto>> GetNextWeekIngredients(Guid userId)
+    {
+        // Get all planned meals for next week
+        List<PlannedMeal> plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMeals(userId);
+    
+        // Aggregate the ingredients
+        var aggregatedIngredients = new Dictionary<Guid, IngredientQuantityDto>();
+    
+        foreach (var meal in plannedMeals)
+        {
+            foreach (var ingredientQuantity in meal.Ingredients)
+            {
+                // If ingredient already exists in the dictionary, combine the quantities
+                if (aggregatedIngredients.ContainsKey(ingredientQuantity.Ingredient.IngredientId))
+                {
+                    aggregatedIngredients[ingredientQuantity.Ingredient.IngredientId].Quantity += ingredientQuantity.Quantity;
+                }
+                else
+                {
+                    aggregatedIngredients.Add(ingredientQuantity.Ingredient.IngredientId, new IngredientQuantityDto
+                    {
+                        Ingredient = new IngredientDto
+                        {
+                            IngredientId = ingredientQuantity.Ingredient.IngredientId,
+                            IngredientName = ingredientQuantity.Ingredient.IngredientName
+                        },
+                        Quantity = ingredientQuantity.Quantity
+                    });
+                }
+            }
+        }
+        return aggregatedIngredients.Values.ToList();
     }
 }

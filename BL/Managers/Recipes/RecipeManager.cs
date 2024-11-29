@@ -56,19 +56,25 @@ public class RecipeManager : IRecipeManager
     public async Task<ICollection<RecipeDto>> GetFilteredRecipeCollection(string recipeName, Difficulty difficulty,
         RecipeType recipeType, int cooktime, List<string> ingredients)
     {
-        var recipes = await _recipeRepository.GetFilteredRecipesAsync(recipeName, difficulty, recipeType, cooktime, ingredients);
+        var recipes =
+            await _recipeRepository.GetFilteredRecipesAsync(recipeName, difficulty, recipeType, cooktime, ingredients);
         return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 
-    public RecipeDto? CreateRecipe(string name)
+    public Task<int> GetAmountOfRecipesAsync()
+    {
+        return _recipeRepository.GetRecipeCountAsync();
+    }
+
+    public RecipeDto? CreateRecipe(RecipeFilterDto request)
     {
         byte attempts = 0;
-
+        var prompt = LlmSettingsService.BuildPrompt(request);
         while (attempts < 3)
         {
             try
             {
-                var generatedRecipeJson = _llmService.GenerateRecipe(name);
+                var generatedRecipeJson = _llmService.GenerateRecipe(prompt);
 
                 if (!RecipeValidation(generatedRecipeJson))
                 {
@@ -79,7 +85,66 @@ public class RecipeManager : IRecipeManager
                 var recipe = ConvertGeneratedRecipe(generatedRecipeJson);
 
                 _recipeRepository.CreateRecipe(recipe);
-                
+
+                if (!string.IsNullOrEmpty(recipe.ImagePath))
+                {
+                    return _mapper.Map<RecipeDto>(recipe);
+                }
+
+                var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
+                if (imageUri is not null)
+                {
+                    recipe.ImagePath = imageUri!.ToString();
+                    _recipeRepository.UpdateRecipe(recipe);
+                }
+
+                return _mapper.Map<RecipeDto>(recipe);
+            }
+            catch (JsonReaderException ex)
+            {
+                _logger.LogError("Failed to parse JSON: {ErrorMessage}", ex.Message);
+                _logger.LogInformation("Attempt: {Attempts}", attempts);
+                _logger.LogInformation("Retrying to create recipe");
+                attempts++;
+            }
+            catch (RecipeNotAllowedException ex)
+            {
+                _logger.LogError("Recipe not allowed: {ErrorMessage}", ex.ReasonMessage);
+                throw new RecipeNotAllowedException(reasonMessage: ex.ReasonMessage);
+            }
+            catch (RecipeValidationFailException ex)
+            {
+                _logger.LogError("Failed to create recipe: {ErrorMessage}", ex.Message);
+                _logger.LogInformation("Attempt: {Attempts}", attempts);
+                _logger.LogInformation("Retrying to create recipe");
+                attempts++;
+            }
+        }
+
+        _logger.LogError("Failed to create recipe after 3 attempts");
+        return null;
+    }
+
+    public async Task<RecipeDto?> CreateRecipeAsync(RecipeFilterDto request)
+    {
+        byte attempts = 0;
+        var prompt = LlmSettingsService.BuildPrompt(request);
+        while (attempts < 3)
+        {
+            try
+            {
+                var generatedRecipeJson = _llmService.GenerateRecipe(prompt);
+
+                if (!RecipeValidation(generatedRecipeJson))
+                {
+                    _logger.LogError("Recipe validation failed");
+                    throw new RecipeValidationFailException("Recipe validation failed");
+                }
+
+                var recipe = ConvertGeneratedRecipe(generatedRecipeJson);
+
+                await _recipeRepository.CreateRecipeAsync(recipe);
+
                 if (!string.IsNullOrEmpty(recipe.ImagePath))
                 {
                     return _mapper.Map<RecipeDto>(recipe);
@@ -128,15 +193,47 @@ public class RecipeManager : IRecipeManager
         foreach (var recipe in recipeArray)
         {
             var recipeString = recipe.ToString();
-            
+
             var createdRecipe = ConvertGeneratedRecipe(recipeString);
 
             _recipeRepository.CreateRecipe(createdRecipe);
-            
+
             recipes.Add(_mapper.Map<RecipeDto>(createdRecipe));
         }
-        
+
         return recipes;
+    }
+
+    public async Task CreateBatchRandomRecipes(int amount)
+    {
+        if (amount <=0) return;  
+        var recipeNames = _llmService.GenerateMultipleRecipeNamesAndDescriptions("random", amount);
+        
+        // List to hold all the tasks for concurrent execution
+        var tasks = new List<Task>();
+
+        for (int i = 0; i < recipeNames.Length && i < amount; i++)
+        {
+            // Capture the current index in the loop to avoid closure issues
+            var recipeName = recipeNames[i];
+
+            // Create a new request for each recipe
+            var request = new RecipeFilterDto
+            {
+                RecipeName = recipeName
+            };
+
+            // Add the task to the list
+            tasks.Add(CreateRecipeAsync(request));
+        }
+
+        // Await all tasks to complete
+        await Task.WhenAll(tasks);
+    }
+
+    public async Task RemoveUnusedRecipesAsync()
+    {
+        await _recipeRepository.DeleteUnusedRecipesAsync();
     }
 
     private bool RecipeValidation(string recipeJson)
@@ -177,11 +274,11 @@ public class RecipeManager : IRecipeManager
         generatedRecipeJson.TryGetValue("cookingTime", out var cookingTime);
         generatedRecipeJson.TryGetValue("difficulty", out var difficulty);
         generatedRecipeJson.TryGetValue("amount_of_people", out var amountOfPeople);
-        
+
 
         generatedRecipeJson.TryGetValue("ingredients", out var ingredients);
         generatedRecipeJson.TryGetValue("recipeSteps", out var instructions);
-        
+
         generatedRecipeJson.TryGetValue("image_path", out var imagePath);
 
         Enum.TryParse<RecipeType>(recipeType!.ToString(), out var recipeTypeEnum);
@@ -202,6 +299,7 @@ public class RecipeManager : IRecipeManager
             CookingTime = int.Parse(cookingTime!.ToString()),
             Difficulty = difficultyEnum,
             CreatedAt = DateTime.UtcNow,
+            LastUsedAt = DateTime.UtcNow,
             AmountOfPeople = int.Parse(amountOfPeople!.ToString()),
             ImagePath = imagePath?.ToString() ?? string.Empty,
 

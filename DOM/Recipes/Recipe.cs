@@ -21,6 +21,7 @@ public class Recipe
     public Difficulty Difficulty { get; set; }
     public string ImagePath { get; set; } = String.Empty;
     public DateTime CreatedAt { get; set; }
+    public DateTime LastUsedAt { get; set; }
     public ICollection<InstructionStep> Instructions { get; set; } = new List<InstructionStep>();
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
     public double AverageRating { get; set; } = 0;

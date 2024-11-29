@@ -102,7 +102,7 @@ public class MealPlannerRepositoryTests : IClassFixture<TestPostgresContainerFix
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _mealPlannerRepository.ReadNextWeekPlannedMeals(DateTime.UtcNow, userId);
+        var result = await _mealPlannerRepository.ReadNextWeekPlannedMeals(userId);
 
         // Assert
         Assert.NotNull(result);

@@ -224,6 +224,7 @@ internal static class CulinaryCodeDbInitializer
             AmountOfPeople = 1,
             ImagePath = "https://picsum.photos/200/300",
             CreatedAt = DateTime.UtcNow,
+            LastUsedAt = DateTime.UtcNow.AddDays(-32),
             Instructions = [],
             Reviews = [],
         };
@@ -259,6 +260,7 @@ internal static class CulinaryCodeDbInitializer
             AmountOfPeople = 1,
             ImagePath = "https://picsum.photos/200/300",
             CreatedAt = DateTime.UtcNow,
+            LastUsedAt = DateTime.UtcNow.AddDays(-32),
             Instructions = [],
             Reviews = [],
         };
@@ -284,6 +286,7 @@ internal static class CulinaryCodeDbInitializer
             AmountOfPeople = 4,
             ImagePath = "https://picsum.photos/200/300",
             CreatedAt = DateTime.UtcNow,
+            LastUsedAt = DateTime.UtcNow,
             Instructions = [],
             Reviews = [],
         };
@@ -301,6 +304,7 @@ internal static class CulinaryCodeDbInitializer
         
         var meal1 = new PlannedMeal
         {
+            Recipe = recipe2,
             Ingredients = new List<IngredientQuantity>
             {
                 new IngredientQuantity { Ingredient = ingredient11, Quantity = 1 },
@@ -398,6 +402,16 @@ internal static class CulinaryCodeDbInitializer
         context.GroceryLists.Add(groceryList);
         
         // Einde Testcode Boodschappenlijst
+        
+        // Favorite Recipe
+
+        account1.FavoriteRecipes.Add(new FavoriteRecipe()
+        {
+            Recipe = recipe1,
+            CreatedAt = DateTime.UtcNow,
+        });
+        
+        
         
         // Save changes
         context.SaveChanges();

@@ -3,6 +3,7 @@ using BL.DTOs.MealPlanning;
 using BL.DTOs.Recipes;
 using BL.DTOs.Recipes.Ingredients;
 using BL.Managers.MealPlanning;
+using DAL.Groceries;
 using DAL.MealPlanning;
 using DAL.Recipes;
 using DOM.MealPlanning;
@@ -19,19 +20,22 @@ public class MealPlannerManagerTests
     private readonly Mock<IIngredientRepository> _ingredientRepositoryMock;
     private readonly Mock<IMapper> _mapperMock;
     private readonly MealPlannerManager _mealPlannerManager;
+    private readonly Mock<IGroceryRepository> _groceryRepositoryMock;
 
     public MealPlannerManagerTests()
     {
         _mealPlannerRepositoryMock = new Mock<IMealPlannerRepository>();
         _recipeRepositoryMock = new Mock<IRecipeRepository>();
         _ingredientRepositoryMock = new Mock<IIngredientRepository>();
+        _groceryRepositoryMock = new Mock<IGroceryRepository>();
         _mapperMock = new Mock<IMapper>();
 
         _mealPlannerManager = new MealPlannerManager(
             _mealPlannerRepositoryMock.Object,
             _mapperMock.Object,
             _recipeRepositoryMock.Object,
-            _ingredientRepositoryMock.Object
+            _ingredientRepositoryMock.Object,
+            _groceryRepositoryMock.Object
         );
     }
 
@@ -113,7 +117,7 @@ public class MealPlannerManagerTests
         };
 
         _mealPlannerRepositoryMock
-            .Setup(repo => repo.ReadNextWeekPlannedMeals(dateTime, userId))
+            .Setup(repo => repo.ReadNextWeekPlannedMeals(userId))
             .ReturnsAsync(plannedMeals);
 
         _mapperMock
@@ -126,7 +130,7 @@ public class MealPlannerManagerTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(plannedMealDtos.Count, result.Count);
-        _mealPlannerRepositoryMock.Verify(repo => repo.ReadNextWeekPlannedMeals(dateTime, userId), Times.Once);
+        _mealPlannerRepositoryMock.Verify(repo => repo.ReadNextWeekPlannedMeals(userId), Times.Once);
         _mapperMock.Verify(mapper => mapper.Map<List<PlannedMealDto>>(plannedMeals), Times.Once);
     }
 

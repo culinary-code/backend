@@ -75,6 +75,11 @@ public class LocalLlmService : ILlmService
         throw new NotImplementedException();
     }
 
+    public string[] GenerateMultipleRecipeNamesAndDescriptions(string message, int amount)
+    {
+        throw new NotImplementedException();
+    }
+
     public Uri? GenerateRecipeImage(string recipePrompt)
     {
         throw new NotImplementedException();
