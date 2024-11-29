@@ -16,17 +16,16 @@ public class PreferenceController : ControllerBase
     }
 
     [HttpGet("getStandardPreference")]
-    public  IActionResult GetPreferences()
+    public  IActionResult GetStandardPreference()
     {
         try
         {
-            var standardPreferences = _preferenceManager.GetPreferences();
+            var standardPreferences = _preferenceManager.GetStandardPreferences();
             return Ok(standardPreferences);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            return BadRequest(e.Message);
         }
     }
 }

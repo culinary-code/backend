@@ -20,7 +20,7 @@ public class PreferenceManager : IPreferenceManager
         _mapper = mapper;
     }
 
-    public List<PreferenceDto> GetPreferences()
+    public List<PreferenceDto> GetStandardPreferences()
     {
         var preferences = _preferenceRepository.ReadStandardPreferences();
         return _mapper.Map<List<PreferenceDto>>(preferences);

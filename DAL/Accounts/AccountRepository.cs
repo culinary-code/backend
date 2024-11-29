@@ -53,9 +53,7 @@ public class AccountRepository : IAccountRepository
 
     public void DeletePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
-        var account = _ctx.Accounts
-            .Include(a => a.Preferences)
-            .FirstOrDefault(a => a.AccountId == accountId);
+        var account = ReadAccountWithPreferencesByAccountId(accountId);
 
         if (account == null)
         {
