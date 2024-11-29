@@ -32,7 +32,8 @@ public class GroceryController : ControllerBase
     {
         try
         {
-            var groceryList = _groceryManager.GetGroceryList(groceryListId);
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+            var groceryList = _groceryManager.getGroceryListWithNextWeek(userId);
             return Ok(groceryList);
         }
         catch (GroceryListNotFoundException e)

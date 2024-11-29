@@ -186,7 +186,7 @@ namespace BL.Testing
             
             var addItemDto = new ItemQuantityDto
             {
-                Ingredient = new IngredientDto
+                GroceryItem = new IngredientDto
                 {
                     IngredientId = newIngredient.IngredientId,
                     IngredientName = newIngredient.IngredientName,
@@ -197,7 +197,7 @@ namespace BL.Testing
             
             var addItemDto2 = new ItemQuantityDto
             {
-                Ingredient = new IngredientDto
+                GroceryItem = new IngredientDto
                 {
                     IngredientId = newIngredient2.IngredientId,
                     IngredientName = newIngredient2.IngredientName,
@@ -208,7 +208,7 @@ namespace BL.Testing
             
             var addItemDto3 = new ItemQuantityDto
             {
-                Ingredient = new IngredientDto
+                GroceryItem = new IngredientDto
                 {
                     IngredientId = newIngredient3.IngredientId,
                     IngredientName = newIngredient3.IngredientName,
@@ -219,7 +219,7 @@ namespace BL.Testing
             
             var addItemDto4 = new ItemQuantityDto
             {
-                Ingredient = new IngredientDto
+                GroceryItem = new IngredientDto
                 {
                     IngredientId = newItem.GroceryItemId,
                     IngredientName = newItem.GroceryItemName,
@@ -271,7 +271,7 @@ namespace BL.Testing
 
             var addItemDto = new ItemQuantityDto
             {
-                Ingredient = new IngredientDto
+                GroceryItem = new IngredientDto
                 {
                     IngredientId = ingredient.IngredientId,
                     IngredientName = ingredient.IngredientName,
@@ -282,7 +282,7 @@ namespace BL.Testing
 
             var addItemDto2 = new ItemQuantityDto
             {
-                Ingredient = new IngredientDto
+                GroceryItem = new IngredientDto
                 {
                     IngredientId = newItem.GroceryItemId,
                     IngredientName = newItem.GroceryItemName,

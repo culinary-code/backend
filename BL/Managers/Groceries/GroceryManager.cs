@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BL.DTOs.MealPlanning;
 using BL.DTOs.Recipes.Ingredients;
+using DAL.Accounts;
 using DAL.Groceries;
 using DOM.Exceptions;
 using DOM.MealPlanning;
@@ -12,19 +13,36 @@ namespace BL.Managers.Groceries;
 public class GroceryManager : IGroceryManager
 {
     private readonly IGroceryRepository _groceryRepository;
+    private readonly IAccountRepository _accountRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<GroceryManager> _logger;
 
-    public GroceryManager(IGroceryRepository groceryRepository, IMapper mapper, ILogger<GroceryManager> logger)
+    public GroceryManager(IGroceryRepository groceryRepository, IMapper mapper, ILogger<GroceryManager> logger,
+        IAccountRepository accountRepository)
     {
         _groceryRepository = groceryRepository;
         _mapper = mapper;
         _logger = logger;
+        _accountRepository = accountRepository;
     }
 
     public void CreateNewGroceryList(GroceryList groceryList)
     {
         _groceryRepository.CreateGroceryList(groceryList);
+    }
+
+    public GroceryListDto getGroceryListWithNextWeek(Guid accountId)
+    {
+        var account = _accountRepository.ReadAccountWithMealPlannerNextWeekAndWithGroceryList(accountId);
+        var completeGroceryList = account.GroceryList;
+
+        foreach (var plannedMeal in account.Planner.NextWeek)
+        {
+            completeGroceryList.Ingredients = completeGroceryList.Ingredients.Concat(plannedMeal.Ingredients);
+        }
+        
+        
+        return _mapper.Map<GroceryListDto>(completeGroceryList);
     }
 
     public GroceryListDto GetGroceryList(string id)
@@ -43,7 +61,7 @@ public class GroceryManager : IGroceryManager
 
     public void AddItemToGroceryList(Guid groceryListId, ItemQuantityDto newListItem)
     {
-        if (newListItem == null || newListItem.Ingredient == null)
+        if (newListItem == null || newListItem.GroceryItem == null)
         {
             throw new GroceryListItemNotFoundException("Item does not exist.");
         }
@@ -52,7 +70,7 @@ public class GroceryManager : IGroceryManager
 
         var existingIngredient = groceryList.Ingredients
             .FirstOrDefault(i =>
-                i.Ingredient.IngredientName.ToLower() == newListItem.Ingredient.IngredientName.ToLower());
+                i.Ingredient.IngredientName.ToLower() == newListItem.GroceryItem.GroceryItemName.ToLower());
         
         if (existingIngredient != null)
         {
@@ -63,7 +81,7 @@ public class GroceryManager : IGroceryManager
         else if (existingIngredient == null)
         {
             var existingItem = groceryList.Items.FirstOrDefault(i =>
-                i.GroceryItem.GroceryItemName.ToLower() == newListItem.Ingredient.IngredientName.ToLower());
+                i.GroceryItem.GroceryItemName.ToLower() == newListItem.GroceryItem.GroceryItemName.ToLower());
             if (existingItem != null)
             {
                 existingItem.Quantity = newListItem.Quantity;
@@ -79,14 +97,14 @@ public class GroceryManager : IGroceryManager
                     GroceryList = groceryList,
                     GroceryItem = new GroceryItem()
                     {
-                        GroceryItemId = newListItem.Ingredient.IngredientId,
-                        GroceryItemName = newListItem.Ingredient.IngredientName,
-                        Measurement = newListItem.Ingredient.Measurement,
+                        GroceryItemId = newListItem.GroceryItem.GroceryItemId,
+                        GroceryItemName = newListItem.GroceryItem.GroceryItemName,
+                        Measurement = newListItem.GroceryItem.Measurement,
                     }
                 };
                 groceryList.Items = groceryList.Items.Append(newItem).ToList();
                 _groceryRepository.AddGroceryListItem(groceryList, newItem);
-                _logger.LogInformation(newListItem.Ingredient.IngredientId + " has been added to grocery list");
+                _logger.LogInformation(newListItem.GroceryItem.GroceryItemId + " has been added to grocery list");
             }
         }
     }

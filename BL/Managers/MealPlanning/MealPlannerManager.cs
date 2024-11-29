@@ -64,7 +64,6 @@ public class MealPlannerManager : IMealPlannerManager
             AmountOfPeople = plannedMealDto.AmountOfPeople,
             Ingredients = linkedIngredientQuantities,
             NextWeekMealPlanner = mealPlanner
-            
         };
         
         linkedRecipe.LastUsedAt = DateTime.UtcNow;
