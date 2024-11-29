@@ -27,6 +27,7 @@ public class RecipeDto
     public string ImagePath { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; }
+    public DateTime LastUsedAt { get; set; }
     public double AverageRating { get; set; } = 0;
     public int AmountOfRatings { get; set; } = 0;
 
