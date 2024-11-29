@@ -79,7 +79,6 @@ public class AccountManager : IAccountManager
 public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto)
 {
     var account = _accountRepository.ReadAccountWithPreferencesByAccountId(accountId);
-    Preference newPreference;
     
     if (account.Preferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
     {
@@ -89,6 +88,8 @@ public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenc
 
     var preference = _preferenceRepository.ReadPreferenceByName(preferenceDto.PreferenceName);
 
+    Preference newPreference;
+    
     if (preference == null)
     {
         newPreference = _preferenceRepository.CreatePreference(new Preference()

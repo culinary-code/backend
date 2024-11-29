@@ -65,7 +65,6 @@ public class AccountManagerTests
     {
         // Arrange
         var accountId = Guid.NewGuid();
-        var accountIdString = accountId.ToString();
         var updatedAccount = new AccountDto { AccountId = accountId, Name = "JohnDoe" };
         _mockRepository.Setup(manager => manager.ReadAccount(accountId)).Returns(new Account());
         _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(updatedAccount);
@@ -198,7 +197,7 @@ public class AccountManagerTests
         var account = new Account
         {
             AccountId = accountId,
-            Preferences = new List<Preference>() // Ensure this is initialized
+            Preferences = new List<Preference>()
         };
 
         var updatedAccount = new AccountDto
@@ -208,8 +207,9 @@ public class AccountManagerTests
         };
 
         _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).Returns(account);
-        _mockPreferenceRepository.Setup(pr => pr.ReadStandardPreferences()).Returns(new List<Preference>()); // Return no standard preferences
-        _mockMapper.Setup(mapper => mapper.Map<Preference>(preferenceDto))
+        _mockPreferenceRepository.Setup(pr => pr.ReadPreferenceByName(preferenceDto.PreferenceName))
+            .Returns((Preference)null); // Simulate that preference does not exist
+        _mockPreferenceRepository.Setup(pr => pr.CreatePreference(It.IsAny<Preference>()))
             .Returns(new Preference { PreferenceName = preferenceDto.PreferenceName });
         _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(updatedAccount);
         _mockRepository.Setup(r => r.UpdateAccount(It.IsAny<Account>())).Verifiable();
