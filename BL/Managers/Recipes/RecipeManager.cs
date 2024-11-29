@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using BL.DTOs.Accounts;
 using BL.DTOs.Recipes;
 using BL.ExternalSources.Llm;
+using BL.Managers.Accounts;
+using DAL.Accounts;
 using DAL.Recipes;
 using DOM.Accounts;
 using DOM.Exceptions;
@@ -66,10 +69,11 @@ public class RecipeManager : IRecipeManager
         return _recipeRepository.GetRecipeCountAsync();
     }
 
-    public RecipeDto? CreateRecipe(RecipeFilterDto request)
+    // TODO: changes terugzetten
+    public RecipeDto? CreateRecipe(RecipeFilterDto request, List<PreferenceDto> preferences)
     {
         byte attempts = 0;
-        var prompt = LlmSettingsService.BuildPrompt(request);
+        var prompt = LlmSettingsService.BuildPrompt(request, preferences);
         while (attempts < 3)
         {
             try
@@ -125,10 +129,10 @@ public class RecipeManager : IRecipeManager
         return null;
     }
 
-    public async Task<RecipeDto?> CreateRecipeAsync(RecipeFilterDto request)
+    public async Task<RecipeDto?> CreateRecipeAsync(RecipeFilterDto request, List<PreferenceDto> preferences)
     {
         byte attempts = 0;
-        var prompt = LlmSettingsService.BuildPrompt(request);
+        var prompt = LlmSettingsService.BuildPrompt(request, preferences);
         while (attempts < 3)
         {
             try
@@ -224,7 +228,8 @@ public class RecipeManager : IRecipeManager
             };
 
             // Add the task to the list
-            tasks.Add(CreateRecipeAsync(request));
+            // TODO: uit comment halen
+            // tasks.Add(CreateRecipeAsync(request));
         }
 
         // Await all tasks to complete
