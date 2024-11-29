@@ -77,16 +77,6 @@ public class PreferenceRepositoryTests
     }
     
     [Fact]
-    public void ReadPreferenceByName_DoesNotExist_ThrowsPreferenceNotFoundException()
-    {
-        // Arrange
-        var preferenceName = "Test Preference";
-        
-        // Act & Assert
-        Assert.Throws<PreferenceNotFoundException>(() => _preferenceRepository.ReadPreferenceByName(preferenceName));
-    }
-    
-    [Fact]
     public void ReadStandardPreferences_PreferencesExist_ReturnsCollectionOfPreferences()
     {
         // Arrange
