@@ -30,6 +30,10 @@ public class PreferenceRepository : IPreferenceRepository
     public Preference? ReadPreferenceByName(string name)
     {
         Preference? preference = _ctx.Preferences.FirstOrDefault(p => p.PreferenceName == name);
+        if (preference is null)
+        {
+            throw new PreferenceNotFoundException($"No preference found with name {name}");
+        }
         return preference;
     }
 
