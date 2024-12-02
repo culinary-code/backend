@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using BL.DTOs.Accounts;
+using BL.DTOs.Recipes;
 using DAL.Accounts;
 using DAL.Recipes;
 using DOM.Accounts;
 using DOM.Exceptions;
+using DOM.Recipes;
 using Microsoft.Extensions.Logging;
 
 namespace BL.Managers.Accounts;
@@ -35,6 +37,12 @@ public class AccountManager : IAccountManager
         var account = _accountRepository.ReadAccountWithPreferencesByAccountId(userId);
         var preferences = account.Preferences ?? new List<Preference>();
         return _mapper.Map<List<PreferenceDto>>(preferences);
+    }
+
+    public List<RecipeDto> GetFavoriteRecipesByUserId(Guid userId)
+    {
+        var favoriteRecipes = _accountRepository.ReadFavoriteRecipesByUserId(userId);
+        return _mapper.Map<List<RecipeDto>>(favoriteRecipes);
     }
 
     public AccountDto UpdateAccount(AccountDto updatedAccount)
