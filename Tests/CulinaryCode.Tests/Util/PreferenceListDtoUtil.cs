@@ -23,4 +23,9 @@ public class PreferenceListDtoUtil
         List<PreferenceDto> preferences = [pref1, pref2];
         return preferences;
     }
+
+    public static List<PreferenceDto>? CreateEmptyPreferenceListDto()
+    {
+        return null;
+    }
 }

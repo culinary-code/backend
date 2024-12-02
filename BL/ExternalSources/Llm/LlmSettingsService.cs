@@ -66,7 +66,7 @@ public class LlmSettingsService
                               - Ensure that all recipe elements (ingredients, steps, etc.) are fully compliant with the user's preferences and restrictions.
                               - Ensure that no ingredient is used that goes against the stated allergies, intolerances, or dietary restrictions.
                               - If a substitution is required (e.g., for a non-vegan ingredient), make sure it is clearly stated and provides the same or similar flavor and texture.
-                              - The final recipe should include clear, detailed instructions in dutch.
+                              - The final recipe should include clear, detailed instructions in Dutch.
                            - Adaptability:
                               - Be prepared to handle any combination of preferences. The user's preferences can vary widely, and your task is to adapt the recipe based on whatever preferences are provided.
                               - The recipe should still be coherent and tasteful, following the rules for ingredients and preparation methods while fully respecting the user's input.
@@ -134,6 +134,7 @@ public class LlmSettingsService
 
         if (!string.IsNullOrWhiteSpace(request.Difficulty))
         {
+            
             
             Enum.TryParse<Difficulty>(request.Difficulty, out var difficultyEnum);
             if (difficultyEnum != Difficulty.NotAvailable)

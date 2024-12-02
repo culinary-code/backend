@@ -13,14 +13,14 @@ public class LlmSettingsServiceTests
     public void BuildPrompt_OnlyRecipeNameProvided_ReturnsPromptWithRecipeName()
     {
         // Arrange
-        var preferences = new List<PreferenceDto>();
+        var preferences = PreferenceListDtoUtil.CreateEmptyPreferenceListDto();
         var recipeDto = new RecipeFilterDto
         {
             RecipeName = "Pasta"
         };
 
         // Act
-        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferences);
+        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferences!);
 
         // Assert
         Assert.Equal(NormalizeLineEndings("I want a recipe for Pasta."), NormalizeLineEndings(prompt));
@@ -31,10 +31,10 @@ public class LlmSettingsServiceTests
     {
         // Arrange
         var recipeDto = new RecipeFilterDto();
-        var preferences = new List<PreferenceDto>();
+        var preferences = PreferenceListDtoUtil.CreateEmptyPreferenceListDto();
 
         // Act
-        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferences);
+        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferences!);
 
         // Assert
         Assert.Equal(NormalizeLineEndings("I want a random recipe."),
@@ -45,14 +45,14 @@ public class LlmSettingsServiceTests
     public void BuildPrompt_IngredientsProvided_ReturnsPromptWithIngredients()
     {
         // Arrange
-        var preferences = new List<PreferenceDto>();
+        var preferences = PreferenceListDtoUtil.CreateEmptyPreferenceListDto();
         var recipeDto = new RecipeFilterDto
         {
             Ingredients = new List<string> { "Tomato", "Cheese", "Basil" }
         };
 
         // Act
-        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferences);
+        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferences!);
 
         // Assert
         Assert.Equal(
@@ -66,7 +66,7 @@ public class LlmSettingsServiceTests
     public void BuildPrompt_FullFiltersProvided_ReturnsCompletePrompt()
     {
         // Arrange
-        var preferences = new List<PreferenceDto>();
+        var preferences = PreferenceListDtoUtil.CreateEmptyPreferenceListDto();
         var recipeDto = new RecipeFilterDto
         {
             RecipeName = "Pizza",
@@ -77,7 +77,7 @@ public class LlmSettingsServiceTests
         };
 
         // Act
-        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferences);
+        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferences!);
 
         // Assert
         Assert.Equal(
@@ -91,7 +91,7 @@ public class LlmSettingsServiceTests
     public void BuildPrompt_InvalidDifficultyOrMealType_HandlesGracefully()
     {
         // Arrange
-        var preferences = new List<PreferenceDto>();
+        var preferences = PreferenceListDtoUtil.CreateEmptyPreferenceListDto();
         var recipeDto = new RecipeFilterDto
         {
             Difficulty = "0",
@@ -99,7 +99,7 @@ public class LlmSettingsServiceTests
         };
 
         // Act
-        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferences);
+        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferences!);
 
         // Assert
         Assert.Equal(NormalizeLineEndings("I want a random recipe."), NormalizeLineEndings(prompt));
@@ -109,14 +109,14 @@ public class LlmSettingsServiceTests
     public void BuildPrompt_CookTimeProvided_ReturnsPromptWithCookTime()
     {
         // Arrange
-        var preferences = new List<PreferenceDto>();
+        var preferences = PreferenceListDtoUtil.CreateEmptyPreferenceListDto();
         var recipeDto = new RecipeFilterDto
         {
             CookTime = 15
         };
 
         // Act
-        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferences);
+        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferences!);
 
         // Assert
         Assert.Equal(NormalizeLineEndings("I want a random recipe.\nThe cooking time should be around 15 minutes."),
