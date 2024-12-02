@@ -42,13 +42,11 @@ public class AccountRepository : IAccountRepository
 
     public List<Recipe?> ReadFavoriteRecipesByUserId(Guid userId)
     {
-        var favoriteRecipes = _ctx.Accounts
-            .Where(a => a.AccountId == userId)
-            .SelectMany(a => a.FavoriteRecipes)
+        var favoriteRecipes = _ctx.FavoriteRecipes
+            .Where(fr => fr.Account != null && fr.Account.AccountId == userId)
             .Select(fr => fr.Recipe)
             .Where(r => r != null)
             .ToList();
-
         if (!favoriteRecipes.Any())
         {
             throw new RecipeNotFoundException("No favorite recipes found for the given account.");
