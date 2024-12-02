@@ -40,16 +40,22 @@ public class AccountRepository : IAccountRepository
         return account;
     }
 
-    public IEnumerable<Recipe> ReadFavoriteRecipesByUserId(Guid userId)
+    public List<Recipe?> ReadFavoriteRecipesByUserId(Guid userId)
     {
-        var account = _ctx.Accounts
-            .Where(a => a.AccountId == userId) 
-            .Select(a => a.FavoriteRecipes.Select(fa => fa.Recipe))
-            .FirstOrDefault();
-    
-        return account?.Where(r => r != null).Cast<Recipe>() ?? new List<Recipe>();
-    }
+        var favoriteRecipes = _ctx.Accounts
+            .Where(a => a.AccountId == userId)
+            .SelectMany(a => a.FavoriteRecipes)
+            .Select(fr => fr.Recipe)
+            .Where(r => r != null)
+            .ToList();
 
+        if (!favoriteRecipes.Any())
+        {
+            throw new RecipeNotFoundException("No favorite recipes found for the given account.");
+        }
+
+        return favoriteRecipes;
+    }
 
     public void UpdateAccount(Account account)
     {
