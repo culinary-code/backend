@@ -176,7 +176,7 @@ public class LlmSettingsService
         }
 
         // Default case if no filters are provided
-        if (promptBuilder.Length == 0 && preferences.IsNullOrEmpty() && !preferences.Any())
+        if (promptBuilder.Length == 0 && preferences.IsNullOrEmpty())
         {
             promptBuilder.AppendLine("Give me a random recipe.");
         }

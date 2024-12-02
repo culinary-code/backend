@@ -1,4 +1,5 @@
-﻿using BL.Managers.Recipes;
+﻿using BL.DTOs.Accounts;
+using BL.Managers.Recipes;
 using DOM.Exceptions;
 using Microsoft.Extensions.Logging;
 
@@ -33,7 +34,7 @@ public class RefreshRecipeDatabaseJob : IJob
 
         var amountToCreate = minAmountInDatabase - count;
         
-        await _recipeManager.CreateBatchRandomRecipes(amountToCreate);
+        await _recipeManager.CreateBatchRandomRecipes(amountToCreate, null);
         
         _logger.LogInformation($"DatabaseJob executed at {DateTime.Now}");
     }

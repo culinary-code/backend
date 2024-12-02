@@ -207,8 +207,12 @@ public class RecipeManager : IRecipeManager
         return recipes;
     }
     
-    public async Task CreateBatchRandomRecipes(int amount)
+    public async Task CreateBatchRandomRecipes(int amount, List<PreferenceDto>? preferences)
     {
+        if (preferences == null)
+        {
+            preferences = new List<PreferenceDto>();
+        }
         if (amount <=0) return;  
         var recipeNames = _llmService.GenerateMultipleRecipeNamesAndDescriptions("random", amount);
         
@@ -226,8 +230,6 @@ public class RecipeManager : IRecipeManager
                 RecipeName = recipeName
             };
             
-            var preferences = new List<PreferenceDto>();
-
             // Add the task to the list
 
             tasks.Add(CreateRecipeAsync(request, preferences));

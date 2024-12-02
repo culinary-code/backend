@@ -15,6 +15,6 @@ public interface IRecipeManager
     RecipeDto? CreateRecipe(RecipeFilterDto request, List<PreferenceDto> preferences);
     Task<RecipeDto?> CreateRecipeAsync(RecipeFilterDto request, List<PreferenceDto> preferences);
     ICollection<RecipeDto> CreateBatchRecipes(string input);
-    Task CreateBatchRandomRecipes(int amount);
+    Task CreateBatchRandomRecipes(int amount, List<PreferenceDto>? preferences);
     Task RemoveUnusedRecipesAsync();
 }
