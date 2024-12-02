@@ -164,7 +164,7 @@ public class LlmSettingsService
                 {
                     promptBuilder.AppendLine($"Exclude any ingredients that may cause or doesn't belong with {preference.PreferenceName}.");
                 }
-                else if (preference.PreferenceName.Contains("geen", StringComparison.OrdinalIgnoreCase))
+                else if (preference.PreferenceName.Contains("geen", StringComparison.OrdinalIgnoreCase) || preference.PreferenceName.Contains("vrij", StringComparison.OrdinalIgnoreCase) || preference.PreferenceName.Contains("arm", StringComparison.OrdinalIgnoreCase))
                 {
                     promptBuilder.AppendLine($"Exclude {preference.PreferenceName.ToLower()} in the recipe.");
                 }

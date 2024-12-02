@@ -207,7 +207,6 @@ public class RecipeManager : IRecipeManager
         return recipes;
     }
     
-    // TODO: Not sure of preferences hier goed gebruikt worden
     public async Task CreateBatchRandomRecipes(int amount)
     {
         if (amount <=0) return;  
