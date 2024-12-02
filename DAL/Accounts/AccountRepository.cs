@@ -1,6 +1,7 @@
 ﻿using DAL.EF;
 using DOM.Accounts;
 using DOM.Exceptions;
+using DOM.Recipes;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Accounts;
@@ -38,6 +39,17 @@ public class AccountRepository : IAccountRepository
         
         return account;
     }
+
+    public IEnumerable<Recipe> ReadFavoriteRecipesByUserId(Guid userId)
+    {
+        var account = _ctx.Accounts
+            .Where(a => a.AccountId == userId) 
+            .Select(a => a.FavoriteRecipes.Select(fa => fa.Recipe))
+            .FirstOrDefault();
+    
+        return account?.Where(r => r != null).Cast<Recipe>() ?? new List<Recipe>();
+    }
+
 
     public void UpdateAccount(Account account)
     {
