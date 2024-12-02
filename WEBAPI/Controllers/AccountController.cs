@@ -1,4 +1,5 @@
 ﻿using BL.DTOs.Accounts;
+using BL.DTOs.Recipes;
 using BL.Managers.Accounts;
 using BL.Services;
 using DOM.Exceptions;
@@ -96,7 +97,6 @@ public class AccountController: ControllerBase
         }
     }
     
-    
     [HttpPost("addPreference")]
     public async Task<IActionResult> AddPreference([FromBody] PreferenceDto preferenceDto)
     {
@@ -165,4 +165,28 @@ public class AccountController: ControllerBase
             return BadRequest("Failed to get favorite recipes.");
         }
     }
+
+    [HttpPost("addFavoriteRecipe")]
+    public async Task<IActionResult> AddFavoriteRecipeToUser([FromBody] RecipeDto recipeDto)
+    {
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+
+        try
+        {
+            var updatedAccount = _accountManager.AddFavoriteRecipeToAccount(userId, recipeDto.RecipeId);
+            return Ok(updatedAccount);
+        }
+        catch (AccountNotFoundException ex)
+        {
+            _logger.LogWarning("Account not found: {ErrorMessage}", ex.Message);
+            return NotFound("Account not found.");
+        }
+        catch (RecipeNotFoundException ex)
+        {
+            _logger.LogError("Error occurred while adding favorite recipe: {ErrorMessage}", ex.Message);
+            return BadRequest("Failed to add favorite recipe.");
+        }
+    }
+
+
 }
