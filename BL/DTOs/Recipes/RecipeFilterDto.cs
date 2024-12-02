@@ -1,4 +1,6 @@
-﻿namespace BL.DTOs.Recipes;
+﻿using BL.DTOs.Accounts;
+
+namespace BL.DTOs.Recipes;
 
 public class RecipeFilterDto
 {

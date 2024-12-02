@@ -354,9 +354,10 @@ public class RecipeManagerTests
         var sampleRecipeJson = SampleValidRecipeJson();
         var sampleRecipeDto = CreateSampleRecipeFromJsonDto();
         var sampleRecipeFilterDto = RecipeFilterDtoUtil.CreateRecipeFilterDto(recipeName: sampleRecipeDto.RecipeName);
+        var samplePreferencesListDto = PreferenceListDtoUtil.CreatePreferenceListDto();
         Uri imageUri = new Uri("https://culinarycodestorage.blob.core.windows.net/recipe-images/2024-11-14-08-22-46-585065.jpg");
 
-        var prompt = LlmSettingsService.BuildPrompt(sampleRecipeFilterDto);
+        var prompt = LlmSettingsService.BuildPrompt(sampleRecipeFilterDto, samplePreferencesListDto);
         _mockLlmService
             .Setup(service => service.GenerateRecipe(prompt))
             .Returns(sampleRecipeJson);
@@ -375,7 +376,7 @@ public class RecipeManagerTests
 
 
         // Act
-        var result = _recipeManager.CreateRecipe(sampleRecipeFilterDto);
+        var result = _recipeManager.CreateRecipe(sampleRecipeFilterDto, samplePreferencesListDto);
 
         // Assert
         // Assert fields because the RecipeDto is not the same instance as the one returned by the method
@@ -409,13 +410,14 @@ public class RecipeManagerTests
     {
         // Arrange
         var recipeDto = RecipeFilterDtoUtil.CreateRecipeFilterDto("Lekkere baksteensoep");
-        var prompt = LlmSettingsService.BuildPrompt(recipeDto);
+        var preferencesListDto = PreferenceListDtoUtil.CreatePreferenceListDto();
+        var prompt = LlmSettingsService.BuildPrompt(recipeDto,preferencesListDto);
         _mockLlmService
             .Setup(service => service.GenerateRecipe(prompt))
             .Returns("\"NOT_POSSIBLE with this reason Baksteensoep is niet eetbaar");
         
         // Act & Assert
-        Assert.Throws<RecipeNotAllowedException>(() => _recipeManager.CreateRecipe(recipeDto));
+        Assert.Throws<RecipeNotAllowedException>(() => _recipeManager.CreateRecipe(recipeDto, preferencesListDto));
     }
 
     [Fact]
@@ -425,13 +427,14 @@ public class RecipeManagerTests
         var invalidJson = "{ \"recipeName\": \"Stoofvlees met frietjes\" }";
         
         var recipeDto = RecipeFilterDtoUtil.CreateRecipeFilterDto("Stoofvlees met frietjes");
-        var prompt = LlmSettingsService.BuildPrompt(recipeDto);
+        var preferencesListDto = PreferenceListDtoUtil.CreatePreferenceListDto();
+        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferencesListDto);
         _mockLlmService
             .Setup(service => service.GenerateRecipe(prompt))
             .Returns(invalidJson);
         
         // Act
-        var result = _recipeManager.CreateRecipe(recipeDto);
+        var result = _recipeManager.CreateRecipe(recipeDto, preferencesListDto);
         
         // Assert
         Assert.Null(result);
@@ -441,16 +444,17 @@ public class RecipeManagerTests
     public void CreateRecipe_RecipeJsonNotValid_ReturnsNull()
     {
         var brokenJson = "{ \"recipeName\": \"Stoofvlees met frietjes\""; // missing closing bracket
+        var preferencesListDto = PreferenceListDtoUtil.CreatePreferenceListDto();
         
         var recipeDto = RecipeFilterDtoUtil.CreateRecipeFilterDto("Stoofvlees met frietjes");
-        var prompt = LlmSettingsService.BuildPrompt(recipeDto);
+        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferencesListDto);
         _mockLlmService
             .Setup(service => service.GenerateRecipe(prompt))
             .Returns(brokenJson);
         
         
         // Act
-        var result = _recipeManager.CreateRecipe(recipeDto);
+        var result = _recipeManager.CreateRecipe(recipeDto, preferencesListDto);
         
         // Assert
         Assert.Null(result);
