@@ -188,4 +188,35 @@ public class AccountController: ControllerBase
             return BadRequest("Failed to add favorite recipe.");
         }
     }
+    
+    // TODO: RecipeId is hier 000000000 --> kijk wrm? heb ff async weggehaald en nu werkt add niet?
+    [HttpDelete("deleteFavoriteRecipe/{recipeId}")]
+    public IActionResult DeleteFavoriteRecipe(Guid recipeId)
+    {
+        try
+        {
+            string token = Request.Headers["Authorization"].ToString().Substring(7); 
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
+            
+            var favoriteRecipes = _accountManager.GetFavoriteListByUserId(userId);
+
+            foreach (var favoriteRecipe in favoriteRecipes)
+            {
+                if (recipeId == favoriteRecipe.Recipe.RecipeId) ;
+                 _accountManager.RemoveFavoriteRecipeFromAccount(userId, favoriteRecipe.Recipe.RecipeId);
+            }
+
+            return Ok("Preference deleted successfully.");
+        }
+        catch (AccountNotFoundException ex)
+        {
+            _logger.LogWarning("Account not found: {ErrorMessage}", ex.Message);
+            return NotFound("Account not found.");
+        }
+        catch (RecipeNotFoundException ex)
+        {
+            _logger.LogError("Error occurred while deleting favorite recipe: {ErrorMessage}", ex.Message);
+            return BadRequest("Failed to delete favorite recipe.");
+        }
+    }
 }
