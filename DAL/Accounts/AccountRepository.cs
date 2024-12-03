@@ -1,6 +1,7 @@
 ﻿using DAL.EF;
 using DOM.Accounts;
 using DOM.Exceptions;
+using DOM.Recipes;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Accounts;
@@ -67,6 +68,21 @@ public class AccountRepository : IAccountRepository
         }
         
         return account;
+    }
+
+    public List<Recipe?> ReadFavoriteRecipesByUserId(Guid userId)
+    {
+        var favoriteRecipes = _ctx.FavoriteRecipes
+            .Where(fr => fr.Account != null && fr.Account.AccountId == userId)
+            .Select(fr => fr.Recipe)
+            .Where(r => r != null)
+            .ToList();
+        if (!favoriteRecipes.Any())
+        {
+            throw new RecipeNotFoundException("No favorite recipes found for the given account.");
+        }
+
+        return favoriteRecipes;
     }
 
     public void UpdateAccount(Account account)

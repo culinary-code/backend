@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using BL.DTOs.Accounts;
+using BL.DTOs.Recipes;
 using BL.Managers.Accounts;
 using DAL.Accounts;
 using DAL.Recipes;
 using DOM.Accounts;
 using DOM.Exceptions;
+using DOM.Recipes;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit.Abstractions;
@@ -288,6 +290,52 @@ public class AccountManagerTests
         Assert.Equal(accountDto.AccountId, result.AccountId);
         Assert.Single(result.Preferences);
         Assert.Equal(preferenceDto.PreferenceName, result.Preferences.First().PreferenceName);
-
     }
+    
+    [Fact]
+        public void GetFavoriteRecipesByUserId_ReturnsMappedFavoriteRecipes_WhenRecipesExist()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var recipeId1 = Guid.NewGuid();
+            var recipeId2 = Guid.NewGuid();
+
+            var favoriteRecipes = new List<Recipe>
+            {
+                new Recipe { RecipeId = recipeId1, RecipeName = "Recipe 1" },
+                new Recipe { RecipeId = recipeId2, RecipeName = "Recipe 2" }
+            };
+
+            _mockRepository.Setup(repo => repo.ReadFavoriteRecipesByUserId(userId)).Returns(favoriteRecipes);
+
+            var expectedRecipes = new List<RecipeDto>
+            {
+                new RecipeDto { RecipeId = recipeId1, RecipeName = "Recipe 1" },
+                new RecipeDto { RecipeId = recipeId2, RecipeName = "Recipe 2" }
+            };
+            _mockMapper.Setup(mapper => mapper.Map<List<RecipeDto>>(favoriteRecipes)).Returns(expectedRecipes);
+
+            // Act
+            var result = _accountManager.GetFavoriteRecipesByUserId(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedRecipes.Count, result.Count);
+            Assert.Equal(expectedRecipes[0].RecipeId, result[0].RecipeId);
+            Assert.Equal(expectedRecipes[1].RecipeId, result[1].RecipeId);
+        }
+
+    [Fact]
+    public void GetFavoriteRecipesByUserId_ThrowsRecipeNotFoundException_WhenNoRecipesExist()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        _mockRepository.Setup(repo => repo.ReadFavoriteRecipesByUserId(userId))
+            .Throws(new RecipeNotFoundException("No favorite recipes found for the given account."));
+
+        // Act & Assert
+        var exception = Assert.Throws<RecipeNotFoundException>(() => _accountManager.GetFavoriteRecipesByUserId(userId));
+        Assert.Equal("No favorite recipes found for the given account.", exception.Message);
+    }
+
 }

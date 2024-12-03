@@ -142,4 +142,27 @@ public class AccountController: ControllerBase
             return BadRequest("Failed to delete preference.");
         }
     }
+
+    [HttpGet("getFavoriteRecipes")]
+    public IActionResult GetFavoriteRecipes()
+    {
+        try
+        {
+            string token = Request.Headers["Authorization"].ToString().Substring(7);
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
+        
+            var favoriteRecipes = _accountManager.GetFavoriteRecipesByUserId(userId);
+            return Ok(favoriteRecipes);
+        }
+        catch (AccountNotFoundException ex)
+        {
+            _logger.LogWarning("Account not found: {ErrorMessage}", ex.Message);
+            return NotFound("Account not found.");
+        }
+        catch (RecipeNotFoundException e)
+        {
+            _logger.LogError("An error occurred trying to fetch favorite recipes: {ErrorMessage}", e.Message);
+            return BadRequest("Failed to get favorite recipes.");
+        }
+    }
 }
