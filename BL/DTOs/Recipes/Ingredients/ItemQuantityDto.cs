@@ -8,7 +8,9 @@ public class ItemQuantityDto
     
     public float Quantity { get; set; }
 
-    public GroceryItemDto? GroceryItem { get; set; } // Include IngredientDto for referencing the ingredient if needed
+    public GroceryItemDto? GroceryItem { get; set; } // Include GroceryItemDto for referencing the ingredient if needed
+    
+    public bool IsIngredient { get; set; } = false;
 
     // Navigation properties omitted as they are not needed for the DTO
 }

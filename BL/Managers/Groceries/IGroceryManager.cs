@@ -8,8 +8,8 @@ public interface IGroceryManager
 {
     void CreateNewGroceryList(GroceryList groceryList);
     GroceryListDto GetGroceryList(string id);
-    GroceryListDto getGroceryListWithNextWeek(Guid id);
+    GroceryListDto GetGroceryListWithNextWeek(Guid id);
     GroceryListDto GetGroceryListByAccountId(string accountId);
-    void AddItemToGroceryList(Guid groceryListId, ItemQuantityDto addItem);
-    Task RemoveItemFromGroceryList(Guid groceryListId, Guid itemId);
+    void AddItemToGroceryList(Guid userId, ItemQuantityDto addItem);
+    Task RemoveItemFromGroceryList(Guid userId, ItemQuantityDto removeItem);
 }

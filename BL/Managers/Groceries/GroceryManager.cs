@@ -3,6 +3,7 @@ using BL.DTOs.MealPlanning;
 using BL.DTOs.Recipes.Ingredients;
 using DAL.Accounts;
 using DAL.Groceries;
+using DAL.Recipes;
 using DOM.Exceptions;
 using DOM.MealPlanning;
 using DOM.Recipes.Ingredients;
@@ -14,16 +15,18 @@ public class GroceryManager : IGroceryManager
 {
     private readonly IGroceryRepository _groceryRepository;
     private readonly IAccountRepository _accountRepository;
+    private readonly IIngredientRepository _ingredientRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<GroceryManager> _logger;
 
     public GroceryManager(IGroceryRepository groceryRepository, IMapper mapper, ILogger<GroceryManager> logger,
-        IAccountRepository accountRepository)
+        IAccountRepository accountRepository, IIngredientRepository ingredientRepository)
     {
         _groceryRepository = groceryRepository;
         _mapper = mapper;
         _logger = logger;
         _accountRepository = accountRepository;
+        _ingredientRepository = ingredientRepository;
     }
 
     public void CreateNewGroceryList(GroceryList groceryList)
@@ -31,14 +34,17 @@ public class GroceryManager : IGroceryManager
         _groceryRepository.CreateGroceryList(groceryList);
     }
 
-    public GroceryListDto getGroceryListWithNextWeek(Guid accountId)
+    public GroceryListDto GetGroceryListWithNextWeek(Guid accountId)
     {
         var account = _accountRepository.ReadAccountWithMealPlannerNextWeekAndWithGroceryList(accountId);
         var completeGroceryList = account.GroceryList;
 
         foreach (var plannedMeal in account.Planner.NextWeek)
         {
-            completeGroceryList.Ingredients = completeGroceryList.Ingredients.Concat(plannedMeal.Ingredients);
+            foreach (var ingredient in plannedMeal.Ingredients)
+            {
+                completeGroceryList.Ingredients.Add(ingredient);
+            }
         }
         
         
@@ -59,58 +65,98 @@ public class GroceryManager : IGroceryManager
         return _mapper.Map<GroceryListDto>(groceryList);
     }
 
-    public void AddItemToGroceryList(Guid groceryListId, ItemQuantityDto newListItem)
+    public void AddItemToGroceryList(Guid userId, ItemQuantityDto newListItem)
     {
-        if (newListItem == null || newListItem.GroceryItem == null)
+        if (newListItem == null)
         {
-            throw new GroceryListItemNotFoundException("Item does not exist.");
+            throw new GroceryListItemNotFoundException("No itemquantityDto provided" );
         }
-
-        var groceryList = _groceryRepository.ReadGroceryListById(groceryListId);
-
-        var existingIngredient = groceryList.Ingredients
-            .FirstOrDefault(i =>
-                i.Ingredient.IngredientName.ToLower() == newListItem.GroceryItem.GroceryItemName.ToLower());
         
-        if (existingIngredient != null)
+        var groceryList = _groceryRepository.ReadGroceryListByAccountId(userId);
+        
+        //if newListItem has quantityId: add item to gl, else update existing row
+        if (newListItem.ItemQuantityId == Guid.Parse("00000000-0000-0000-0000-000000000000"))
         {
-            existingIngredient.Quantity = newListItem.Quantity;
-            _logger.LogInformation($"{existingIngredient} has been updated");
-            _groceryRepository.UpdateGroceryList(groceryList);
-        }
-        else if (existingIngredient == null)
-        {
-            var existingItem = groceryList.Items.FirstOrDefault(i =>
-                i.GroceryItem.GroceryItemName.ToLower() == newListItem.GroceryItem.GroceryItemName.ToLower());
-            if (existingItem != null)
+            if (newListItem.GroceryItem == null)
             {
-                existingItem.Quantity = newListItem.Quantity;
-                _logger.LogInformation($"{existingItem} has been updated");
-                _groceryRepository.UpdateGroceryList(groceryList);
+                throw new GroceryListItemNotFoundException("Item does not exist.");
+            }
+            var name = newListItem.GroceryItem.GroceryItemName;
+            CreateNewItemInGroceryList(groceryList, name, newListItem);
+        }
+        else
+        {
+            UpdateExistingGroceryListItem(newListItem);
+        }
+        _groceryRepository.UpdateGroceryList(groceryList);
+    }
+    
+    public async Task RemoveItemFromGroceryList(Guid userId, ItemQuantityDto removeItem)
+    {
+        if (removeItem.IsIngredient)
+        {
+            await _ingredientRepository.DeleteIngredientQuantity(userId, removeItem.ItemQuantityId);
+        }
+        else
+        {
+            await _groceryRepository.DeleteItemQuantity(userId, removeItem.ItemQuantityId);
+        }
+    }
+
+    private void CreateNewItemInGroceryList(GroceryList groceryList, string name, ItemQuantityDto newListItem)
+    {
+        Ingredient? ingredient = _ingredientRepository.ReadPossibleIngredientByName(name);
+
+        // if no ingredient is found with that id, it is an item
+        if (ingredient == null)
+        {
+            GroceryItem? groceryItem = _groceryRepository.ReadPossibleGroceryItemByName(name);
+            ItemQuantity newItemQuantity;
+            if (groceryItem == null)
+            {
+                var newGroceryItem = new GroceryItem
+                {
+                    GroceryItemName = name,
+                    Measurement = newListItem.GroceryItem.Measurement,
+                };
+                newItemQuantity = new ItemQuantity()
+                {
+                    GroceryItem = newGroceryItem,
+                    Quantity = newListItem.Quantity,
+                };
             }
             else
             {
-                var newItem = new ItemQuantity
+                newItemQuantity = new ItemQuantity()
                 {
-                    ItemQuantityId = Guid.NewGuid(),
+                    GroceryItem = groceryItem,
                     Quantity = newListItem.Quantity,
-                    GroceryList = groceryList,
-                    GroceryItem = new GroceryItem()
-                    {
-                        GroceryItemId = newListItem.GroceryItem.GroceryItemId,
-                        GroceryItemName = newListItem.GroceryItem.GroceryItemName,
-                        Measurement = newListItem.GroceryItem.Measurement,
-                    }
                 };
-                groceryList.Items = groceryList.Items.Append(newItem).ToList();
-                _groceryRepository.AddGroceryListItem(groceryList, newItem);
-                _logger.LogInformation(newListItem.GroceryItem.GroceryItemId + " has been added to grocery list");
             }
+            groceryList.Items.Add(newItemQuantity);
+        }
+        else
+        {
+            groceryList.Ingredients.Add(new IngredientQuantity()
+            {
+                Ingredient = ingredient,
+                Quantity = newListItem.Quantity,
+            });
         }
     }
-    
-    public async Task RemoveItemFromGroceryList(Guid groceryListId, Guid itemId)
+
+    private void UpdateExistingGroceryListItem(ItemQuantityDto newListItem)
     {
-        await _groceryRepository.DeleteItemFromGroceryList(groceryListId, itemId);
+        if (newListItem.IsIngredient)
+        {
+            IngredientQuantity ingredientQuantity = _ingredientRepository.ReadIngredientQuantityById(newListItem.ItemQuantityId);
+            ingredientQuantity.Quantity = newListItem.Quantity;
+        }
+        else
+        {
+            ItemQuantity itemQuantity = _groceryRepository.ReadItemQuantityById(newListItem.ItemQuantityId);
+            itemQuantity.Quantity = newListItem.Quantity;
+        }
+        
     }
 }
