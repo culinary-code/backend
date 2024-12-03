@@ -105,19 +105,20 @@ public class GroceryManager : IGroceryManager
 
     private void CreateNewItemInGroceryList(GroceryList groceryList, string name, ItemQuantityDto newListItem)
     {
-        Ingredient? ingredient = _ingredientRepository.ReadPossibleIngredientByName(name);
+        MeasurementType measurementType = newListItem.GroceryItem.Measurement;
+        Ingredient? ingredient = _ingredientRepository.ReadPossibleIngredientByNameAndMeasurement(name, measurementType);
 
         // if no ingredient is found with that id, it is an item
         if (ingredient == null)
         {
-            GroceryItem? groceryItem = _groceryRepository.ReadPossibleGroceryItemByName(name);
+            GroceryItem? groceryItem = _groceryRepository.ReadPossibleGroceryItemByNameAndMeasurement(name, measurementType);
             ItemQuantity newItemQuantity;
             if (groceryItem == null)
             {
                 var newGroceryItem = new GroceryItem
                 {
                     GroceryItemName = name,
-                    Measurement = newListItem.GroceryItem.Measurement,
+                    Measurement = measurementType,
                 };
                 newItemQuantity = new ItemQuantity()
                 {

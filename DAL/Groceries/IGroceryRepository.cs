@@ -8,7 +8,7 @@ public interface IGroceryRepository
     GroceryList ReadGroceryListById(Guid id);
     ItemQuantity ReadItemQuantityById(Guid id);
     GroceryList ReadGroceryListByAccountId(Guid accountId);
-    GroceryItem? ReadPossibleGroceryItemByName(string name);
+    GroceryItem? ReadPossibleGroceryItemByNameAndMeasurement(string name, MeasurementType measurement);
     void CreateGroceryList(GroceryList groceryList);
     void UpdateGroceryList(GroceryList groceryList);
     void AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem);

@@ -61,9 +61,9 @@ public class GroceryRepository : IGroceryRepository
         return groceryList;
     }
 
-    public GroceryItem? ReadPossibleGroceryItemByName(string name)
+    public GroceryItem? ReadPossibleGroceryItemByNameAndMeasurement(string name, MeasurementType measurementType)
     {
-        return _ctx.GroceryItems.FirstOrDefault(gi => gi.GroceryItemName == name);
+        return _ctx.GroceryItems.FirstOrDefault(gi => gi.GroceryItemName == name && gi.Measurement == measurementType);
     }
 
     public void CreateGroceryList(GroceryList groceryList)

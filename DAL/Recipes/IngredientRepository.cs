@@ -46,9 +46,9 @@ public class IngredientRepository : IIngredientRepository
         return ingredient;
     }
 
-    public Ingredient? ReadPossibleIngredientByName(string name)
+    public Ingredient? ReadPossibleIngredientByNameAndMeasurement(string name, MeasurementType measurementType)
     {
-        return _ctx.Ingredients.FirstOrDefault(i => i.IngredientName == name);
+        return _ctx.Ingredients.FirstOrDefault(i => i.IngredientName == name && i.Measurement == measurementType);
 
     }
 
