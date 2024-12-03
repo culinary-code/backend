@@ -187,6 +187,4 @@ public class AccountController: ControllerBase
             return BadRequest("Failed to add favorite recipe.");
         }
     }
-
-
 }

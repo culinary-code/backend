@@ -126,11 +126,6 @@ public AccountDto AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId)
 
     var recipe = _recipeRepository.ReadRecipeById(recipeId);
 
-    if (recipe == null)
-    {
-        throw new RecipeNotFoundException($"Recipe with ID {recipeId} not found.");
-    }
-
     var favoriteRecipe = new FavoriteRecipe()
     {
         Recipe = recipe, 
@@ -140,11 +135,13 @@ public AccountDto AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId)
     
     account.FavoriteRecipes.Add(favoriteRecipe);
     _accountRepository.UpdateAccount(account);
+    
+    recipe.LastUsedAt = DateTime.UtcNow;
+    _recipeRepository.UpdateRecipe(recipe);
 
     _logger.LogInformation($"Added new favorite recipe '{recipe.RecipeName}' to account {accountId}");
     return _mapper.Map<AccountDto>(account);
 }
-
 
 public void RemovePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
