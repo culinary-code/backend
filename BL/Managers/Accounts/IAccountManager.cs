@@ -9,10 +9,12 @@ public interface IAccountManager
     AccountDto GetAccountById(string id);
     List<PreferenceDto> GetPreferencesByUserId(Guid userId);
     List<RecipeDto> GetFavoriteRecipesByUserId(Guid userId);
+    List<FavoriteRecipeDto> GetFavoriteListByUserId(Guid userId);
     AccountDto UpdateAccount(AccountDto account);
     public AccountDto UpdateFamilySize(AccountDto updatedAccount);
     void CreateAccount(string username, string email, Guid userId);
     AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto);
     AccountDto AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId);
+    Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid favoriteRecipeId);
     void RemovePreferenceFromAccount(Guid accountId, Guid preferenceId);
 }
