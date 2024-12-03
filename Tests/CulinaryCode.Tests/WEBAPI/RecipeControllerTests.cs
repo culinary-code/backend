@@ -1,8 +1,13 @@
-﻿using BL.DTOs.Llm;
+﻿using BL.DTOs.Accounts;
+using BL.DTOs.Llm;
 using BL.DTOs.Recipes;
+using BL.Managers.Accounts;
 using BL.Managers.Recipes;
+using BL.Services;
 using CulinaryCode.Tests.Util;
+using DOM.Accounts;
 using DOM.Exceptions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -13,14 +18,18 @@ namespace CulinaryCode.Tests.WEBAPI;
 public class RecipeControllerTests
 {
     private readonly Mock<IRecipeManager> _recipeManagerMock;
+    private readonly Mock<IIdentityProviderService> _identityProviderService;
+    private readonly Mock<IAccountManager> _accountManagerMock;
     private readonly Mock<ILogger<RecipeController>> _loggerMock;
     private readonly RecipeController _controller;
 
     public RecipeControllerTests()
     {
+        _identityProviderService = new Mock<IIdentityProviderService>();
+        _accountManagerMock = new Mock<IAccountManager>();
         _recipeManagerMock = new Mock<IRecipeManager>();
         _loggerMock = new Mock<ILogger<RecipeController>>();
-        _controller = new RecipeController(_loggerMock.Object, _recipeManagerMock.Object );
+        _controller = new RecipeController(_loggerMock.Object, _recipeManagerMock.Object, _identityProviderService.Object, _accountManagerMock.Object);
     }
 
     [Fact]
@@ -158,10 +167,29 @@ public class RecipeControllerTests
     public void CreateRecipe_ReturnsOk_WhenRecipeIsAdded()
     {
         // Arrange
+        var token = "Bearer testtoken";
+
         var recipeName = "Spaghetti Bolognese";
         var recipeDto = new RecipeDto { RecipeId = Guid.NewGuid(), RecipeName = recipeName };
         var recipeFilterDto = RecipeFilterDtoUtil.CreateRecipeFilterDto(recipeName: recipeName);
-        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto)).Returns(recipeDto);
+        var preferences = PreferenceListDtoUtil.CreatePreferenceListDto();
+        var userid = new Guid();
+        
+        // Set up the controller context to simulate HTTP request and Authorization header
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+        _controller.ControllerContext.HttpContext.Request.Headers["Authorization"] = token;
+        
+        _identityProviderService
+            .Setup(x => x.GetGuidFromAccessToken(It.IsAny<string>()))
+            .Returns(userid);
+        _accountManagerMock
+            .Setup(service => service.GetPreferencesByUserId(It.Is<Guid>(id => id == userid)))
+            .Returns(preferences);
+        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto, preferences)).Returns(recipeDto);
+
 
         // Act
         var result = _controller.CreateRecipe(recipeFilterDto);
@@ -175,9 +203,19 @@ public class RecipeControllerTests
     public void CreateRecipe_ReturnsBadRequest_WhenRecipeIsNotAdded()
     {
         // Arrange
+        var token = "Bearer testtoken";
+
         var recipeName = "Spaghetti Bolognese";
         var recipeFilterDto = RecipeFilterDtoUtil.CreateRecipeFilterDto(recipeName: recipeName);
-        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto)).Returns(null as RecipeDto);
+        var preferences = PreferenceListDtoUtil.CreatePreferenceListDto();
+        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto, preferences)).Returns(null as RecipeDto);
+        
+        // Set up the controller context to simulate HTTP request and Authorization header
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+        _controller.ControllerContext.HttpContext.Request.Headers["Authorization"] = token;
         
         // Act
         var result = _controller.CreateRecipe(recipeFilterDto);
@@ -190,16 +228,26 @@ public class RecipeControllerTests
     public void CreateRecipe_ThrowsExceptionWithErrorMessage_WhenRecipeIsNotAllowed()
     {
         // Arrange
+        var token = "Bearer testtoken";
+
         var recipeName = "Baksteensoep";
         var recipeFilterDto = RecipeFilterDtoUtil.CreateRecipeFilterDto(recipeName: recipeName);
+        var preferences = PreferenceListDtoUtil.CreatePreferenceListDto();
 
-        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto))
+        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto, preferences))
             .Throws(new RecipeNotAllowedException($"Recipe with name {recipeName} is not allowed."));
+                
+        // Set up the controller context to simulate HTTP request and Authorization header
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+        _controller.ControllerContext.HttpContext.Request.Headers["Authorization"] = token;
         
         // Act
         var result = _controller.CreateRecipe(recipeFilterDto);
         
         // Assert
-        Assert.IsType<BadRequestObjectResult>(result);
+        Assert.IsType<BadRequestResult>(result);
     }
 }

@@ -97,6 +97,7 @@ public class AccountController: ControllerBase
         }
     }
     
+    
     [HttpPost("addPreference")]
     public async Task<IActionResult> AddPreference([FromBody] PreferenceDto preferenceDto)
     {
