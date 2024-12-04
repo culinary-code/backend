@@ -46,7 +46,7 @@ public class AccountManager : IAccountManager
         var favoriteRecipes = _accountRepository.ReadFavoriteRecipesByUserId(userId);
         return _mapper.Map<List<RecipeDto>>(favoriteRecipes);
     }
-    
+
     public AccountDto UpdateAccount(AccountDto updatedAccount)
     {
         var account = _accountRepository.ReadAccount(updatedAccount.AccountId);
