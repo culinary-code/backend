@@ -1,6 +1,8 @@
 ﻿using BL.DTOs.Accounts;
+using BL.Managers.Accounts;
 using BL.Services;
 using DOM.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WEBAPI.Controllers;
@@ -10,13 +12,15 @@ namespace WEBAPI.Controllers;
 public class KeyCloakController : ControllerBase, IIdentityProviderController
 {
     private readonly IIdentityProviderService _identityProviderService;
+    private readonly IAccountManager _accountManager;
     private readonly ILogger<KeyCloakController> _logger;
 
 
-    public KeyCloakController(IIdentityProviderService identityProviderService, ILogger<KeyCloakController> logger)
+    public KeyCloakController(IIdentityProviderService identityProviderService, ILogger<KeyCloakController> logger, IAccountManager accountManager)
     {
         _identityProviderService = identityProviderService;
         _logger = logger;
+        _accountManager = accountManager;
     }
     
     [HttpPost("register")]
@@ -65,6 +69,29 @@ public class KeyCloakController : ControllerBase, IIdentityProviderController
         {
             _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
             return BadRequest($"Could not register new user. Try again later.");
+        }
+    }
+    
+    [HttpPost("login")]
+    [Authorize]
+    public async Task<IActionResult> CheckIfUserAccountExistsOrCreate()
+    {
+        var token = Request.Headers["Authorization"].ToString().Substring(7);
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
+        
+        // Check if user exists in our database
+        try
+        {
+            var account = _accountManager.GetAccountById(userId.ToString());
+            
+            return Ok("User account exists.");
+        } catch (AccountNotFoundException)
+        {
+            // If user does not exist, create a new account
+            var (username, email) = _identityProviderService.GetUsernameAndEmailFromAccessToken(token);
+            _accountManager.CreateAccount(username, email, userId);
+            
+            return Created("", "User account created.");
         }
     }
 }

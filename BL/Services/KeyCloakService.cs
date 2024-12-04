@@ -132,6 +132,27 @@ public class KeyCloakService : IIdentityProviderService
         throw new JwtTokenException("Failed to get userId from account token");
     }
 
+    public (string, string) GetUsernameAndEmailFromAccessToken(string accessToken)
+    {
+        // Initialize the JWT token handler
+        var tokenHandler = new JwtSecurityTokenHandler();
+
+        // Validate the token format and decode it if it's a valid JWT
+        if (tokenHandler.CanReadToken(accessToken))
+        {
+            var jwtToken = tokenHandler.ReadJwtToken(accessToken);
+
+            // Extract the "preferred_username" claim (which usually contains the username in Keycloak tokens)
+            var usernameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value;
+
+            // Extract the "email" claim (which usually contains the email in Keycloak tokens)
+            var emailClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+
+            return (usernameClaim, emailClaim)!;
+        }
+        throw new JwtTokenException("Failed to get username and email from account token");
+    }
+
     public async Task UpdateUsernameAsync(AccountDto account, string newUsername)
     {
         string accessToken = "";
