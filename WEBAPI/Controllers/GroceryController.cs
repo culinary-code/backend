@@ -27,12 +27,13 @@ public class GroceryController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("{groceryListId}")]
-    public IActionResult GetGroceryListById(string groceryListId)
+    [HttpGet("grocery-list")]
+    public IActionResult GetGroceryListById()
     {
         try
         {
-            var groceryList = _groceryManager.GetGroceryList(groceryListId);
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+            var groceryList = _groceryManager.GetGroceryListWithNextWeek(userId);
             return Ok(groceryList);
         }
         catch (GroceryListNotFoundException e)
@@ -43,7 +44,7 @@ public class GroceryController : ControllerBase
     }
     
     [HttpGet("account/grocery-list")]
-    public IActionResult GetGroceryListByAccessToken([FromHeader(Name = "Authorization")] string accessToken)
+    public IActionResult GetGroceryListByAccessToken()
     {
         try
         {
@@ -62,40 +63,37 @@ public class GroceryController : ControllerBase
         }
     }
 
-    [HttpPut("{groceryListId}/add-item")]
-    public IActionResult AddItemToGroceryList(Guid groceryListId, [FromBody] ItemQuantityDto newItem)
+    [HttpPut("grocery-list/add-item")]
+    public IActionResult AddItemToGroceryList([FromBody] ItemQuantityDto newItem)
     {
-        if (newItem == null)
-        {
-            _logger.LogError($"Item was null for {groceryListId}");
-            return BadRequest("ItemQuantity is required!");
-        }
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
 
         try
         {
-            _groceryManager.AddItemToGroceryList(groceryListId, newItem);
+            _groceryManager.AddItemToGroceryList(userId, newItem);
             _logger.LogInformation("Item added to grocery list.");
-            return Ok($"{newItem} added to {groceryListId} grocery list.");
+            return Ok($"{newItem} added to grocery list of account: {userId}.");
         }
         catch (GroceryListNotFoundException ex)
         {
-            _logger.LogError($"Grocery list was not found for {groceryListId}");
+            _logger.LogError($"Grocery list was not found for account with id: {userId}");
             return BadRequest(ex.Message);
         }
     }
     
-    [HttpDelete("{groceryListId}/items/{itemQuantityId}")]
-    public async Task<IActionResult> DeleteItemFromList(Guid groceryListId, Guid itemQuantityId)
+    [HttpDelete("grocery-list/items")]
+    public async Task<IActionResult> DeleteItemFromList([FromBody] ItemQuantityDto removeItem)
     {
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
         try
         {
-            await _groceryManager.RemoveItemFromGroceryList(groceryListId, itemQuantityId);
-            _logger.LogInformation("Item {ItemQuantityId} deleted from grocery list {GroceryListId}.", itemQuantityId, groceryListId);
+            await _groceryManager.RemoveItemFromGroceryList(userId, removeItem);
+            _logger.LogInformation("Item {ItemQuantityId} deleted from grocery list of account {UserId}.", removeItem.ItemQuantityId, userId);
             return Ok(new { message = "Item deleted successfully." });
         }
         catch (GroceryListNotFoundException)
         {
-            _logger.LogWarning("Grocery list {GroceryListId} or item {ItemQuantityId} not found.", groceryListId, itemQuantityId);
+            _logger.LogWarning("Grocery list of account {UserId} or item {ItemQuantityId} not found.", userId, removeItem.ItemQuantityId);
             return NotFound(new { message = "Grocery list or item not found." });
         }
     }

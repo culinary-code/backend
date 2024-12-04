@@ -44,22 +44,19 @@ public class MappingProfile : Profile
         CreateMap<IngredientDto, Ingredient>(); // From IngredientDto to Ingredient
         
         // GroceryItem mappings
-        CreateMap<GroceryItem, IngredientDto>(); // From GroceryItem to IngredientDto
-        CreateMap<IngredientDto, GroceryItem>(); // From IngredientDto to GroceryItem
+        CreateMap<GroceryItem, GroceryItemDto>(); // From GroceryItem to GroceryItemDto
+        CreateMap<GroceryItemDto, GroceryItem>(); // From GroceryItemDto to GroceryItem
 
         // IngredientQuantity mappings
-        CreateMap<IngredientQuantity, IngredientQuantityDto>(); // From IngredientQuantity to IngredientQuantityDto
+        CreateMap<IngredientQuantity, IngredientQuantityDto>() // from 
+            .ForMember(dest => dest.RecipeName, opt => opt.MapFrom(src =>
+                src.PlannedMeal != null && src.PlannedMeal.Recipe != null // not every ingredientquantity has a planned meal, could be linked to a recipe or a groceryList
+                    ? src.PlannedMeal.Recipe.RecipeName 
+                    : string.Empty)); // map the recipename from the planned meal to the dto recipeName property
         CreateMap<IngredientQuantityDto, IngredientQuantity>(); // From IngredientQuantityDto to IngredientQuantity
 
         // ItemQuantity mappings
-        CreateMap<ItemQuantity, ItemQuantityDto>()
-            .ForMember(dest => dest.IngredientQuantityId, opt => opt.MapFrom(src => src.ItemQuantityId)) 
-            .ForMember(dest => dest.Ingredient, opt => opt.MapFrom(src => src.GroceryItem != null ? new IngredientDto
-            {
-                IngredientId = src.GroceryItem.GroceryItemId,
-                IngredientName = src.GroceryItem.GroceryItemName,
-                Measurement = src.GroceryItem.Measurement
-            } : null));
+        CreateMap<ItemQuantity, ItemQuantityDto>(); // From ItemQuantity to ItemQuantityDto
         CreateMap<ItemQuantityDto, ItemQuantity>(); // From ItemQuantityDto to ItemQuantity
         
         // FavoriteRecipe mappings

@@ -33,6 +33,16 @@ public class GroceryRepository : IGroceryRepository
         return groceryList;
     }
 
+    public ItemQuantity ReadItemQuantityById(Guid id)
+    {
+        ItemQuantity? itemQuantity = _ctx.ItemQuantities.Find(id);
+        if (itemQuantity == null)
+        {
+            throw new ItemQuantityNotFoundException($"No itemQuantity found with id {id}");
+        }
+        return itemQuantity;
+    }
+
     public GroceryList ReadGroceryListByAccountId(Guid accountId)
     {
         var groceryList = _ctx.GroceryLists
@@ -49,6 +59,11 @@ public class GroceryRepository : IGroceryRepository
         }
 
         return groceryList;
+    }
+
+    public GroceryItem? ReadPossibleGroceryItemByNameAndMeasurement(string name, MeasurementType measurementType)
+    {
+        return _ctx.GroceryItems.FirstOrDefault(gi => gi.GroceryItemName == name && gi.Measurement == measurementType);
     }
 
     public void CreateGroceryList(GroceryList groceryList)
@@ -70,48 +85,24 @@ public class GroceryRepository : IGroceryRepository
             throw new GroceryListNotFoundException("Grocery list or new item cannot be null.");
         }
         
-        groceryList.Items.Append(newItem); 
+        groceryList.Items.Add(newItem); 
 
         _ctx.ItemQuantities.Add(newItem);
         _ctx.GroceryItems.Add(newItem.GroceryItem);
 
         _ctx.SaveChanges();
     }
-    
-    public async Task DeleteItemFromGroceryList(Guid groceryListId, Guid itemId)
+
+    public async Task DeleteItemQuantity(Guid userId, Guid itemId)
     {
-        var groceryList = await _ctx.GroceryLists
-            .Include(gl => gl.Items) 
-            .ThenInclude(i => i.GroceryItem)
-            .Include(gl => gl.Ingredients)
-            .ThenInclude(i => i.Ingredient)
-            .FirstOrDefaultAsync(gl => gl.GroceryListId == groceryListId);
-
-        if (groceryList == null)
+        var itemQuantity = _ctx.ItemQuantities
+                .Include(i => i.GroceryList)
+                .ThenInclude(i => i.Account)
+                .First(i => i.ItemQuantityId == itemId);
+        if (itemQuantity.GroceryList!.Account!.AccountId == userId)
         {
-            throw new GroceryListNotFoundException("Grocery list not found.");
+            _ctx.ItemQuantities.Remove(itemQuantity);
+            await _ctx.SaveChangesAsync();
         }
-        
-        var itemToDelete = groceryList.Items?.FirstOrDefault(i => i.ItemQuantityId == itemId); 
-
-        if (itemToDelete != null)
-        {
-            GroceryItem? item = itemToDelete.GroceryItem;
-            _ctx.ItemQuantities.Remove(itemToDelete);
-            if (item != null) _ctx.GroceryItems.Remove(item);
-        }
-        else
-        {
-            var ingredientToDelete = groceryList.Ingredients?.FirstOrDefault(i => i.IngredientQuantityId == itemId);
-            if (ingredientToDelete != null)
-            {
-                _ctx.IngredientQuantities.Remove(ingredientToDelete);
-            }
-            else
-            {
-                throw new GroceryListNotFoundException("Item not found.");
-            }
-        }
-        await _ctx.SaveChangesAsync();
     }
 }

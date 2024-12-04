@@ -3,6 +3,7 @@ using System.Linq;
 using DAL.EF;
 using DOM.Exceptions;
 using DOM.Recipes.Ingredients;
+using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Recipes;
 
@@ -25,6 +26,16 @@ public class IngredientRepository : IIngredientRepository
         return ingredient;
     }
 
+    public IngredientQuantity ReadIngredientQuantityById(Guid id)
+    {
+        IngredientQuantity? ingredientQuantity = _ctx.IngredientQuantities.Find(id);
+        if (ingredientQuantity is null)
+        {
+            throw new IngredientQuantityNotFoundException($"No ingredientQuantity found with id {id}");
+        }
+        return ingredientQuantity;
+    }
+
     public Ingredient ReadIngredientByName(string name)
     {
         Ingredient? ingredient = _ctx.Ingredients.FirstOrDefault(i => i.IngredientName == name);
@@ -33,6 +44,12 @@ public class IngredientRepository : IIngredientRepository
             throw new IngredientNotFoundException($"No ingredient found with name {name}");
         }
         return ingredient;
+    }
+
+    public Ingredient? ReadPossibleIngredientByNameAndMeasurement(string name, MeasurementType measurementType)
+    {
+        return _ctx.Ingredients.FirstOrDefault(i => i.IngredientName == name && i.Measurement == measurementType);
+
     }
 
     public Ingredient ReadIngredientByNameAndMeasurementType(string name, MeasurementType measurementType)
@@ -55,5 +72,54 @@ public class IngredientRepository : IIngredientRepository
     public void UpdateIngredient(Ingredient ingredient)
     {
         _ctx.Ingredients.Update(ingredient);
+    }
+
+    public async Task DeleteIngredientQuantity(Guid userId, Guid ingredientQuantityId)
+    {
+        var ingredientQuantity = await _ctx.IngredientQuantities
+            .Include(i => i.GroceryList)
+                .ThenInclude(g => g.Account)
+            .Include(i => i.PlannedMeal)
+                .ThenInclude(p => p.NextWeekMealPlanner)
+                .ThenInclude(n => n.Account)
+            .FirstOrDefaultAsync(i => i.IngredientQuantityId == ingredientQuantityId);
+
+        if (ingredientQuantity == null)
+        {
+            throw new IngredientQuantityNotFoundException($"No ingredientQuantity found with id {ingredientQuantityId}");
+        }
+
+        if (ingredientQuantity.GroceryList != null)
+        {
+            if (ingredientQuantity.GroceryList.Account!.AccountId == userId)
+            {
+                _ctx.IngredientQuantities.Remove(ingredientQuantity);
+                await _ctx.SaveChangesAsync();
+            }
+            else
+            {
+                throw new AccountMismatchException(
+                    "The ingredient quantity you are trying to remove belongs to another account");
+            }
+            
+        }else if (ingredientQuantity.PlannedMeal != null)
+        {
+            if(ingredientQuantity.PlannedMeal.NextWeekMealPlanner!.Account!.AccountId == userId)
+            {
+                _ctx.IngredientQuantities.Remove(ingredientQuantity);
+                await _ctx.SaveChangesAsync();
+            }
+            else
+            {
+                throw new AccountMismatchException(
+                    "The ingredient quantity you are trying to remove belongs to another account");
+            }
+        }
+        else
+        {
+            throw new IngredientQuantityNotFoundException(
+                "The ingredient quantity you are trying to remove belongs to a recipe");
+        }
+        
     }
 }

@@ -8,7 +8,7 @@ public class PlannedMeal
 {
     [Key] public Guid PlannedMealId { get; set; }
     public int AmountOfPeople { get; set; }
-    public IEnumerable<IngredientQuantity> Ingredients { get; set; } = new List<IngredientQuantity>();
+    public ICollection<IngredientQuantity> Ingredients { get; set; } = new List<IngredientQuantity>();
     public Recipe? Recipe { get; set; }
     
     public DateTime PlannedDate { get; set; }

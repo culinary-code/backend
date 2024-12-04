@@ -44,13 +44,10 @@ public class MealPlannerManager : IMealPlannerManager
         var linkedRecipe = _recipeRepository.ReadRecipeById(plannedMealDto.Recipe.RecipeId);
         var linkedIngredientQuantities = new List<IngredientQuantity>();
         
-        GroceryList groceryList = _groceryRepository.ReadGroceryListByAccountId(userId);
-
         foreach (var ingredientQuantityDto in plannedMealDto.Ingredients)
         {
             var ingredientQuantity = new IngredientQuantity()
             {
-                GroceryList = groceryList,
                 Quantity = ingredientQuantityDto.Quantity,
                 Ingredient = _ingredientRepository.ReadIngredientById(ingredientQuantityDto.Ingredient.IngredientId)
             };
@@ -64,13 +61,11 @@ public class MealPlannerManager : IMealPlannerManager
             AmountOfPeople = plannedMealDto.AmountOfPeople,
             Ingredients = linkedIngredientQuantities,
             NextWeekMealPlanner = mealPlanner
-            
         };
         
         linkedRecipe.LastUsedAt = DateTime.UtcNow;
         
         await _mealPlannerRepository.CreatePlannedMeal(plannedMeal);
-        _groceryRepository.UpdateGroceryList(groceryList);
         
     }
 

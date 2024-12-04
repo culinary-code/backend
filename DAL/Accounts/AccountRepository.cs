@@ -40,6 +40,36 @@ public class AccountRepository : IAccountRepository
         return account;
     }
 
+    public Account ReadAccountWithMealPlannerNextWeekAndWithGroceryList(Guid id)
+    {
+        var account = _ctx.Accounts
+            .Include(a => a.GroceryList)
+                .ThenInclude(gl => gl!.Ingredients)
+                .ThenInclude(iq => iq.Ingredient)
+            .Include(a => a.GroceryList)
+                .ThenInclude(gl => gl!.Ingredients)
+                .ThenInclude(iq => iq.PlannedMeal)
+                .ThenInclude(p => p.Recipe )
+            .Include(a => a.GroceryList)
+                .ThenInclude(gl => gl!.Items)
+                .ThenInclude(i => i.GroceryItem)
+            .Include(a => a.Planner)
+                .ThenInclude(p => p!.NextWeek)
+                .ThenInclude(n => n.Ingredients)
+                .ThenInclude(iq => iq.Ingredient)
+            .Include(a => a.Planner)
+                .ThenInclude(p => p!.NextWeek)
+                .ThenInclude(p => p.Recipe)
+            .FirstOrDefault(a => a.AccountId == id);
+        
+        if (account == null)
+        {
+            throw new AccountNotFoundException("Account not found");
+        }
+        
+        return account;
+    }
+
     public List<Recipe?> ReadFavoriteRecipesByUserId(Guid userId)
     {
         var favoriteRecipes = _ctx.FavoriteRecipes
