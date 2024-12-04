@@ -16,9 +16,9 @@ public class AccountRepository : IAccountRepository
         _ctx = ctx;
     }
     
-    public Account ReadAccount(Guid id)
+    public async Task<Account> ReadAccount(Guid id)
     {
-        Account? account = _ctx.Accounts.Find(id);
+        Account? account = await _ctx.Accounts.FindAsync(id);
         if (account == null)
         {
             throw new AccountNotFoundException("Account not found");
@@ -26,11 +26,11 @@ public class AccountRepository : IAccountRepository
         return account;
     }
 
-    public Account ReadAccountWithPreferencesByAccountId(Guid id)
+    public async Task<Account> ReadAccountWithPreferencesByAccountId(Guid id)
     {
-        var account = _ctx.Accounts
+        var account = await _ctx.Accounts
             .Include(a => a.Preferences)
-            .FirstOrDefault(a => a.AccountId == id);
+            .FirstOrDefaultAsync(a => a.AccountId == id);
         
         if (account == null)
         {
@@ -40,9 +40,9 @@ public class AccountRepository : IAccountRepository
         return account;
     }
 
-    public Account ReadAccountWithMealPlannerNextWeekAndWithGroceryList(Guid id)
+    public async Task<Account> ReadAccountWithMealPlannerNextWeekAndWithGroceryList(Guid id)
     {
-        var account = _ctx.Accounts
+        var account = await _ctx.Accounts
             .Include(a => a.GroceryList)
                 .ThenInclude(gl => gl!.Ingredients)
                 .ThenInclude(iq => iq.Ingredient)
@@ -60,7 +60,7 @@ public class AccountRepository : IAccountRepository
             .Include(a => a.Planner)
                 .ThenInclude(p => p!.NextWeek)
                 .ThenInclude(p => p.Recipe)
-            .FirstOrDefault(a => a.AccountId == id);
+            .FirstOrDefaultAsync(a => a.AccountId == id);
         
         if (account == null)
         {
@@ -70,13 +70,13 @@ public class AccountRepository : IAccountRepository
         return account;
     }
 
-    public List<Recipe?> ReadFavoriteRecipesByUserId(Guid userId)
+    public async Task<List<Recipe?>> ReadFavoriteRecipesByUserId(Guid userId)
     {
-        var favoriteRecipes = _ctx.FavoriteRecipes
+        var favoriteRecipes = await _ctx.FavoriteRecipes
             .Where(fr => fr.Account != null && fr.Account.AccountId == userId)
             .Select(fr => fr.Recipe)
             .Where(r => r != null)
-            .ToList();
+            .ToListAsync();
         if (!favoriteRecipes.Any())
         {
             throw new RecipeNotFoundException("No favorite recipes found for the given account.");
@@ -85,28 +85,28 @@ public class AccountRepository : IAccountRepository
         return favoriteRecipes;
     }
 
-    public void UpdateAccount(Account account)
+    public async Task UpdateAccount(Account account)
     {
         _ctx.Accounts.Update(account);
-        _ctx.SaveChanges();    
+        await _ctx.SaveChangesAsync();    
     }
 
-    public void CreateAccount(Account account)
+    public async Task CreateAccount(Account account)
     {
-        _ctx.Accounts.Add(account);
-        _ctx.SaveChanges(); 
+        await _ctx.Accounts.AddAsync(account);
+        await _ctx.SaveChangesAsync(); 
     }
 
-    public void DeletePreferenceFromAccount(Guid accountId, Guid preferenceId)
+    public async Task DeletePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
-        var account = ReadAccountWithPreferencesByAccountId(accountId);
+        var account = await ReadAccountWithPreferencesByAccountId(accountId);
         var preferenceToRemove = account.Preferences?.FirstOrDefault(p => p.PreferenceId == preferenceId);
         if (preferenceToRemove == null)
         {
             throw new PreferenceNotFoundException("Preference not found for this account");
         } 
         account.Preferences = account.Preferences.Where(p => p.PreferenceId != preferenceId).ToList(); 
-        _ctx.SaveChanges();
+        await _ctx.SaveChangesAsync();
     }
 
 }

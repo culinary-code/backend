@@ -52,7 +52,7 @@ public class MealPlannerRepository : IMealPlannerRepository
 
     public async Task<PlannedMeal> CreatePlannedMeal(PlannedMeal plannedMeal)
     {
-        _ctx.PlannedMeals.Add(plannedMeal);
+        await _ctx.PlannedMeals.AddAsync(plannedMeal);
         await _ctx.SaveChangesAsync();
         return plannedMeal;
     }

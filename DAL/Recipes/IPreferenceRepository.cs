@@ -6,8 +6,8 @@ namespace DAL.Recipes;
 
 public interface IPreferenceRepository
 {
-    public Preference ReadPreferenceById(Guid id);
-    public Preference? ReadPreferenceByName(string name);
-    public ICollection<Preference> ReadStandardPreferences();
-    public Preference CreatePreference(Preference preference);
+    Task<Preference> ReadPreferenceById(Guid id);
+    Task<Preference?> ReadPreferenceByName(string name);
+    Task<ICollection<Preference>> ReadStandardPreferences();
+    Task<Preference> CreatePreference(Preference preference);
 }

@@ -16,15 +16,15 @@ public class GroceryRepository : IGroceryRepository
         _ctx = ctx;
     }
 
-    public GroceryList ReadGroceryListById(Guid id)
+    public async Task<GroceryList> ReadGroceryListById(Guid id)
     {
-        GroceryList? groceryList = _ctx.GroceryLists
+        GroceryList? groceryList = await _ctx.GroceryLists
             .Include(gl => gl.Ingredients)
             .ThenInclude(i => i.Ingredient)
             .Include(gl => gl.Items)
             .ThenInclude(i => i.GroceryItem)
             .Include(gl => gl.Account)
-            .FirstOrDefault(gl => gl.GroceryListId == id);
+            .FirstOrDefaultAsync(gl => gl.GroceryListId == id);
         if (groceryList == null)
         {
             throw new GroceryListNotFoundException("Grocery list not found!");
@@ -33,9 +33,9 @@ public class GroceryRepository : IGroceryRepository
         return groceryList;
     }
 
-    public ItemQuantity ReadItemQuantityById(Guid id)
+    public async Task<ItemQuantity> ReadItemQuantityById(Guid id)
     {
-        ItemQuantity? itemQuantity = _ctx.ItemQuantities.Find(id);
+        ItemQuantity? itemQuantity = await _ctx.ItemQuantities.FindAsync(id);
         if (itemQuantity == null)
         {
             throw new ItemQuantityNotFoundException($"No itemQuantity found with id {id}");
@@ -43,15 +43,15 @@ public class GroceryRepository : IGroceryRepository
         return itemQuantity;
     }
 
-    public GroceryList ReadGroceryListByAccountId(Guid accountId)
+    public async Task<GroceryList> ReadGroceryListByAccountId(Guid accountId)
     {
-        var groceryList = _ctx.GroceryLists
+        var groceryList = await _ctx.GroceryLists
             .Include(gl => gl.Ingredients)
                 .ThenInclude(i => i.Ingredient)
             .Include(gl => gl.Items)
                 .ThenInclude(i => i.GroceryItem)
             .Include(gl => gl.Account)
-            .FirstOrDefault(gl => gl.Account.AccountId == accountId);
+            .FirstOrDefaultAsync(gl => gl.Account.AccountId == accountId);
         
         if (groceryList == null)
         {
@@ -61,24 +61,24 @@ public class GroceryRepository : IGroceryRepository
         return groceryList;
     }
 
-    public GroceryItem? ReadPossibleGroceryItemByNameAndMeasurement(string name, MeasurementType measurementType)
+    public async Task<GroceryItem?> ReadPossibleGroceryItemByNameAndMeasurement(string name, MeasurementType measurementType)
     {
-        return _ctx.GroceryItems.FirstOrDefault(gi => gi.GroceryItemName == name && gi.Measurement == measurementType);
+        return await _ctx.GroceryItems.FirstOrDefaultAsync(gi => gi.GroceryItemName == name && gi.Measurement == measurementType);
     }
 
-    public void CreateGroceryList(GroceryList groceryList)
+    public async Task CreateGroceryList(GroceryList groceryList)
     {
-        _ctx.GroceryLists.Add(groceryList);
-        _ctx.SaveChanges();
+        await _ctx.GroceryLists.AddAsync(groceryList);
+        await _ctx.SaveChangesAsync();
     }
 
-    public void UpdateGroceryList(GroceryList groceryList)
+    public async Task UpdateGroceryList(GroceryList groceryList)
     {
         _ctx.GroceryLists.Update(groceryList);
-        _ctx.SaveChanges();
+        await _ctx.SaveChangesAsync();
     }
     
-    public void AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem)
+    public async Task AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem)
     {
         if (groceryList == null || newItem == null)
         {
@@ -87,18 +87,18 @@ public class GroceryRepository : IGroceryRepository
         
         groceryList.Items.Add(newItem); 
 
-        _ctx.ItemQuantities.Add(newItem);
-        _ctx.GroceryItems.Add(newItem.GroceryItem);
+        await _ctx.ItemQuantities.AddAsync(newItem);
+        await _ctx.GroceryItems.AddAsync(newItem.GroceryItem);
 
-        _ctx.SaveChanges();
+        await _ctx.SaveChangesAsync();
     }
 
     public async Task DeleteItemQuantity(Guid userId, Guid itemId)
     {
-        var itemQuantity = _ctx.ItemQuantities
+        var itemQuantity = await _ctx.ItemQuantities
                 .Include(i => i.GroceryList)
                 .ThenInclude(i => i.Account)
-                .First(i => i.ItemQuantityId == itemId);
+                .FirstAsync(i => i.ItemQuantityId == itemId);
         if (itemQuantity.GroceryList!.Account!.AccountId == userId)
         {
             _ctx.ItemQuantities.Remove(itemQuantity);
