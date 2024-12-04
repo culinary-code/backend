@@ -89,7 +89,7 @@ public class KeyCloakController : ControllerBase, IIdentityProviderController
         {
             // If user does not exist, create a new account
             var (username, email) = _identityProviderService.GetUsernameAndEmailFromAccessToken(token);
-            _accountManager.CreateAccount(username, email, userId);
+            await _accountManager.CreateAccount(username, email, userId);
             
             return Created("", "User account created.");
         }

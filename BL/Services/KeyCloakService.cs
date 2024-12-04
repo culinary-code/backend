@@ -105,7 +105,7 @@ public class KeyCloakService : IIdentityProviderService
             throw new RegisterUserException($"Failed to create user: access token is empty");
         }
         var userId = GetGuidFromAccessToken(accessToken);
-        _accountManager.CreateAccount(username, email, userId);
+        await _accountManager.CreateAccount(username, email, userId);
         
     }
     

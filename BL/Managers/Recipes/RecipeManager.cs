@@ -37,22 +37,22 @@ public class RecipeManager : IRecipeManager
         _logger = logger;
     }
 
-    public RecipeDto GetRecipeDtoById(string id)
+    public async Task<RecipeDto> GetRecipeDtoById(string id)
     {
         Guid parsedGuid = Guid.Parse(id);
-        var recipe = _recipeRepository.ReadRecipeById(parsedGuid);
+        var recipe = await _recipeRepository.ReadRecipeById(parsedGuid);
         return _mapper.Map<RecipeDto>(recipe);
     }
 
-    public RecipeDto GetRecipeDtoByName(string name)
+    public async Task<RecipeDto> GetRecipeDtoByName(string name)
     {
-        var recipe = _recipeRepository.ReadRecipeByName(name);
+        var recipe = await _recipeRepository.ReadRecipeByName(name);
         return _mapper.Map<RecipeDto>(recipe);
     }
 
-    public ICollection<RecipeDto> GetRecipesCollectionByName(string name)
+    public async Task<ICollection<RecipeDto>> GetRecipesCollectionByName(string name)
     {
-        var recipes = _recipeRepository.ReadRecipesCollectionByName(name);
+        var recipes = await _recipeRepository.ReadRecipesCollectionByName(name);
         return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 
@@ -64,12 +64,12 @@ public class RecipeManager : IRecipeManager
         return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 
-    public Task<int> GetAmountOfRecipesAsync()
+    public async Task<int> GetAmountOfRecipesAsync()
     {
-        return _recipeRepository.GetRecipeCountAsync();
+        return await _recipeRepository.GetRecipeCountAsync();
     }
 
-    public RecipeDto? CreateRecipe(RecipeFilterDto request, List<PreferenceDto> preferences)
+    public async Task<RecipeDto?> CreateRecipe(RecipeFilterDto request, List<PreferenceDto> preferences)
     {
         byte attempts = 0;
         var prompt = LlmSettingsService.BuildPrompt(request, preferences);
@@ -85,9 +85,9 @@ public class RecipeManager : IRecipeManager
                     throw new RecipeValidationFailException("Recipe validation failed");
                 }
 
-                var recipe = ConvertGeneratedRecipe(generatedRecipeJson);
+                var recipe = await ConvertGeneratedRecipe(generatedRecipeJson);
 
-                _recipeRepository.CreateRecipe(recipe);
+                await _recipeRepository.CreateRecipe(recipe);
 
                 if (!string.IsNullOrEmpty(recipe.ImagePath))
                 {
@@ -98,7 +98,7 @@ public class RecipeManager : IRecipeManager
                 if (imageUri is not null)
                 {
                     recipe.ImagePath = imageUri!.ToString();
-                    _recipeRepository.UpdateRecipe(recipe);
+                    await _recipeRepository.UpdateRecipe(recipe);
                 }
 
                 return _mapper.Map<RecipeDto>(recipe);
@@ -144,7 +144,7 @@ public class RecipeManager : IRecipeManager
                     throw new RecipeValidationFailException("Recipe validation failed");
                 }
 
-                var recipe = ConvertGeneratedRecipe(generatedRecipeJson);
+                var recipe = await ConvertGeneratedRecipe(generatedRecipeJson);
 
                 await _recipeRepository.CreateRecipeAsync(recipe);
 
@@ -157,7 +157,7 @@ public class RecipeManager : IRecipeManager
                 if (imageUri is not null)
                 {
                     recipe.ImagePath = imageUri!.ToString();
-                    _recipeRepository.UpdateRecipe(recipe);
+                    await _recipeRepository.UpdateRecipe(recipe);
                 }
 
                 return _mapper.Map<RecipeDto>(recipe);
@@ -187,7 +187,7 @@ public class RecipeManager : IRecipeManager
         return null;
     }
 
-    public ICollection<RecipeDto> CreateBatchRecipes(string input)
+    public async Task<ICollection<RecipeDto>> CreateBatchRecipes(string input)
     {
         var recipes = new List<RecipeDto>();
         var recipeJson = JObject.Parse(input);
@@ -197,9 +197,9 @@ public class RecipeManager : IRecipeManager
         {
             var recipeString = recipe.ToString();
 
-            var createdRecipe = ConvertGeneratedRecipe(recipeString);
+            var createdRecipe = await ConvertGeneratedRecipe(recipeString);
 
-            _recipeRepository.CreateRecipe(createdRecipe);
+            await _recipeRepository.CreateRecipe(createdRecipe);
 
             recipes.Add(_mapper.Map<RecipeDto>(createdRecipe));
         }
@@ -269,7 +269,7 @@ public class RecipeManager : IRecipeManager
         return false;
     }
 
-    private Recipe ConvertGeneratedRecipe(string generatedRecipe)
+    private async Task<Recipe> ConvertGeneratedRecipe(string generatedRecipe)
     {
         _logger.LogInformation("Converting generated recipe JSON object to Recipe object");
 
@@ -292,9 +292,9 @@ public class RecipeManager : IRecipeManager
         Enum.TryParse<RecipeType>(recipeType!.ToString(), out var recipeTypeEnum);
         Enum.TryParse<Difficulty>(difficulty!.ToString(), out var difficultyEnum);
 
-        var dietPreference = ConvertDietPreference(diet);
+        var dietPreference = await ConvertDietPreference(diet);
 
-        var ingredientQuantities = ConvertIngredientQuantities(ingredients);
+        var ingredientQuantities = await ConvertIngredientQuantities(ingredients);
 
         var instructionSteps = ConvertInstructionSteps(instructions);
 
@@ -318,10 +318,10 @@ public class RecipeManager : IRecipeManager
         return recipe;
     }
 
-    private Preference ConvertDietPreference(JToken? diet)
+    private async Task<Preference> ConvertDietPreference(JToken? diet)
     {
         Preference dietPreference = null;
-        ICollection<Preference> standardPreferences = _preferenceRepository.ReadStandardPreferences();
+        ICollection<Preference> standardPreferences = await _preferenceRepository.ReadStandardPreferences();
         string dietString = diet?.ToString()!;
         if (diet is not null)
         {
@@ -342,7 +342,7 @@ public class RecipeManager : IRecipeManager
                 PreferenceName = dietString,
                 StandardPreference = false
             };
-            _preferenceRepository.CreatePreference(dietPreference);
+            await _preferenceRepository.CreatePreference(dietPreference);
         }
 
         return dietPreference;
@@ -367,7 +367,7 @@ public class RecipeManager : IRecipeManager
         return instructionSteps;
     }
 
-    private ICollection<IngredientQuantity> ConvertIngredientQuantities(JToken? ingredients)
+    private async Task<ICollection<IngredientQuantity>> ConvertIngredientQuantities(JToken? ingredients)
     {
         ICollection<IngredientQuantity> ingredientQuantities = new List<IngredientQuantity>();
         foreach (var ingredient in ingredients!)
@@ -382,7 +382,7 @@ public class RecipeManager : IRecipeManager
             Ingredient newIngredient;
             try
             {
-                newIngredient =
+                newIngredient = await 
                     _ingredientRepository.ReadIngredientByNameAndMeasurementType(ingredientName,
                         ingredientMeasurementType);
             }
@@ -395,7 +395,7 @@ public class RecipeManager : IRecipeManager
                     IngredientName = ingredientName,
                     Measurement = ingredientMeasurementType
                 };
-                _ingredientRepository.CreateIngredient(newIngredient);
+                await _ingredientRepository.CreateIngredient(newIngredient);
                 _logger.LogInformation("Created new ingredient: {IngredientName}", ingredientName);
             }
 
