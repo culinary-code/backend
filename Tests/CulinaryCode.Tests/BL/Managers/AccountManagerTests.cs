@@ -390,7 +390,7 @@ public class AccountManagerTests
     }
     
     [Fact]
-    public void DeleteFavoriteRecipe_CallsDelete_WhenPreferenceIsDeleted()
+    public async Task DeleteFavoriteRecipe_CallsDelete_WhenPreferenceIsDeleted()
     {
         // Arrange
         var accountId = Guid.NewGuid();
@@ -413,11 +413,11 @@ public class AccountManagerTests
             }
         };
 
-        _mockRepository.Setup(r => r.ReadAccount(accountId)).Returns(account);
+        _mockRepository.Setup(r => r.ReadAccount(accountId)).ReturnsAsync(account);
         _mockRepository.Setup(r => r.DeleteFavoriteRecipeByUserId(accountId, favoriteRecipeId)).Verifiable();
 
         // Act
-        _accountManager.RemoveFavoriteRecipeFromAccount(accountId, favoriteRecipeId);
+        await _accountManager.RemoveFavoriteRecipeFromAccount(accountId, favoriteRecipeId);
 
         // Assert
         _mockRepository.Verify(r => r.DeleteFavoriteRecipeByUserId(accountId, favoriteRecipeId), Times.Once);
