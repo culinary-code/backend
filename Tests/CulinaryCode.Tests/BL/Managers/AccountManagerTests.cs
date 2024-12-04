@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using BL.DTOs.Accounts;
+using BL.DTOs.Recipes;
 using BL.Managers.Accounts;
 using DAL.Accounts;
 using DAL.Recipes;
 using DOM.Accounts;
 using DOM.Exceptions;
+using DOM.Recipes;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit.Abstractions;
@@ -18,6 +20,7 @@ public class AccountManagerTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly AccountManager _accountManager;
     private readonly Mock<IPreferenceRepository> _mockPreferenceRepository;
+    private readonly Mock<IRecipeRepository> _mockRecipeRepository;
     
     
     public AccountManagerTests()
@@ -26,7 +29,8 @@ public class AccountManagerTests
         _loggerMock = new Mock<ILogger<AccountManager>>();
         _mockMapper = new Mock<IMapper>();
         _mockPreferenceRepository = new Mock<IPreferenceRepository>();
-        _accountManager = new AccountManager(_mockRepository.Object, _loggerMock.Object, _mockMapper.Object, _mockPreferenceRepository.Object);
+        _mockRecipeRepository = new Mock<IRecipeRepository>();
+        _accountManager = new AccountManager(_mockRepository.Object, _loggerMock.Object, _mockMapper.Object, _mockPreferenceRepository.Object, _mockRecipeRepository.Object);
     }
     
     [Fact]
@@ -288,6 +292,100 @@ public class AccountManagerTests
         Assert.Equal(accountDto.AccountId, result.AccountId);
         Assert.Single(result.Preferences);
         Assert.Equal(preferenceDto.PreferenceName, result.Preferences.First().PreferenceName);
+    }
+    
+    [Fact]
+        public void GetFavoriteRecipesByUserId_ReturnsMappedFavoriteRecipes_WhenRecipesExist()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var recipeId1 = Guid.NewGuid();
+            var recipeId2 = Guid.NewGuid();
 
+            var favoriteRecipes = new List<Recipe>
+            {
+                new Recipe { RecipeId = recipeId1, RecipeName = "Recipe 1" },
+                new Recipe { RecipeId = recipeId2, RecipeName = "Recipe 2" }
+            };
+
+            _mockRepository.Setup(repo => repo.ReadFavoriteRecipesByUserId(userId)).Returns(favoriteRecipes);
+
+            var expectedRecipes = new List<RecipeDto>
+            {
+                new RecipeDto { RecipeId = recipeId1, RecipeName = "Recipe 1" },
+                new RecipeDto { RecipeId = recipeId2, RecipeName = "Recipe 2" }
+            };
+            _mockMapper.Setup(mapper => mapper.Map<List<RecipeDto>>(favoriteRecipes)).Returns(expectedRecipes);
+
+            // Act
+            var result = _accountManager.GetFavoriteRecipesByUserId(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedRecipes.Count, result.Count);
+            Assert.Equal(expectedRecipes[0].RecipeId, result[0].RecipeId);
+            Assert.Equal(expectedRecipes[1].RecipeId, result[1].RecipeId);
+        }
+
+    [Fact]
+    public void GetFavoriteRecipesByUserId_ThrowsRecipeNotFoundException_WhenNoRecipesExist()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        _mockRepository.Setup(repo => repo.ReadFavoriteRecipesByUserId(userId))
+            .Throws(new RecipeNotFoundException("No favorite recipes found for the given account."));
+
+        // Act & Assert
+        var exception = Assert.Throws<RecipeNotFoundException>(() => _accountManager.GetFavoriteRecipesByUserId(userId));
+        Assert.Equal("No favorite recipes found for the given account.", exception.Message);
+    }
+    
+    [Fact]
+    public void AddFavoriteRecipeToAccount_ReturnsUpdatedAccount_WhenRecipeIsAdded()
+    {
+        // Arrange
+        var accountId = Guid.NewGuid();
+        var recipeId = Guid.NewGuid();
+        var recipeName = "Chocolate Cake";
+
+        var account = new Account
+        {
+            AccountId = accountId,
+            FavoriteRecipes = new List<FavoriteRecipe>()
+        };
+
+        var recipe = new Recipe
+        {
+            RecipeId = recipeId,
+            RecipeName = recipeName
+        };
+
+        _mockRepository.Setup(r => r.ReadAccount(accountId)).Returns(account);
+        _mockRecipeRepository.Setup(r => r.ReadRecipeById(recipeId)).Returns(recipe);
+
+        _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>()))
+            .Returns((Account sourceAccount) => new AccountDto
+            {
+                AccountId = sourceAccount.AccountId,
+                FavoriteRecipes = sourceAccount.FavoriteRecipes.Select(fr => new FavoriteRecipeDto
+                {
+                    FavoriteRecipeId = fr.Recipe.RecipeId,
+                    Recipe = new RecipeDto
+                    {
+                        RecipeId = fr.Recipe.RecipeId,
+                        RecipeName = fr.Recipe.RecipeName
+                    },
+                    CreatedAt = fr.CreatedAt
+                }).ToList()
+            });
+        
+        // Act
+        var result = _accountManager.AddFavoriteRecipeToAccount(accountId, recipeId);
+        
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result.FavoriteRecipes);
+        Assert.Equal(recipeName, result.FavoriteRecipes.First().Recipe.RecipeName);
+        _mockRepository.Verify(r => r.UpdateAccount(It.IsAny<Account>()), Times.Once);
     }
 }

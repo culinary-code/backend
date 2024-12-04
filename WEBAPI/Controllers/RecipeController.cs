@@ -1,7 +1,10 @@
 ﻿using System.Text;
+using AutoMapper;
 using BL.DTOs.Llm;
 using BL.DTOs.Recipes;
+using BL.Managers.Accounts;
 using BL.Managers.Recipes;
+using BL.Services;
 using DOM.Exceptions;
 using DOM.Recipes;
 using Microsoft.AspNetCore.Authorization;
@@ -16,11 +19,15 @@ public class RecipeController : ControllerBase
 {
     private readonly ILogger<RecipeController> _logger;
     private readonly IRecipeManager _recipeManager;
+    private readonly IIdentityProviderService _identityProviderService;
+    private readonly IAccountManager _accountManager;
 
-    public RecipeController(ILogger<RecipeController> logger, IRecipeManager recipeManager)
+    public RecipeController(ILogger<RecipeController> logger, IRecipeManager recipeManager, IIdentityProviderService identityProviderService, IAccountManager accountManager)
     {
         _logger = logger;
         _recipeManager = recipeManager;
+        _identityProviderService = identityProviderService;
+        _accountManager = accountManager;
     }
     
     [HttpGet("{id}")]
@@ -91,7 +98,11 @@ public class RecipeController : ControllerBase
     {
         try
         {
-            var recipe = _recipeManager.CreateRecipe(request);
+            string token = Request.Headers["Authorization"].ToString().Substring(7);
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
+        
+            var preferences = _accountManager.GetPreferencesByUserId(userId);
+            var recipe = _recipeManager.CreateRecipe(request, preferences);
 
             if (recipe is null)
             {

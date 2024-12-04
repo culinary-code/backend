@@ -417,6 +417,21 @@ internal static class CulinaryCodeDbInitializer
             CreatedAt = DateTime.UtcNow,
         });
         
+        Account account2 = new Account
+        {
+            AccountId = new Guid(),
+            Name = "nikl",
+            Email = "nisko@n.n",
+            FamilySize = 4,
+        };
+        context.Accounts.Add(account2);
+        account2.FavoriteRecipes.Add(new FavoriteRecipe()
+        {
+            Recipe = recipe2,
+            CreatedAt = DateTime.UtcNow,
+        });
+        
+        
         // Account reviews
         account1.Reviews = [review1, review2, review3, review4];
         
