@@ -247,6 +247,9 @@ internal static class CulinaryCodeDbInitializer
         recipe1.Reviews.Add(review1);
         recipe1.Reviews.Add(review2);
         recipe1.Reviews.Add(review4);
+        
+        recipe1.AmountOfRatings = 3;
+        recipe1.AverageRating = (review1.AmountOfStars + review2.AmountOfStars + review4.AmountOfStars) / 3.0;
 
         Recipe recipe2 = new Recipe()
         {
@@ -272,6 +275,9 @@ internal static class CulinaryCodeDbInitializer
         recipe2.Instructions.Add(instructionStep8);
 
         recipe2.Reviews.Add(review3);
+        
+        recipe2.AmountOfRatings = 1;
+        recipe2.AverageRating = review3.AmountOfStars;
 
 
         Recipe recipe3 = new Recipe()
@@ -411,6 +417,8 @@ internal static class CulinaryCodeDbInitializer
             CreatedAt = DateTime.UtcNow,
         });
         
+        // Account reviews
+        account1.Reviews = [review1, review2, review3, review4];
         
         
         // Save changes
