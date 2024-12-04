@@ -83,11 +83,11 @@ public class MealPlannerManagerTests
 
         _recipeRepositoryMock
             .Setup(repo => repo.ReadRecipeById(plannedMealDto.Recipe.RecipeId))
-            .Returns(recipe);
+            .ReturnsAsync(recipe);
 
         _ingredientRepositoryMock
             .Setup(repo => repo.ReadIngredientById(It.IsAny<Guid>()))
-            .Returns(new Ingredient());
+            .ReturnsAsync(new Ingredient());
 
         _mealPlannerRepositoryMock
             .Setup(repo => repo.CreatePlannedMeal(It.IsAny<PlannedMeal>()))

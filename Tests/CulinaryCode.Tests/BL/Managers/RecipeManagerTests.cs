@@ -275,7 +275,7 @@ public class RecipeManagerTests
     }
 
     [Fact]
-    public void GetRecipeDtoById_ValidId_ReturnsRecipeDto()
+    public async Task GetRecipeDtoById_ValidId_ReturnsRecipeDto()
     {
         // Arrange
         var recipeId = Guid.NewGuid();
@@ -285,13 +285,13 @@ public class RecipeManagerTests
 
         _mockRepository
             .Setup(repo => repo.ReadRecipeById(recipeId))
-            .Returns(sampleRecipe);
+            .ReturnsAsync(sampleRecipe);
         _mockMapper
             .Setup(mapper => mapper.Map<RecipeDto>(sampleRecipe))
             .Returns(recipeDto);
 
         // Act
-        var result = _recipeManager.GetRecipeDtoById(recipeId.ToString());
+        var result = await _recipeManager.GetRecipeDtoById(recipeId.ToString());
 
         // Assert
         Assert.Equal(recipeDto, result);
@@ -300,7 +300,7 @@ public class RecipeManagerTests
     }
 
     [Fact]
-    public void GetRecipeDtoByName_ValidName_ReturnsRecipeDto()
+    public async Task GetRecipeDtoByName_ValidName_ReturnsRecipeDto()
     {
         // Arrange
         var sampleRecipe = CreateSampleRecipe();
@@ -308,13 +308,13 @@ public class RecipeManagerTests
 
         _mockRepository
             .Setup(repo => repo.ReadRecipeByName(sampleRecipe.RecipeName))
-            .Returns(sampleRecipe);
+            .ReturnsAsync(sampleRecipe);
         _mockMapper
             .Setup(mapper => mapper.Map<RecipeDto>(sampleRecipe))
             .Returns(recipeDto);
 
         // Act
-        var result = _recipeManager.GetRecipeDtoByName(sampleRecipe.RecipeName);
+        var result = await _recipeManager.GetRecipeDtoByName(sampleRecipe.RecipeName);
 
         // Assert
         Assert.Equal(recipeDto, result);
@@ -323,7 +323,7 @@ public class RecipeManagerTests
     }
 
     [Fact]
-    public void GetRecipesCollectionByName_ValidName_ReturnsCollectionOfRecipeDto()
+    public async Task GetRecipesCollectionByName_ValidName_ReturnsCollectionOfRecipeDto()
     {
         // Arrange
         var sampleRecipe = CreateSampleRecipe();
@@ -333,13 +333,13 @@ public class RecipeManagerTests
 
         _mockRepository
             .Setup(repo => repo.ReadRecipesCollectionByName(sampleRecipe.RecipeName))
-            .Returns(sampleRecipes);
+            .ReturnsAsync(sampleRecipes);
         _mockMapper
             .Setup(mapper => mapper.Map<ICollection<RecipeDto>>(sampleRecipes))
             .Returns(recipeDtos);
 
         // Act
-        var result = _recipeManager.GetRecipesCollectionByName(sampleRecipe.RecipeName);
+        var result = await _recipeManager.GetRecipesCollectionByName(sampleRecipe.RecipeName);
 
         // Assert
         Assert.Equal(recipeDtos, result);
@@ -348,7 +348,7 @@ public class RecipeManagerTests
     }
 
     [Fact]
-    public void CreateRecipe_ValidRecipe_ReturnsRecipeDto()
+    public async Task CreateRecipe_ValidRecipe_ReturnsRecipeDto()
     {
         // Arrange
         var sampleRecipeJson = SampleValidRecipeJson();
@@ -369,14 +369,14 @@ public class RecipeManagerTests
             .Verifiable();
         _mockPreferenceRepository
             .Setup(repo => repo.ReadStandardPreferences())
-            .Returns(new List<Preference>());
+            .ReturnsAsync(new List<Preference>());
         _mockMapper
             .Setup(mapper => mapper.Map<RecipeDto>(It.IsAny<Recipe>()))
             .Returns(CreateSampleRecipeFromJsonDto);
 
 
         // Act
-        var result = _recipeManager.CreateRecipe(sampleRecipeFilterDto, samplePreferencesListDto);
+        var result = await _recipeManager.CreateRecipe(sampleRecipeFilterDto, samplePreferencesListDto);
 
         // Assert
         // Assert fields because the RecipeDto is not the same instance as the one returned by the method
@@ -406,7 +406,7 @@ public class RecipeManagerTests
     }
 
     [Fact]
-    public void CreateRecipe_RecipeNotPossible_ThrowsException()
+    public async Task CreateRecipe_RecipeNotPossible_ThrowsException()
     {
         // Arrange
         var recipeDto = RecipeFilterDtoUtil.CreateRecipeFilterDto("Lekkere baksteensoep");
@@ -417,11 +417,11 @@ public class RecipeManagerTests
             .Returns("\"NOT_POSSIBLE with this reason Baksteensoep is niet eetbaar");
         
         // Act & Assert
-        Assert.Throws<RecipeNotAllowedException>(() => _recipeManager.CreateRecipe(recipeDto, preferencesListDto));
+        await Assert.ThrowsAsync<RecipeNotAllowedException>(async () => await _recipeManager.CreateRecipe(recipeDto, preferencesListDto));
     }
 
     [Fact]
-    public void CreateRecipe_RecipeNotValid_ReturnsNull()
+    public async Task CreateRecipe_RecipeNotValid_ReturnsNull()
     {
         // Arrange
         var invalidJson = "{ \"recipeName\": \"Stoofvlees met frietjes\" }";
@@ -434,14 +434,14 @@ public class RecipeManagerTests
             .Returns(invalidJson);
         
         // Act
-        var result = _recipeManager.CreateRecipe(recipeDto, preferencesListDto);
+        var result = await _recipeManager.CreateRecipe(recipeDto, preferencesListDto);
         
         // Assert
         Assert.Null(result);
     }
 
     [Fact]
-    public void CreateRecipe_RecipeJsonNotValid_ReturnsNull()
+    public async Task CreateRecipe_RecipeJsonNotValid_ReturnsNull()
     {
         var brokenJson = "{ \"recipeName\": \"Stoofvlees met frietjes\""; // missing closing bracket
         var preferencesListDto = PreferenceListDtoUtil.CreatePreferenceListDto();
@@ -454,7 +454,7 @@ public class RecipeManagerTests
         
         
         // Act
-        var result = _recipeManager.CreateRecipe(recipeDto, preferencesListDto);
+        var result = await _recipeManager.CreateRecipe(recipeDto, preferencesListDto);
         
         // Assert
         Assert.Null(result);

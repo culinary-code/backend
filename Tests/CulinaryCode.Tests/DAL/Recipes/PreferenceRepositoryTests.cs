@@ -23,7 +23,7 @@ public class PreferenceRepositoryTests
     }
     
     [Fact]
-    public void ReadPreferenceById_PreferenceExists_ReturnsPreference()
+    public async Task ReadPreferenceById_PreferenceExists_ReturnsPreference()
     {
         // Arrange
         var preference = new Preference
@@ -33,10 +33,10 @@ public class PreferenceRepositoryTests
             StandardPreference = false
         };
         _dbContext.Preferences.Add(preference);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
         
         // Act
-        var result = _preferenceRepository.ReadPreferenceById(preference.PreferenceId);
+        var result = await _preferenceRepository.ReadPreferenceById(preference.PreferenceId);
         
         // Assert
         Assert.NotNull(result);
@@ -45,17 +45,17 @@ public class PreferenceRepositoryTests
     }
     
     [Fact]
-    public void ReadPreferenceById_PreferenceDoesNotExist_ThrowsPreferenceNotFoundException()
+    public async Task ReadPreferenceById_PreferenceDoesNotExist_ThrowsPreferenceNotFoundException()
     {
         // Arrange
         var preferenceId = Guid.NewGuid();
         
         // Act & Assert
-        Assert.Throws<PreferenceNotFoundException>(() => _preferenceRepository.ReadPreferenceById(preferenceId));
+        await Assert.ThrowsAsync<PreferenceNotFoundException>(async () => await _preferenceRepository.ReadPreferenceById(preferenceId));
     }
     
     [Fact]
-    public void ReadPreferenceByName_PreferenceExists_ReturnsPreference()
+    public async Task ReadPreferenceByName_PreferenceExists_ReturnsPreference()
     {
         // Arrange
         var preference = new Preference
@@ -65,10 +65,10 @@ public class PreferenceRepositoryTests
             StandardPreference = false
         };
         _dbContext.Preferences.Add(preference);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
         
         // Act
-        var result = _preferenceRepository.ReadPreferenceByName(preference.PreferenceName);
+        var result = await _preferenceRepository.ReadPreferenceByName(preference.PreferenceName);
         
         // Assert
         Assert.NotNull(result);
@@ -77,7 +77,7 @@ public class PreferenceRepositoryTests
     }
     
     [Fact]
-    public void ReadStandardPreferences_PreferencesExist_ReturnsCollectionOfPreferences()
+    public async Task ReadStandardPreferences_PreferencesExist_ReturnsCollectionOfPreferences()
     {
         // Arrange
         var preference1 = new Preference
@@ -94,10 +94,10 @@ public class PreferenceRepositoryTests
         };
         _dbContext.Preferences.Add(preference1);
         _dbContext.Preferences.Add(preference2);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
         
         // Act
-        var result = _preferenceRepository.ReadStandardPreferences();
+        var result = await _preferenceRepository.ReadStandardPreferences();
         
         // Assert
         Assert.NotNull(result);
@@ -107,14 +107,14 @@ public class PreferenceRepositoryTests
     }
     
     [Fact]
-    public void ReadStandardPreferences_NoStandardPreferencesExist_ThrowsPreferenceNotFoundException()
+    public async Task ReadStandardPreferences_NoStandardPreferencesExist_ThrowsPreferenceNotFoundException()
     {
         // Act & Assert
-        Assert.Throws<PreferenceNotFoundException>(() => _preferenceRepository.ReadStandardPreferences());
+        await Assert.ThrowsAsync<PreferenceNotFoundException>(async () => await _preferenceRepository.ReadStandardPreferences());
     }
     
     [Fact]
-    public void CreatePreference_PreferenceDoesNotExist_AddsPreference()
+    public async Task CreatePreference_PreferenceDoesNotExist_AddsPreference()
     {
         // Arrange
         var preference = new Preference
@@ -125,7 +125,7 @@ public class PreferenceRepositoryTests
         };
         
         // Act
-        _preferenceRepository.CreatePreference(preference);
+        await _preferenceRepository.CreatePreference(preference);
         
         // Assert
         Assert.Contains(preference, _dbContext.Preferences);

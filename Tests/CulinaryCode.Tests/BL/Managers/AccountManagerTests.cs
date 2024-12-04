@@ -97,7 +97,7 @@ public class AccountManagerTests
     }
     
     [Fact]
-    public void UpdateAccount_ThrowsAccountNotFoundException_WhenAccountDoesNotExist()
+    public async Task UpdateAccount_ThrowsAccountNotFoundException_WhenAccountDoesNotExist()
     {
         // Arrange
         var accountId = Guid.NewGuid();
@@ -105,7 +105,7 @@ public class AccountManagerTests
         _mockRepository.Setup(manager => manager.ReadAccount(accountId)).ReturnsAsync((Account)null);
 
         // Act & Assert
-        Assert.ThrowsAsync<AccountNotFoundException>(async () => await _accountManager.UpdateAccount(updatedAccount));
+        await Assert.ThrowsAsync<AccountNotFoundException>(async () => await _accountManager.UpdateAccount(updatedAccount));
     }
 
     [Fact]

@@ -23,7 +23,7 @@ public class AccountRepositoryTests
     }
 
     [Fact]
-    public void ReadAccount_AccountExists_ReturnsAccount()
+    public async Task ReadAccount_AccountExists_ReturnsAccount()
     {
         // Arrange
         var account = new Account
@@ -37,7 +37,7 @@ public class AccountRepositoryTests
         _dbContext.SaveChanges();
 
         // Act
-        var result = _accountRepository.ReadAccount(account.AccountId);
+        var result = await _accountRepository.ReadAccount(account.AccountId);
 
         // Assert
         Assert.NotNull(result);
@@ -47,17 +47,17 @@ public class AccountRepositoryTests
     }
     
     [Fact]
-    public void ReadAccount_AccountDoesNotExist_ThrowsAccountNotFoundException()
+    public async Task ReadAccount_AccountDoesNotExist_ThrowsAccountNotFoundException()
     {
         // Arrange
         var accountId = Guid.NewGuid();
         
         // Act & Assert
-        Assert.Throws<AccountNotFoundException>(() => _accountRepository.ReadAccount(accountId));
+        await Assert.ThrowsAsync<AccountNotFoundException>(async () => await _accountRepository.ReadAccount(accountId));
     }
 
     [Fact]
-    public void UpdateAccount_AccountExists_UpdatesAccount()
+    public async Task UpdateAccount_AccountExists_UpdatesAccount()
     {
         // Arrange
         var account = new Account
@@ -72,16 +72,16 @@ public class AccountRepositoryTests
 
         // Act
         account.Name = "Updated Account";
-        _accountRepository.UpdateAccount(account);
+        await _accountRepository.UpdateAccount(account);
 
         // Assert
-        var result = _dbContext.Accounts.Find(account.AccountId);
+        var result = await _dbContext.Accounts.FindAsync(account.AccountId);
         Assert.NotNull(result);
         Assert.Equal(account.AccountId, result.AccountId);
     }
 
     [Fact]
-    public void CreateAccount_ValidAccount_CreatesAccount()
+    public async Task CreateAccount_ValidAccount_CreatesAccount()
     {
         // Arrange
         var account = new Account
@@ -92,10 +92,10 @@ public class AccountRepositoryTests
         };
 
         // Act
-        _accountRepository.CreateAccount(account);
+        await _accountRepository.CreateAccount(account);
 
         // Assert
-        var result = _dbContext.Accounts.Find(account.AccountId);
+        var result = await _dbContext.Accounts.FindAsync(account.AccountId);
         Assert.NotNull(result);
         Assert.Equal(account.AccountId, result.AccountId);
         Assert.Equal(account.Name, result.Name);

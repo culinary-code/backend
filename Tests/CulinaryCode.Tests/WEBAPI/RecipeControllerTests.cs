@@ -33,16 +33,16 @@ public class RecipeControllerTests
     }
 
     [Fact]
-    public void GetRecipeById_ReturnsOk_WhenRecipeExists()
+    public async Task GetRecipeById_ReturnsOk_WhenRecipeExists()
     {
         // Arrange
         var recipeId = Guid.NewGuid();
         var recipeIdString = recipeId.ToString();
         var expectedRecipe = new RecipeDto { RecipeId = recipeId, RecipeName = "Spaghetti Bolognese" };
-        _recipeManagerMock.Setup(manager => manager.GetRecipeDtoById(recipeIdString)).Returns(expectedRecipe);
+        _recipeManagerMock.Setup(manager => manager.GetRecipeDtoById(recipeIdString)).ReturnsAsync(expectedRecipe);
 
         // Act
-        var result = _controller.GetRecipeById(recipeIdString);
+        var result = await _controller.GetRecipeById(recipeIdString);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -50,7 +50,7 @@ public class RecipeControllerTests
     }
 
     [Fact]
-    public void GetRecipeById_ReturnsNotFound_WhenRecipeDoesNotExist()
+    public async Task GetRecipeById_ReturnsNotFound_WhenRecipeDoesNotExist()
     {
         // Arrange
         const string recipeId = "2";
@@ -58,7 +58,7 @@ public class RecipeControllerTests
             .Throws(new RecipeNotFoundException($"Recipe with ID {recipeId} not found."));
 
         // Act
-        var result = _controller.GetRecipeById(recipeId);
+        var result = await _controller.GetRecipeById(recipeId);
 
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -77,15 +77,15 @@ public class RecipeControllerTests
     }
     
     [Fact]
-    public void GetRecipeByName_ReturnsOk_WhenRecipeExists()
+    public async Task GetRecipeByName_ReturnsOk_WhenRecipeExists()
     {
         // Arrange
         const string recipeName = "Spaghetti Bolognese";
         var expectedRecipe = new RecipeDto { RecipeId = Guid.NewGuid(), RecipeName = recipeName };
-        _recipeManagerMock.Setup(manager => manager.GetRecipeDtoByName(recipeName)).Returns(expectedRecipe);
+        _recipeManagerMock.Setup(manager => manager.GetRecipeDtoByName(recipeName)).ReturnsAsync(expectedRecipe);
 
         // Act
-        var result = _controller.GetRecipeByName(recipeName);
+        var result = await _controller.GetRecipeByName(recipeName);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -93,7 +93,7 @@ public class RecipeControllerTests
     }
     
     [Fact]
-    public void GetRecipeByName_ReturnsNotFound_WhenRecipeDoesNotExist()
+    public async Task GetRecipeByName_ReturnsNotFound_WhenRecipeDoesNotExist()
     {
         // Arrange
         const string recipeName = "Spaghetti Bolognese";
@@ -101,7 +101,7 @@ public class RecipeControllerTests
             .Throws(new RecipeNotFoundException($"Recipe with name {recipeName} not found."));
 
         // Act
-        var result = _controller.GetRecipeByName(recipeName);
+        var result = await _controller.GetRecipeByName(recipeName);
 
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -120,16 +120,16 @@ public class RecipeControllerTests
     }
     
     [Fact]
-    public void GetRecipesCollectionByName_ReturnsOk_WhenRecipesExist()
+    public async Task GetRecipesCollectionByName_ReturnsOk_WhenRecipesExist()
     {
         // Arrange
         const string recipeName = "Spaghetti Bolognese";
         var expectedRecipe = new RecipeDto { RecipeId = Guid.NewGuid(), RecipeName = recipeName };
         var expectedRecipes = new List<RecipeDto> { expectedRecipe };
-        _recipeManagerMock.Setup(manager => manager.GetRecipesCollectionByName(recipeName)).Returns(expectedRecipes);
+        _recipeManagerMock.Setup(manager => manager.GetRecipesCollectionByName(recipeName)).ReturnsAsync(expectedRecipes);
 
         // Act
-        var result = _controller.GetRecipeCollectionByName(recipeName);
+        var result = await _controller.GetRecipeCollectionByName(recipeName);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -137,7 +137,7 @@ public class RecipeControllerTests
     }
     
     [Fact]
-    public void GetRecipesCollectionByName_ReturnsNotFound_WhenRecipesDoNotExist()
+    public async Task GetRecipesCollectionByName_ReturnsNotFound_WhenRecipesDoNotExist()
     {
         // Arrange
         const string recipeName = "Spaghetti Bolognese";
@@ -145,7 +145,7 @@ public class RecipeControllerTests
             .Throws(new RecipeNotFoundException($"Recipes with name {recipeName} not found."));
 
         // Act
-        var result = _controller.GetRecipeCollectionByName(recipeName);
+        var result = await _controller.GetRecipeCollectionByName(recipeName);
 
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -164,7 +164,7 @@ public class RecipeControllerTests
     }
     
     [Fact]
-    public void CreateRecipe_ReturnsOk_WhenRecipeIsAdded()
+    public async Task CreateRecipe_ReturnsOk_WhenRecipeIsAdded()
     {
         // Arrange
         var token = "Bearer testtoken";
@@ -187,12 +187,12 @@ public class RecipeControllerTests
             .Returns(userid);
         _accountManagerMock
             .Setup(service => service.GetPreferencesByUserId(It.Is<Guid>(id => id == userid)))
-            .Returns(preferences);
-        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto, preferences)).Returns(recipeDto);
+            .ReturnsAsync(preferences);
+        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto, preferences)).ReturnsAsync(recipeDto);
 
 
         // Act
-        var result = _controller.CreateRecipe(recipeFilterDto);
+        var result = await _controller.CreateRecipe(recipeFilterDto);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -200,7 +200,7 @@ public class RecipeControllerTests
     }
     
     [Fact]
-    public void CreateRecipe_ReturnsBadRequest_WhenRecipeIsNotAdded()
+    public async Task CreateRecipe_ReturnsBadRequest_WhenRecipeIsNotAdded()
     {
         // Arrange
         var token = "Bearer testtoken";
@@ -208,7 +208,7 @@ public class RecipeControllerTests
         var recipeName = "Spaghetti Bolognese";
         var recipeFilterDto = RecipeFilterDtoUtil.CreateRecipeFilterDto(recipeName: recipeName);
         var preferences = PreferenceListDtoUtil.CreatePreferenceListDto();
-        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto, preferences)).Returns(null as RecipeDto);
+        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto, preferences)).ReturnsAsync(null as RecipeDto);
         
         // Set up the controller context to simulate HTTP request and Authorization header
         _controller.ControllerContext = new ControllerContext
@@ -218,14 +218,14 @@ public class RecipeControllerTests
         _controller.ControllerContext.HttpContext.Request.Headers["Authorization"] = token;
         
         // Act
-        var result = _controller.CreateRecipe(recipeFilterDto);
+        var result = await _controller.CreateRecipe(recipeFilterDto);
         
         // Assert
         Assert.IsType<BadRequestResult>(result);
     }
 
     [Fact]
-    public void CreateRecipe_ThrowsExceptionWithErrorMessage_WhenRecipeIsNotAllowed()
+    public async Task CreateRecipe_ThrowsExceptionWithErrorMessage_WhenRecipeIsNotAllowed()
     {
         // Arrange
         var token = "Bearer testtoken";
@@ -245,7 +245,7 @@ public class RecipeControllerTests
         _controller.ControllerContext.HttpContext.Request.Headers["Authorization"] = token;
         
         // Act
-        var result = _controller.CreateRecipe(recipeFilterDto);
+        var result = await _controller.CreateRecipe(recipeFilterDto);
         
         // Assert
         Assert.IsType<BadRequestResult>(result);
