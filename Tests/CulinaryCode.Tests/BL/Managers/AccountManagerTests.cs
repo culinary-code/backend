@@ -414,12 +414,12 @@ public class AccountManagerTests
         };
 
         _mockRepository.Setup(r => r.ReadAccount(accountId)).Returns(account);
-        _mockRepository.Setup(r => r.DeleteFavoriteRecipesByUserId(accountId, favoriteRecipeId)).Verifiable();
+        _mockRepository.Setup(r => r.DeleteFavoriteRecipeByUserId(accountId, favoriteRecipeId)).Verifiable();
 
         // Act
         _accountManager.RemoveFavoriteRecipeFromAccount(accountId, favoriteRecipeId);
 
         // Assert
-        _mockRepository.Verify(r => r.DeleteFavoriteRecipesByUserId(accountId, favoriteRecipeId), Times.Once);
+        _mockRepository.Verify(r => r.DeleteFavoriteRecipeByUserId(accountId, favoriteRecipeId), Times.Once);
     }
 }

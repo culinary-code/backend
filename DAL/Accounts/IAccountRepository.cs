@@ -13,5 +13,5 @@ public interface IAccountRepository
     void UpdateAccount(Account account);
     void CreateAccount(Account account);
     void DeletePreferenceFromAccount(Guid accountId, Guid preferenceId);
-    void DeleteFavoriteRecipesByUserId(Guid userId, Guid recipeId);
+    Task DeleteFavoriteRecipeByUserId(Guid userId, Guid recipeId);
 }
