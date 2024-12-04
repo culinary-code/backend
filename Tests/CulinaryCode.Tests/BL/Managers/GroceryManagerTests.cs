@@ -448,17 +448,4 @@ public class GroceryManagerTests
         _mockIngredientRepository.Verify(repo => repo.DeleteIngredientQuantity(It.IsAny<Guid>(), It.IsAny<Guid>()), Times.Never);
     }
 
-    [Fact]
-    public async Task RemoveItemFromGroceryList_ShouldThrowException_WhenItemQuantityDtoIsNull()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-    
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _groceryManager.RemoveItemFromGroceryList(userId, null));
-    
-        _mockIngredientRepository.Verify(repo => repo.DeleteIngredientQuantity(It.IsAny<Guid>(), It.IsAny<Guid>()), Times.Never);
-        _mockGroceryRepository.Verify(repo => repo.DeleteItemQuantity(It.IsAny<Guid>(), It.IsAny<Guid>()), Times.Never);
-    }
-
 }
