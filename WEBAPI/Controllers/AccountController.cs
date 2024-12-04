@@ -197,13 +197,7 @@ public class AccountController: ControllerBase
             string token = Request.Headers["Authorization"].ToString().Substring(7); 
             Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
             
-            var favoriteRecipe = _accountManager.GetFavoriteListByUserId(userId)
-                .FirstOrDefault(f => f.Recipe.RecipeId == recipeId);
-
-            if (favoriteRecipe != null)
-            {
-                await _accountManager.RemoveFavoriteRecipeFromAccount(userId, favoriteRecipe.FavoriteRecipeId);
-            }
+            await _accountManager.RemoveFavoriteRecipeFromAccount(userId, recipeId);
             
             return Ok("Favorite recipe deleted successfully.");
         }
