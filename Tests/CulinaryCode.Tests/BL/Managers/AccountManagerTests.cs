@@ -15,6 +15,7 @@ namespace CulinaryCode.Tests.BL.Managers;
 
 public class AccountManagerTests
 {
+    private readonly ITestOutputHelper _testOutputHelper;
     private readonly Mock<IAccountRepository> _mockRepository;
     private readonly Mock<ILogger<AccountManager>> _loggerMock;
     private readonly Mock<IMapper> _mockMapper;
@@ -23,8 +24,9 @@ public class AccountManagerTests
     private readonly Mock<IRecipeRepository> _mockRecipeRepository;
     
     
-    public AccountManagerTests()
+    public AccountManagerTests(ITestOutputHelper testOutputHelper)
     {
+        _testOutputHelper = testOutputHelper;
         _mockRepository = new Mock<IAccountRepository>();
         _loggerMock = new Mock<ILogger<AccountManager>>();
         _mockMapper = new Mock<IMapper>();
@@ -387,5 +389,39 @@ public class AccountManagerTests
         Assert.Single(result.FavoriteRecipes);
         Assert.Equal(recipeName, result.FavoriteRecipes.First().Recipe.RecipeName);
         _mockRepository.Verify(r => r.UpdateAccount(It.IsAny<Account>()), Times.Once);
+    }
+    
+    [Fact]
+    public void DeleteFavoriteRecipe_CallsDelete_WhenPreferenceIsDeleted()
+    {
+        // Arrange
+        var accountId = Guid.NewGuid();
+        var favoriteRecipeId = Guid.NewGuid();
+
+        var account = new Account
+        {
+            AccountId = accountId,
+            FavoriteRecipes = new List<FavoriteRecipe>
+            {
+                new FavoriteRecipe
+                {
+                    FavoriteRecipeId = favoriteRecipeId,
+                    Recipe = new Recipe
+                    {
+                        RecipeId = favoriteRecipeId,
+                        RecipeName = "Apple Cake"
+                    }
+                }
+            }
+        };
+
+        _mockRepository.Setup(r => r.ReadAccount(accountId)).Returns(account);
+        _mockRepository.Setup(r => r.DeleteFavoriteRecipesByUserId(accountId, favoriteRecipeId)).Verifiable();
+
+        // Act
+        _accountManager.RemoveFavoriteRecipeFromAccount(accountId, favoriteRecipeId);
+
+        // Assert
+        _mockRepository.Verify(r => r.DeleteFavoriteRecipesByUserId(accountId, favoriteRecipeId), Times.Once);
     }
 }

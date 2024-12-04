@@ -153,6 +153,7 @@ public Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid favoriteRecipeI
 {
     _accountRepository.DeleteFavoriteRecipesByUserId(accountId, favoriteRecipeId);
     _logger.LogInformation($"Removed favorite recipe with ID {favoriteRecipeId} from account {accountId}");
+    var rec = _accountRepository.ReadFavoriteRecipesByUserId(accountId);
     return Task.CompletedTask;
 }
 
