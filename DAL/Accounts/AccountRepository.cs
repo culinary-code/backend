@@ -55,20 +55,6 @@ public class AccountRepository : IAccountRepository
         return favoriteRecipes;
     }
 
-    public List<FavoriteRecipe> ReadFavoriteRecipeListByUserId(Guid userId)
-    {
-        var favoriteRecipes = _ctx.FavoriteRecipes
-            .Where(fr => fr.Account != null && fr.Account.AccountId == userId)
-            .Include(fr => fr.Recipe)
-            .Where(r => r != null)
-            .ToList();
-        if (!favoriteRecipes.Any())
-        {
-            throw new RecipeNotFoundException("No favorite recipes found for the given account.");
-        }
-        return favoriteRecipes;
-    }
-
     public void UpdateAccount(Account account)
     {
         _ctx.Accounts.Update(account);
@@ -93,16 +79,10 @@ public class AccountRepository : IAccountRepository
         _ctx.SaveChanges();
     }
 
-    public void DeleteFavoriteRecipesByUserId(Guid accountId, Guid favoriteRecipeId)
+    public void DeleteFavoriteRecipesByUserId(Guid accountId, Guid recipeId)
     {
-        var account = ReadAccountWithPreferencesByAccountId(accountId);
-        var favoriteRecipeToRemove = account.FavoriteRecipes.FirstOrDefault(r => r.FavoriteRecipeId == favoriteRecipeId);
-
-        if (favoriteRecipeToRemove == null)
-        {
-            throw new RecipeNotFoundException("No favorite recipes found for the given account.");
-        }
-        account.FavoriteRecipes.Remove(favoriteRecipeToRemove);
+        var account = ReadAccount(accountId);
+        var favoriteRecipeToRemove = _ctx.FavoriteRecipes.FirstOrDefault(r => r.Recipe.RecipeId == recipeId && r.Account.AccountId == accountId);
         _ctx.FavoriteRecipes.Remove(favoriteRecipeToRemove);
         _ctx.SaveChanges();
     }

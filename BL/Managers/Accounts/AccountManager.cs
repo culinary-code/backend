@@ -46,13 +46,7 @@ public class AccountManager : IAccountManager
         var favoriteRecipes = _accountRepository.ReadFavoriteRecipesByUserId(userId);
         return _mapper.Map<List<RecipeDto>>(favoriteRecipes);
     }
-
-    public List<FavoriteRecipeDto> GetFavoriteListByUserId(Guid userId)
-    {
-        var favorites = _accountRepository.ReadFavoriteRecipeListByUserId(userId);
-        return _mapper.Map<List<FavoriteRecipeDto>>(favorites);
-    }
-
+    
     public AccountDto UpdateAccount(AccountDto updatedAccount)
     {
         var account = _accountRepository.ReadAccount(updatedAccount.AccountId);
@@ -149,11 +143,10 @@ public AccountDto AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId)
     return _mapper.Map<AccountDto>(account);
 }
 
-public Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid favoriteRecipeId)
+public Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid recipeId)
 {
-    _accountRepository.DeleteFavoriteRecipesByUserId(accountId, favoriteRecipeId);
-    _logger.LogInformation($"Removed favorite recipe with ID {favoriteRecipeId} from account {accountId}");
-    var rec = _accountRepository.ReadFavoriteRecipesByUserId(accountId);
+    _accountRepository.DeleteFavoriteRecipesByUserId(accountId, recipeId);
+    _logger.LogInformation($"Removed favorite recipe with ID {recipeId} from account {accountId}");
     return Task.CompletedTask;
 }
 

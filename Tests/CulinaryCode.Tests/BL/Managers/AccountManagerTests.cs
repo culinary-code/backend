@@ -15,7 +15,6 @@ namespace CulinaryCode.Tests.BL.Managers;
 
 public class AccountManagerTests
 {
-    private readonly ITestOutputHelper _testOutputHelper;
     private readonly Mock<IAccountRepository> _mockRepository;
     private readonly Mock<ILogger<AccountManager>> _loggerMock;
     private readonly Mock<IMapper> _mockMapper;
@@ -24,9 +23,8 @@ public class AccountManagerTests
     private readonly Mock<IRecipeRepository> _mockRecipeRepository;
     
     
-    public AccountManagerTests(ITestOutputHelper testOutputHelper)
+    public AccountManagerTests()
     {
-        _testOutputHelper = testOutputHelper;
         _mockRepository = new Mock<IAccountRepository>();
         _loggerMock = new Mock<ILogger<AccountManager>>();
         _mockMapper = new Mock<IMapper>();
