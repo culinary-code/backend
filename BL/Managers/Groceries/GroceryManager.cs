@@ -74,7 +74,8 @@ public class GroceryManager : IGroceryManager
         
         var groceryList = _groceryRepository.ReadGroceryListByAccountId(userId);
         
-        //if newListItem has quantityId: add item to gl, else update existing row
+        // if newListItem has quantityId: add item to gl, else update existing row
+        // when a new item is passed into the endpoint, it will not have an existing ItemQuantity, thus its Guid will be 00000000-0000-0000-0000-000000000000
         if (newListItem.ItemQuantityId == Guid.Parse("00000000-0000-0000-0000-000000000000"))
         {
             if (newListItem.GroceryItem == null)
