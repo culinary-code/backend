@@ -13,4 +13,5 @@ public class MealPlanner
     
     // navigation properties
     public Account? Account { get; set; }
+    public Group? Group { get; set; }
 }

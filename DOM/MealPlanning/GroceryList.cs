@@ -12,4 +12,5 @@ public class GroceryList
     
     // navigation properties
     public Account? Account { get; set; } 
+    public Group? Group { get; set; }
 }

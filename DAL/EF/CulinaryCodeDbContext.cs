@@ -23,10 +23,11 @@ public class CulinaryCodeDbContext : DbContext
     public DbSet<InstructionStep> InstructionSteps { get; set; }
     public DbSet<IngredientQuantity> IngredientQuantities { get; set; }
     public DbSet<ItemQuantity> ItemQuantities { get; set; }
+    public DbSet<Group> Groups { get; set; }
 
     public CulinaryCodeDbContext(DbContextOptions options) : base(options)
     {
-        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: false);
+        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: true);
     }
 
 
@@ -95,6 +96,10 @@ public class CulinaryCodeDbContext : DbContext
             .WithOne(g => g.Account)
             .HasForeignKey<Account>(a => a.GroceryListId);
         
+        modelBuilder.Entity<Account>()
+            .HasMany(a => a.Groups)
+            .WithMany(g => g.Accounts);
+        
         modelBuilder.Entity<GroceryList>()
             .HasMany(g => g.Ingredients)
             .WithOne(i => i.GroceryList);
@@ -115,5 +120,15 @@ public class CulinaryCodeDbContext : DbContext
             .HasOne(f => f.Recipe)
             .WithMany(r => r.FavoriteRecipes)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<Group>()
+            .HasOne(g => g.GroceryList)
+            .WithOne(g => g.Group)
+            .HasForeignKey<Group>(g => g.GroceryListId);
+
+        modelBuilder.Entity<Group>()
+            .HasOne(g => g.MealPlanner)
+            .WithOne(m => m.Group)
+            .HasForeignKey<Group>(g => g.PlannerId);
     }
 }
