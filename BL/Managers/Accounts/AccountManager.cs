@@ -14,15 +14,17 @@ public class AccountManager : IAccountManager
 {
     private readonly IAccountRepository _accountRepository;
     private readonly IPreferenceRepository _preferenceRepository;
+    private readonly IRecipeRepository _recipeRepository;
     private readonly ILogger<AccountManager> _logger;
     private readonly IMapper _mapper;
 
-    public AccountManager(IAccountRepository accountRepository, ILogger<AccountManager> logger, IMapper mapper, IPreferenceRepository preferenceRepository)
+    public AccountManager(IAccountRepository accountRepository, ILogger<AccountManager> logger, IMapper mapper, IPreferenceRepository preferenceRepository, IRecipeRepository recipeRepository)
     {
         _accountRepository = accountRepository;
         _logger = logger;
         _mapper = mapper;
         _preferenceRepository = preferenceRepository;
+        _recipeRepository = recipeRepository;
     }
     
     public AccountDto GetAccountById(string id)
@@ -117,9 +119,31 @@ public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenc
     
     return _mapper.Map<AccountDto>(account);
 }
-    
 
-    public void RemovePreferenceFromAccount(Guid accountId, Guid preferenceId)
+public AccountDto AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId)
+{
+    var account = _accountRepository.ReadAccount(accountId);
+
+    var recipe = _recipeRepository.ReadRecipeById(recipeId);
+
+    var favoriteRecipe = new FavoriteRecipe()
+    {
+        Recipe = recipe, 
+        Account = account,
+        CreatedAt = DateTime.UtcNow 
+    };
+    
+    account.FavoriteRecipes.Add(favoriteRecipe);
+    _accountRepository.UpdateAccount(account);
+    
+    recipe.LastUsedAt = DateTime.UtcNow;
+    _recipeRepository.UpdateRecipe(recipe);
+
+    _logger.LogInformation($"Added new favorite recipe '{recipe.RecipeName}' to account {accountId}");
+    return _mapper.Map<AccountDto>(account);
+}
+
+public void RemovePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
         _accountRepository.DeletePreferenceFromAccount(accountId, preferenceId);
         _logger.LogInformation($"Removed preference with ID {preferenceId} from account {accountId}");
