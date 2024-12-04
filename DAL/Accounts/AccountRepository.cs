@@ -109,4 +109,10 @@ public class AccountRepository : IAccountRepository
         await _ctx.SaveChangesAsync();
     }
 
+    public async Task DeleteFavoriteRecipeByUserId(Guid accountId, Guid recipeId)
+    { 
+        var favoriteRecipeToRemove = _ctx.FavoriteRecipes.FirstOrDefault(r => r.Recipe.RecipeId == recipeId && r.Account.AccountId == accountId); 
+        _ctx.FavoriteRecipes.Remove(favoriteRecipeToRemove);
+        await _ctx.SaveChangesAsync();
+    }
 }

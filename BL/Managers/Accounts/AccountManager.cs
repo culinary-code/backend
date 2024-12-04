@@ -149,4 +149,9 @@ public class AccountManager : IAccountManager
         await _accountRepository.DeletePreferenceFromAccount(accountId, preferenceId);
         _logger.LogInformation($"Removed preference with ID {preferenceId} from account {accountId}");
     }
+    public async Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid recipeId)
+    {
+        await _accountRepository.DeleteFavoriteRecipeByUserId(accountId, recipeId);
+        _logger.LogInformation($"Removed favorite recipe with ID {recipeId} from account {accountId}");
+    }
 }

@@ -15,4 +15,5 @@ public interface IAccountManager
     Task<AccountDto> AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto);
     Task<AccountDto> AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId);
     Task RemovePreferenceFromAccount(Guid accountId, Guid preferenceId);
+    Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid recipeId);
 }
