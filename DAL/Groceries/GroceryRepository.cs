@@ -85,7 +85,7 @@ public class GroceryRepository : IGroceryRepository
             throw new GroceryListNotFoundException("Grocery list or new item cannot be null.");
         }
         
-        groceryList.Items.Append(newItem); 
+        groceryList.Items.Add(newItem); 
 
         _ctx.ItemQuantities.Add(newItem);
         _ctx.GroceryItems.Add(newItem.GroceryItem);
