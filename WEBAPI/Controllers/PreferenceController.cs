@@ -16,11 +16,11 @@ public class PreferenceController : ControllerBase
     }
 
     [HttpGet("getStandardPreference")]
-    public  IActionResult GetStandardPreference()
+    public async Task<IActionResult> GetStandardPreference()
     {
         try
         {
-            var standardPreferences = _preferenceManager.GetStandardPreferences();
+            var standardPreferences = await _preferenceManager.GetStandardPreferences();
             return Ok(standardPreferences);
         }
         catch (Exception e)

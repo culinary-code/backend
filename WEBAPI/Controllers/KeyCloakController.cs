@@ -82,7 +82,7 @@ public class KeyCloakController : ControllerBase, IIdentityProviderController
         // Check if user exists in our database
         try
         {
-            var account = _accountManager.GetAccountById(userId.ToString());
+            await _accountManager.GetAccountById(userId.ToString());
             
             return Ok("User account exists.");
         } catch (AccountNotFoundException)

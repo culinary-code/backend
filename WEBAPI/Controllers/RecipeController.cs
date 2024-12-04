@@ -31,11 +31,11 @@ public class RecipeController : ControllerBase
     }
     
     [HttpGet("{id}")]
-    public IActionResult GetRecipeById(string id)
+    public async Task<IActionResult> GetRecipeById(string id)
     {
         try
         {
-            var recipe = _recipeManager.GetRecipeDtoById(id);
+            var recipe = await _recipeManager.GetRecipeDtoById(id);
             return Ok(recipe);
         }
         catch (RecipeNotFoundException e)
@@ -46,11 +46,11 @@ public class RecipeController : ControllerBase
     }
 
     [HttpGet("ByName/{name}")]
-    public IActionResult GetRecipeByName(string name)
+    public async Task<IActionResult> GetRecipeByName(string name)
     {
         try
         {
-            var recipe = _recipeManager.GetRecipeDtoByName(name);
+            var recipe = await _recipeManager.GetRecipeDtoByName(name);
             return Ok(recipe);
         }
         catch (RecipeNotFoundException e)
@@ -61,11 +61,11 @@ public class RecipeController : ControllerBase
     }
 
     [HttpGet("Collection/ByName/{name}")]
-    public IActionResult GetRecipeCollectionByName(string name)
+    public async Task<IActionResult> GetRecipeCollectionByName(string name)
     {
         try
         {
-            var recipes = _recipeManager.GetRecipesCollectionByName(name);
+            var recipes = await _recipeManager.GetRecipesCollectionByName(name);
             return Ok(recipes);
         }
         catch (RecipeNotFoundException e)
@@ -94,15 +94,15 @@ public class RecipeController : ControllerBase
     }
 
     [HttpPost("Create")]
-    public IActionResult CreateRecipe([FromBody] RecipeFilterDto request)
+    public async Task<IActionResult> CreateRecipe([FromBody] RecipeFilterDto request)
     {
         try
         {
             string token = Request.Headers["Authorization"].ToString().Substring(7);
             Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
         
-            var preferences = _accountManager.GetPreferencesByUserId(userId);
-            var recipe = _recipeManager.CreateRecipe(request, preferences);
+            var preferences = await _accountManager.GetPreferencesByUserId(userId);
+            var recipe = await _recipeManager.CreateRecipe(request, preferences);
 
             if (recipe is null)
             {
@@ -132,7 +132,7 @@ public class RecipeController : ControllerBase
                 return BadRequest();
             }
             
-            var recipes = _recipeManager.CreateBatchRecipes(jsonString);
+            var recipes = await _recipeManager.CreateBatchRecipes(jsonString);
             
             return Ok(recipes);
         }
