@@ -14,5 +14,6 @@ public interface IAccountManager
     void CreateAccount(string username, string email, Guid userId);
     AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto);
     AccountDto AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId);
+    Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid recipeId);
     void RemovePreferenceFromAccount(Guid accountId, Guid preferenceId);
 }

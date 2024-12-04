@@ -388,4 +388,38 @@ public class AccountManagerTests
         Assert.Equal(recipeName, result.FavoriteRecipes.First().Recipe.RecipeName);
         _mockRepository.Verify(r => r.UpdateAccount(It.IsAny<Account>()), Times.Once);
     }
+    
+    [Fact]
+    public void DeleteFavoriteRecipe_CallsDelete_WhenPreferenceIsDeleted()
+    {
+        // Arrange
+        var accountId = Guid.NewGuid();
+        var favoriteRecipeId = Guid.NewGuid();
+
+        var account = new Account
+        {
+            AccountId = accountId,
+            FavoriteRecipes = new List<FavoriteRecipe>
+            {
+                new FavoriteRecipe
+                {
+                    FavoriteRecipeId = favoriteRecipeId,
+                    Recipe = new Recipe
+                    {
+                        RecipeId = favoriteRecipeId,
+                        RecipeName = "Apple Cake"
+                    }
+                }
+            }
+        };
+
+        _mockRepository.Setup(r => r.ReadAccount(accountId)).Returns(account);
+        _mockRepository.Setup(r => r.DeleteFavoriteRecipeByUserId(accountId, favoriteRecipeId)).Verifiable();
+
+        // Act
+        _accountManager.RemoveFavoriteRecipeFromAccount(accountId, favoriteRecipeId);
+
+        // Assert
+        _mockRepository.Verify(r => r.DeleteFavoriteRecipeByUserId(accountId, favoriteRecipeId), Times.Once);
+    }
 }

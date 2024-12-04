@@ -143,6 +143,12 @@ public AccountDto AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId)
     return _mapper.Map<AccountDto>(account);
 }
 
+public async Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid recipeId)
+{
+    await _accountRepository.DeleteFavoriteRecipeByUserId(accountId, recipeId);
+    _logger.LogInformation($"Removed favorite recipe with ID {recipeId} from account {accountId}");
+}
+
 public void RemovePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
         _accountRepository.DeletePreferenceFromAccount(accountId, preferenceId);
