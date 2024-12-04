@@ -103,6 +103,7 @@ public class AccountRepository : IAccountRepository
             throw new RecipeNotFoundException("No favorite recipes found for the given account.");
         }
         account.FavoriteRecipes.Remove(favoriteRecipeToRemove);
+        _ctx.FavoriteRecipes.Remove(favoriteRecipeToRemove);
         _ctx.SaveChanges();
     }
 }
