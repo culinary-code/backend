@@ -13,8 +13,7 @@ public class LocalLlmService : ILlmService
 
     public LocalLlmService(IOptions<LocalLlmServerOptions> options)
     {
-        var options1 = options.Value;
-        _localServerUrl = options1.ServerUrl;
+        _localServerUrl = options.Value.ServerUrl;
     }
 
     private static readonly HttpClient Client = new HttpClient();
