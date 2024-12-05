@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Configuration\Configuration.csproj" />
       <ProjectReference Include="..\DAL\DAL.csproj" />
       <ProjectReference Include="..\DOM\DOM.csproj" />
     </ItemGroup>
@@ -15,14 +16,22 @@
       <PackageReference Include="Azure.AI.OpenAI" Version="2.0.0" />
       <PackageReference Include="AutoMapper" Version="13.0.1" />
       <PackageReference Include="Azure.Storage.Blobs" Version="12.22.2" />
-      <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-      <PackageReference Include="DotNetEnv" Version="3.1.1" />
-      <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="9.0.0" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="Newtonsoft.Json.Schema" Version="4.0.1" />
       <PackageReference Include="Quartz" Version="3.13.1" />
       <PackageReference Include="Quartz.Extensions.Hosting" Version="3.13.1" />
       <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.1.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="ExternalSources\Llm\Resources\RecipeJsonSchema.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
 </Project>
