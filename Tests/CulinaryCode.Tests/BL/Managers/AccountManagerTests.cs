@@ -361,7 +361,7 @@ public class AccountManagerTests
         };
 
         _mockRepository.Setup(r => r.ReadAccount(accountId)).ReturnsAsync(account);
-        _mockRecipeRepository.Setup(r => r.ReadRecipeWithRelatedInformationByIdNoTracking(recipeId)).ReturnsAsync(recipe);
+        _mockRecipeRepository.Setup(r => r.ReadRecipeById(recipeId)).ReturnsAsync(recipe);
 
         _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>()))
             .Returns((Account sourceAccount) => new AccountDto

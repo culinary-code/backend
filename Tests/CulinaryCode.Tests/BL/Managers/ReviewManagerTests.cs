@@ -96,7 +96,7 @@ public class ReviewManagerTests
         var recipe = new Recipe();
         var existingReview = new List<Review>();
         _accountRepository.Setup(x => x.ReadAccount(accountId)).ReturnsAsync(account);
-        _recipeRepository.Setup(x => x.ReadRecipeWithRelatedInformationByIdNoTracking(recipeId)).ReturnsAsync(recipe);
+        _recipeRepository.Setup(x => x.ReadRecipeWithReviewsById(recipeId)).ReturnsAsync(recipe);
         _reviewRepository.Setup(x => x.ReadReviewsWithAccountByRecipeIdNoTracking(recipeId)).ReturnsAsync(existingReview);
 
         // Act

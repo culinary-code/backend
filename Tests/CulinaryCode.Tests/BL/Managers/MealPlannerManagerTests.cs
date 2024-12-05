@@ -82,7 +82,7 @@ public class MealPlannerManagerTests
             .Returns(Task.CompletedTask);
 
         _recipeRepositoryMock
-            .Setup(repo => repo.ReadRecipeWithRelatedInformationByIdNoTracking(plannedMealDto.Recipe.RecipeId))
+            .Setup(repo => repo.ReadRecipeById(plannedMealDto.Recipe.RecipeId))
             .ReturnsAsync(recipe);
 
         _ingredientRepositoryMock

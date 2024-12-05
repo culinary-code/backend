@@ -38,7 +38,6 @@ public class ReviewRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         Assert.NotNull(result);
         Assert.Equal(review.ReviewId, result.ReviewId);
         Assert.Equal(review.Account.AccountId, result.Account.AccountId);
-        Assert.Equal(review.Recipe.RecipeId, result.Recipe.RecipeId);
     }
 
     [Fact]

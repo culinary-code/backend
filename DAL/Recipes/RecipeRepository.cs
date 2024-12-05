@@ -22,12 +22,6 @@ public class RecipeRepository : IRecipeRepository
     public async Task<Recipe> ReadRecipeById(Guid id)
     {
         Recipe? recipe = await _ctx.Recipes
-            .Include(r => r.Ingredients)
-            .ThenInclude(i => i.Ingredient)
-            .Include(r => r.Instructions)
-            .Include(r => r.Reviews)
-            .ThenInclude(r => r.Account)
-            .Include(r => r.Preferences)
             .FirstOrDefaultAsync(r => r.RecipeId == id);
         if (recipe is null)
         {
