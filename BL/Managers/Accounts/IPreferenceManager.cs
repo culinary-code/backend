@@ -4,5 +4,5 @@ using DOM.Accounts;
 
 public interface IPreferenceManager
 {
-    List<PreferenceDto> GetStandardPreferences();
+    Task<List<PreferenceDto>> GetStandardPreferences();
 }

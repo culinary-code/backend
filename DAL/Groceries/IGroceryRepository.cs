@@ -5,12 +5,12 @@ namespace DAL.Groceries;
 
 public interface IGroceryRepository
 {
-    GroceryList ReadGroceryListById(Guid id);
-    ItemQuantity ReadItemQuantityById(Guid id);
-    GroceryList ReadGroceryListByAccountId(Guid accountId);
-    GroceryItem? ReadPossibleGroceryItemByNameAndMeasurement(string name, MeasurementType measurement);
-    void CreateGroceryList(GroceryList groceryList);
-    void UpdateGroceryList(GroceryList groceryList);
-    void AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem);
+    Task<GroceryList> ReadGroceryListById(Guid id);
+    Task<ItemQuantity> ReadItemQuantityById(Guid id);
+    Task<GroceryList> ReadGroceryListByAccountId(Guid accountId);
+    Task<GroceryItem?> ReadPossibleGroceryItemByNameAndMeasurement(string name, MeasurementType measurement);
+    Task CreateGroceryList(GroceryList groceryList);
+    Task UpdateGroceryList(GroceryList groceryList);
+    Task AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem);
     Task DeleteItemQuantity(Guid userId, Guid itemId);
 }

@@ -28,10 +28,10 @@ public class RefreshRecipeDatabaseJob : IJob
         
         int minAmountInDatabase = _jobSettingsOptions.MinAmount;
 
-        await _recipeManager.RemoveUnusedRecipesAsync();
+        await _recipeManager.RemoveUnusedRecipes();
         
         // Count amount of recipes
-        var count = await _recipeManager.GetAmountOfRecipesAsync();
+        var count = await _recipeManager.GetAmountOfRecipes();
 
         var amountToCreate = minAmountInDatabase - count;
         

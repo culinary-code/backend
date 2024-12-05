@@ -41,7 +41,7 @@ public class MealPlannerManager : IMealPlannerManager
             await _mealPlannerRepository.DeletePlannedMeal(alreadyPlannedMeal);
         }
 
-        var linkedRecipe = _recipeRepository.ReadRecipeById(plannedMealDto.Recipe.RecipeId);
+        var linkedRecipe = await _recipeRepository.ReadRecipeById(plannedMealDto.Recipe.RecipeId);
         var linkedIngredientQuantities = new List<IngredientQuantity>();
         
         foreach (var ingredientQuantityDto in plannedMealDto.Ingredients)
@@ -49,7 +49,7 @@ public class MealPlannerManager : IMealPlannerManager
             var ingredientQuantity = new IngredientQuantity()
             {
                 Quantity = ingredientQuantityDto.Quantity,
-                Ingredient = _ingredientRepository.ReadIngredientById(ingredientQuantityDto.Ingredient.IngredientId)
+                Ingredient = await _ingredientRepository.ReadIngredientById(ingredientQuantityDto.Ingredient.IngredientId)
             };
             linkedIngredientQuantities.Add(ingredientQuantity);
         }

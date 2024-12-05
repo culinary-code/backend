@@ -18,7 +18,8 @@ public class AccountManager : IAccountManager
     private readonly ILogger<AccountManager> _logger;
     private readonly IMapper _mapper;
 
-    public AccountManager(IAccountRepository accountRepository, ILogger<AccountManager> logger, IMapper mapper, IPreferenceRepository preferenceRepository, IRecipeRepository recipeRepository)
+    public AccountManager(IAccountRepository accountRepository, ILogger<AccountManager> logger, IMapper mapper,
+        IPreferenceRepository preferenceRepository, IRecipeRepository recipeRepository)
     {
         _accountRepository = accountRepository;
         _logger = logger;
@@ -26,132 +27,131 @@ public class AccountManager : IAccountManager
         _preferenceRepository = preferenceRepository;
         _recipeRepository = recipeRepository;
     }
-    
-    public AccountDto GetAccountById(string id)
+
+    public async Task<AccountDto> GetAccountById(string id)
     {
         Guid parsedGuid = Guid.Parse(id);
-        var account = _accountRepository.ReadAccount(parsedGuid);
+        var account = await _accountRepository.ReadAccount(parsedGuid);
         return _mapper.Map<AccountDto>(account);
     }
 
-    public List<PreferenceDto> GetPreferencesByUserId(Guid userId)
+    public async Task<List<PreferenceDto>> GetPreferencesByUserId(Guid userId)
     {
-        var account = _accountRepository.ReadAccountWithPreferencesByAccountId(userId);
+        var account = await _accountRepository.ReadAccountWithPreferencesByAccountId(userId);
         var preferences = account.Preferences ?? new List<Preference>();
         return _mapper.Map<List<PreferenceDto>>(preferences);
     }
 
-    public List<RecipeDto> GetFavoriteRecipesByUserId(Guid userId)
+    public async Task<List<RecipeDto>> GetFavoriteRecipesByUserId(Guid userId)
     {
-        var favoriteRecipes = _accountRepository.ReadFavoriteRecipesByUserId(userId);
+        var favoriteRecipes = await _accountRepository.ReadFavoriteRecipesByUserId(userId);
         return _mapper.Map<List<RecipeDto>>(favoriteRecipes);
     }
 
-    public AccountDto UpdateAccount(AccountDto updatedAccount)
+    public async Task<AccountDto> UpdateAccount(AccountDto updatedAccount)
     {
-        var account = _accountRepository.ReadAccount(updatedAccount.AccountId);
+        var account = await _accountRepository.ReadAccount(updatedAccount.AccountId);
         if (account == null)
         {
             _logger.LogError("Account not found");
             throw new AccountNotFoundException("Account not found");
         }
+
         account.Name = updatedAccount.Name;
 
-        _accountRepository.UpdateAccount(account);
+        await _accountRepository.UpdateAccount(account);
         _logger.LogInformation($"Updating user: {updatedAccount.AccountId}, new username: {updatedAccount.Name}");
-        
+
+        return _mapper.Map<AccountDto>(account);
+    }
+
+    public async Task<AccountDto> UpdateFamilySize(AccountDto updatedAccount)
+    {
+        var account = await _accountRepository.ReadAccount(updatedAccount.AccountId);
+        account.FamilySize = updatedAccount.FamilySize;
+        await _accountRepository.UpdateAccount(account);
+        _logger.LogInformation(
+            $"Updating user: {updatedAccount.AccountId}, new familySize: {updatedAccount.FamilySize}");
+
         return _mapper.Map<AccountDto>(account);
     }
     
-    public AccountDto UpdateFamilySize(AccountDto updatedAccount)
+    public async Task CreateAccount(string username, string email, Guid userId)
     {
-        var account = _accountRepository.ReadAccount(updatedAccount.AccountId);
-        account.FamilySize = updatedAccount.FamilySize;
-        _accountRepository.UpdateAccount(account);
-        _logger.LogInformation($"Updating user: {updatedAccount.AccountId}, new familySize: {updatedAccount.FamilySize}");
-        
-        return _mapper.Map<AccountDto>(account);
-    }
-
-
-    public void CreateAccount(string username, string email, Guid userId)
-    {
-        _accountRepository.CreateAccount(new Account()
+        await _accountRepository.CreateAccount(new Account()
             {
                 AccountId = userId,
                 Name = username,
                 Email = email,
-                
             }
         );
     }
 
-public AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto)
-{
-    var account = _accountRepository.ReadAccountWithPreferencesByAccountId(accountId);
-    
-    if (account.Preferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
+    public async Task<AccountDto> AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto)
     {
-        _logger.LogError("Account already has this preference");
+        var account = await _accountRepository.ReadAccountWithPreferencesByAccountId(accountId);
+
+        if (account.Preferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
+        {
+            _logger.LogError("Account already has this preference");
+            return _mapper.Map<AccountDto>(account);
+        }
+
+        var preference = await _preferenceRepository.ReadPreferenceByName(preferenceDto.PreferenceName);
+
+        Preference newPreference;
+
+        if (preference == null)
+        {
+            newPreference = await _preferenceRepository.CreatePreference(new Preference()
+            {
+                PreferenceName = preferenceDto.PreferenceName,
+                StandardPreference = false
+            });
+        }
+        else
+        {
+            newPreference = preference;
+        }
+
+        account.Preferences.Add(newPreference);
+        await _accountRepository.UpdateAccount(account);
+        _logger.LogInformation($"Added custom preference '{newPreference.PreferenceName}' to account {accountId}");
+
         return _mapper.Map<AccountDto>(account);
     }
 
-    var preference = _preferenceRepository.ReadPreferenceByName(preferenceDto.PreferenceName);
-
-    Preference newPreference;
-    
-    if (preference == null)
+    public async Task<AccountDto> AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId)
     {
-        newPreference = _preferenceRepository.CreatePreference(new Preference()
+        var account = await _accountRepository.ReadAccount(accountId);
+
+        var recipe = await _recipeRepository.ReadRecipeById(recipeId);
+
+        var favoriteRecipe = new FavoriteRecipe()
         {
-            PreferenceName = preferenceDto.PreferenceName,
-            StandardPreference = false
-        });
+            Recipe = recipe,
+            Account = account,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        account.FavoriteRecipes.Add(favoriteRecipe);
+        await _accountRepository.UpdateAccount(account);
+
+        recipe.LastUsedAt = DateTime.UtcNow;
+        await _recipeRepository.UpdateRecipe(recipe);
+
+        _logger.LogInformation($"Added new favorite recipe '{recipe.RecipeName}' to account {accountId}");
+        return _mapper.Map<AccountDto>(account);
     }
-    else
+
+    public async Task RemovePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
-        newPreference = preference;
-    }
-    
-    account.Preferences.Add(newPreference);
-    _accountRepository.UpdateAccount(account);
-    _logger.LogInformation($"Added custom preference '{newPreference.PreferenceName}' to account {accountId}");
-    
-    return _mapper.Map<AccountDto>(account);
-}
-
-public AccountDto AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId)
-{
-    var account = _accountRepository.ReadAccount(accountId);
-
-    var recipe = _recipeRepository.ReadRecipeById(recipeId);
-
-    var favoriteRecipe = new FavoriteRecipe()
-    {
-        Recipe = recipe, 
-        Account = account,
-        CreatedAt = DateTime.UtcNow 
-    };
-    
-    account.FavoriteRecipes.Add(favoriteRecipe);
-    _accountRepository.UpdateAccount(account);
-    
-    recipe.LastUsedAt = DateTime.UtcNow;
-    _recipeRepository.UpdateRecipe(recipe);
-
-    _logger.LogInformation($"Added new favorite recipe '{recipe.RecipeName}' to account {accountId}");
-    return _mapper.Map<AccountDto>(account);
-}
-
-public async Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid recipeId)
-{
-    await _accountRepository.DeleteFavoriteRecipeByUserId(accountId, recipeId);
-    _logger.LogInformation($"Removed favorite recipe with ID {recipeId} from account {accountId}");
-}
-
-public void RemovePreferenceFromAccount(Guid accountId, Guid preferenceId)
-    {
-        _accountRepository.DeletePreferenceFromAccount(accountId, preferenceId);
+        await _accountRepository.DeletePreferenceFromAccount(accountId, preferenceId);
         _logger.LogInformation($"Removed preference with ID {preferenceId} from account {accountId}");
+    }
+    public async Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid recipeId)
+    {
+        await _accountRepository.DeleteFavoriteRecipeByUserId(accountId, recipeId);
+        _logger.LogInformation($"Removed favorite recipe with ID {recipeId} from account {accountId}");
     }
 }

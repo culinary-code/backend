@@ -28,12 +28,12 @@ public class GroceryController : ControllerBase
     }
 
     [HttpGet("grocery-list")]
-    public IActionResult GetGroceryListById()
+    public async Task<IActionResult> GetGroceryListById()
     {
         try
         {
             Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
-            var groceryList = _groceryManager.GetGroceryListWithNextWeek(userId);
+            var groceryList = await _groceryManager.GetGroceryListWithNextWeek(userId);
             return Ok(groceryList);
         }
         catch (GroceryListNotFoundException e)
@@ -44,12 +44,12 @@ public class GroceryController : ControllerBase
     }
     
     [HttpGet("account/grocery-list")]
-    public IActionResult GetGroceryListByAccessToken()
+    public async Task<IActionResult> GetGroceryListByAccessToken()
     {
         try
         {
             Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
-            var groceryListDto = _groceryManager.GetGroceryListByAccountId(userId.ToString());
+            var groceryListDto = await _groceryManager.GetGroceryListByAccountId(userId.ToString());
             return Ok(groceryListDto);
         }
         catch (JwtTokenException e)
@@ -64,13 +64,13 @@ public class GroceryController : ControllerBase
     }
 
     [HttpPut("grocery-list/add-item")]
-    public IActionResult AddItemToGroceryList([FromBody] ItemQuantityDto newItem)
+    public async Task<IActionResult> AddItemToGroceryList([FromBody] ItemQuantityDto newItem)
     {
         Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
 
         try
         {
-            _groceryManager.AddItemToGroceryList(userId, newItem);
+            await _groceryManager.AddItemToGroceryList(userId, newItem);
             _logger.LogInformation("Item added to grocery list.");
             return Ok($"{newItem} added to grocery list of account: {userId}.");
         }

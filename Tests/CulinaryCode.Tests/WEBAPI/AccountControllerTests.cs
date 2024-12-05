@@ -26,16 +26,16 @@ public class AccountControllerTests
     }
     
     [Fact]
-    public void GetUserById_ReturnsOk_WhenUserExists()
+    public async Task GetUserById_ReturnsOk_WhenUserExists()
     {
         // Arrange
         var userId = Guid.NewGuid();
         var userIdString = userId.ToString();
         var expectedUser = new AccountDto() { AccountId = userId, Name = "JohnDoe" };
-        _accountControllerMock.Setup(manager => manager.GetAccountById(userIdString)).Returns(expectedUser);
+        _accountControllerMock.Setup(manager => manager.GetAccountById(userIdString)).ReturnsAsync(expectedUser);
 
         // Act
-        var result = _controller.GetUserById(userIdString);
+        var result = await _controller.GetUserById(userIdString);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -43,7 +43,7 @@ public class AccountControllerTests
     }
 
     [Fact]
-    public void GetUserById_ReturnsNotFound_WhenNoUserExists()
+    public async Task GetUserById_ReturnsNotFound_WhenNoUserExists()
     {
         // Arrange
         const string userId = "2";
@@ -53,7 +53,7 @@ public class AccountControllerTests
             .Throws(new AccountNotFoundException(expectedErrorMessage));
 
         // Act
-        var result = _controller.GetUserById(userId);
+        var result = await _controller.GetUserById(userId);
 
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -85,11 +85,11 @@ public class AccountControllerTests
             .Returns(userId);
 
         // Mock the account manager update method
-        _accountControllerMock.Setup(manager => manager.UpdateAccount(accountDto)).Returns(updatedAccount);
+        _accountControllerMock.Setup(manager => manager.UpdateAccount(accountDto)).ReturnsAsync(updatedAccount);
 
         // Mock the identity provider update
         _identityProviderServiceMock
-            .Setup(s => s.UpdateUsernameAsync(updatedAccount, accountDto.Name))
+            .Setup(s => s.UpdateUsername(updatedAccount, accountDto.Name))
             .Returns(Task.CompletedTask);
 
         // Mock the HttpContext and Authorization header

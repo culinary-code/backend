@@ -116,21 +116,21 @@ public class GroceryManagerTests
     }
 
     [Fact]
-    public void GettingGroceryList_ShouldReturnGroceryList()
+    public async Task GettingGroceryList_ShouldReturnGroceryList()
     {
         var groceryListId = Guid.NewGuid();
         var groceryList = new GroceryList { GroceryListId = groceryListId };
 
-        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(groceryListId)).Returns(groceryList);
+        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(groceryListId)).ReturnsAsync(groceryList);
 
-        var result = _mockGroceryRepository.Object.ReadGroceryListById(groceryListId);
+        var result = await _mockGroceryRepository.Object.ReadGroceryListById(groceryListId);
 
         Assert.NotNull(result);
         Assert.Equal(groceryListId, result.GroceryListId);
     }
 
     [Fact]
-    public void ReadGroceryListByAccountId_ShouldReturnEmptyGroceryList_WhenNoItemsOrIngredients()
+    public async Task ReadGroceryListByAccountId_ShouldReturnEmptyGroceryList_WhenNoItemsOrIngredients()
     {
         var accountId = Guid.Parse("d1ec841b-9646-4ca7-a1ef-eda7354547f3");
         var groceryListId = Guid.NewGuid();
@@ -147,9 +147,9 @@ public class GroceryManagerTests
 
         _mockGroceryRepository
             .Setup(repo => repo.ReadGroceryListByAccountId(accountId))
-            .Returns(groceryList);
+            .ReturnsAsync(groceryList);
 
-        var result = _mockGroceryRepository.Object.ReadGroceryListByAccountId(accountId);
+        var result = await _mockGroceryRepository.Object.ReadGroceryListByAccountId(accountId);
 
         Assert.NotNull(result);
         Assert.Equal(groceryListId, result.GroceryListId);
@@ -161,7 +161,7 @@ public class GroceryManagerTests
     }
 
     [Fact]
-    public void AddItemToGroceryList_ShouldAddNewItem_WhenNewItemIsProvided()
+    public async Task AddItemToGroceryList_ShouldAddNewItem_WhenNewItemIsProvided()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -184,10 +184,10 @@ public class GroceryManagerTests
             IsIngredient = false
         };
 
-        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListByAccountId(userId)).Returns(groceryList);
+        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListByAccountId(userId)).ReturnsAsync(groceryList);
 
         // Act
-        _groceryManager.AddItemToGroceryList(userId, newItemDto);
+        await _groceryManager.AddItemToGroceryList(userId, newItemDto);
 
         // Assert
         var addedItem = groceryList.Items.FirstOrDefault(i => i.GroceryItem.GroceryItemName == "Milk");
@@ -196,7 +196,7 @@ public class GroceryManagerTests
     }
 
     [Fact]
-    public void AddItemToGroceryList_ShouldAddIngredientQuantity_WhenIngredientIsFound()
+    public async Task AddItemToGroceryList_ShouldAddIngredientQuantity_WhenIngredientIsFound()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -225,14 +225,14 @@ public class GroceryManagerTests
 
         _mockGroceryRepository
             .Setup(repo => repo.ReadGroceryListByAccountId(userId))
-            .Returns(groceryList);
+            .ReturnsAsync(groceryList);
 
         _mockIngredientRepository
             .Setup(repo => repo.ReadPossibleIngredientByNameAndMeasurement("Tomato", MeasurementType.Kilogram))
-            .Returns(existingIngredient);
+            .ReturnsAsync(existingIngredient);
 
         // Act
-        _groceryManager.AddItemToGroceryList(userId, newListItem);
+        await _groceryManager.AddItemToGroceryList(userId, newListItem);
 
         // Assert
         Assert.Single(groceryList.Ingredients);
@@ -243,7 +243,7 @@ public class GroceryManagerTests
 
 
     [Fact]
-    public void AddItemToGroceryList_ShouldAddItemQuantity_WhenNoIngredientButGroceryItemIsFound()
+    public async Task AddItemToGroceryList_ShouldAddItemQuantity_WhenNoIngredientButGroceryItemIsFound()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -272,18 +272,18 @@ public class GroceryManagerTests
 
         _mockGroceryRepository
             .Setup(repo => repo.ReadGroceryListByAccountId(userId))
-            .Returns(groceryList);
+            .ReturnsAsync(groceryList);
 
         _mockIngredientRepository
             .Setup(repo => repo.ReadPossibleIngredientByNameAndMeasurement("Milk", MeasurementType.Litre))
-            .Returns((Ingredient)null);
+            .ReturnsAsync((Ingredient)null);
 
         _mockGroceryRepository
             .Setup(repo => repo.ReadPossibleGroceryItemByNameAndMeasurement("Milk", MeasurementType.Litre))
-            .Returns(existingGroceryItem);
+            .ReturnsAsync(existingGroceryItem);
 
         // Act
-        _groceryManager.AddItemToGroceryList(userId, newListItem);
+        await _groceryManager.AddItemToGroceryList(userId, newListItem);
 
         // Assert
         Assert.Single(groceryList.Items);
@@ -294,7 +294,7 @@ public class GroceryManagerTests
 
 
     [Fact]
-    public void AddItemToGroceryList_ShouldUpdateExistingItem_WhenItemIdIsProvided()
+    public async Task AddItemToGroceryList_ShouldUpdateExistingItem_WhenItemIdIsProvided()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -321,19 +321,19 @@ public class GroceryManagerTests
             IsIngredient = false
         };
 
-        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListByAccountId(userId)).Returns(groceryList);
+        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListByAccountId(userId)).ReturnsAsync(groceryList);
         _mockGroceryRepository.Setup(repo => repo.ReadItemQuantityById(existingItem.GroceryItem.GroceryItemId))
-            .Returns(existingItem);
+            .ReturnsAsync(existingItem);
 
         // Act
-        _groceryManager.AddItemToGroceryList(userId, updateItemDto);
+        await _groceryManager.AddItemToGroceryList(userId, updateItemDto);
 
         // Assert
         Assert.Equal(3, existingItem.Quantity);
     }
 
     [Fact]
-    public void AddItemToGroceryList_ShouldUpdateExistingIngredient_WhenIngredientIdIsProvided()
+    public async Task AddItemToGroceryList_ShouldUpdateExistingIngredient_WhenIngredientIdIsProvided()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -360,30 +360,30 @@ public class GroceryManagerTests
             IsIngredient = true
         };
 
-        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListByAccountId(userId)).Returns(groceryList);
+        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListByAccountId(userId)).ReturnsAsync(groceryList);
         _mockIngredientRepository.Setup(repo =>
                 repo.ReadIngredientQuantityById(existingIngredient.Ingredient.IngredientId))
-            .Returns(existingIngredient);
+            .ReturnsAsync(existingIngredient);
 
         // Act
-        _groceryManager.AddItemToGroceryList(userId, updateIngredientDto);
+        await _groceryManager.AddItemToGroceryList(userId, updateIngredientDto);
 
         // Assert
         Assert.Equal(5, existingIngredient.Quantity);
     }
 
     [Fact]
-    public void AddItemToGroceryList_ShouldThrowException_WhenItemQuantityDtoIsNull()
+    public async Task AddItemToGroceryList_ShouldThrowException_WhenItemQuantityDtoIsNull()
     {
         // Arrange
         var userId = Guid.NewGuid();
 
         // Act & Assert
-        Assert.Throws<GroceryListItemNotFoundException>(() => _groceryManager.AddItemToGroceryList(userId, null));
+        await Assert.ThrowsAsync<GroceryListItemNotFoundException>(async () => await _groceryManager.AddItemToGroceryList(userId, null));
     }
 
     [Fact]
-    public void AddItemToGroceryList_ShouldThrowException_WhenNewItemHasNullGroceryItem()
+    public async Task AddItemToGroceryList_ShouldThrowException_WhenNewItemHasNullGroceryItem()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -401,11 +401,11 @@ public class GroceryManagerTests
             IsIngredient = false
         };
 
-        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListByAccountId(userId)).Returns(groceryList);
+        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListByAccountId(userId)).ReturnsAsync(groceryList);
 
         // Act & Assert
-        Assert.Throws<GroceryListItemNotFoundException>(() =>
-            _groceryManager.AddItemToGroceryList(userId, newItemDto));
+        await Assert.ThrowsAsync<GroceryListItemNotFoundException>(async () =>
+            await _groceryManager.AddItemToGroceryList(userId, newItemDto));
     }
     
     [Fact]

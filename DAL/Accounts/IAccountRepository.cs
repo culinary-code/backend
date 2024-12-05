@@ -6,12 +6,12 @@ namespace DAL.Accounts;
 
 public interface IAccountRepository
 {
-    Account ReadAccount(Guid id);
-    Account ReadAccountWithPreferencesByAccountId(Guid id);
-    Account ReadAccountWithMealPlannerNextWeekAndWithGroceryList(Guid id);
-    List<Recipe?> ReadFavoriteRecipesByUserId(Guid userId);
-    void UpdateAccount(Account account);
-    void CreateAccount(Account account);
-    void DeletePreferenceFromAccount(Guid accountId, Guid preferenceId);
+    Task<Account> ReadAccount(Guid id);
+    Task<Account> ReadAccountWithPreferencesByAccountId(Guid id);
+    Task<Account> ReadAccountWithMealPlannerNextWeekAndWithGroceryList(Guid id);
+    Task<List<Recipe?>> ReadFavoriteRecipesByUserId(Guid userId);
+    Task UpdateAccount(Account account);
+    Task CreateAccount(Account account);
+    Task DeletePreferenceFromAccount(Guid accountId, Guid preferenceId);
     Task DeleteFavoriteRecipeByUserId(Guid userId, Guid recipeId);
 }

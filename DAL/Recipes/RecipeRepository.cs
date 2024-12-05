@@ -18,16 +18,16 @@ public class RecipeRepository : IRecipeRepository
         _ctx = ctx;
     }
 
-    public Recipe ReadRecipeById(Guid id)
+    public async Task<Recipe> ReadRecipeById(Guid id)
     {
-        Recipe? recipe = _ctx.Recipes
+        Recipe? recipe = await _ctx.Recipes
             .Include(r => r.Ingredients)
             .ThenInclude(i => i.Ingredient)
             .Include(r => r.Instructions)
             .Include(r => r.Reviews)
             .ThenInclude(r => r.Account)
             .Include(r => r.Preferences)
-            .FirstOrDefault(r => r.RecipeId == id);
+            .FirstOrDefaultAsync(r => r.RecipeId == id);
         if (recipe is null)
         {
             throw new RecipeNotFoundException($"No recipe found with id {id}");
@@ -36,11 +36,11 @@ public class RecipeRepository : IRecipeRepository
         return recipe;
     }
 
-    public Recipe ReadRecipeByName(string name)
+    public async Task<Recipe> ReadRecipeByName(string name)
     {
         string lowerName = name.ToLower();
-        Recipe? recipe = _ctx.Recipes
-            .FirstOrDefault(r => r.RecipeName.ToLower().Contains(lowerName));
+        Recipe? recipe = await _ctx.Recipes
+            .FirstOrDefaultAsync(r => r.RecipeName.ToLower().Contains(lowerName));
         if (recipe is null)
         {
             throw new RecipeNotFoundException($"No recipe found with name {name}");
@@ -49,10 +49,10 @@ public class RecipeRepository : IRecipeRepository
         return recipe;
     }
 
-    public ICollection<Recipe> ReadRecipesCollectionByName(string name)
+    public async Task<ICollection<Recipe>> ReadRecipesCollectionByName(string name)
     {
         string lowerName = name.ToLower();
-        ICollection<Recipe> recipes = _ctx.Recipes.Where(r => r.RecipeName.ToLower().Contains(lowerName)).ToList();
+        ICollection<Recipe> recipes = await _ctx.Recipes.Where(r => r.RecipeName.ToLower().Contains(lowerName)).ToListAsync();
         if (recipes.Count <= 0)
         {
             throw new RecipeNotFoundException($"No recipes found with name {name}");
@@ -61,7 +61,7 @@ public class RecipeRepository : IRecipeRepository
         return recipes;
     }
 
-    public async Task<ICollection<Recipe>> GetFilteredRecipesAsync(string recipeName, Difficulty difficulty,
+    public async Task<ICollection<Recipe>> GetFilteredRecipes(string recipeName, Difficulty difficulty,
         RecipeType recipeType, int cooktime, List<String> ingredientStrings)
     {
         var query = _ctx.Recipes.AsQueryable();
@@ -106,30 +106,24 @@ public class RecipeRepository : IRecipeRepository
         return recipes;
     }
 
-    public Task<int> GetRecipeCountAsync()
+    public async Task<int> GetRecipeCount()
     {
-        return _ctx.Recipes.CountAsync();
+        return await _ctx.Recipes.CountAsync();
     }
 
-    public void CreateRecipe(Recipe recipe)
-    {
-        _ctx.Recipes.Add(recipe);
-        _ctx.SaveChanges();
-    }
-
-    public async Task CreateRecipeAsync(Recipe recipe)
+    public async Task CreateRecipe(Recipe recipe)
     {
         await _ctx.Recipes.AddAsync(recipe);
         await _ctx.SaveChangesAsync();
     }
 
-    public void UpdateRecipe(Recipe recipe)
+    public async Task UpdateRecipe(Recipe recipe)
     {
         _ctx.Recipes.Update(recipe);
-        _ctx.SaveChanges();
+        await _ctx.SaveChangesAsync();
     }
 
-    public async Task DeleteUnusedRecipesAsync()
+    public async Task DeleteUnusedRecipes()
     {
         var thresholdDate = DateTime.UtcNow.AddDays(-31);
 

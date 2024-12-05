@@ -28,28 +28,28 @@ public class ChatController : ControllerBase
     }
 
     [HttpPost("getchat")]
-    public string GetChat([FromBody] RecipeFilterDto request)
+    public async Task<IActionResult> GetChat([FromBody] RecipeFilterDto request)
     {
         string token = Request.Headers["Authorization"].ToString().Substring(7);
         Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
         
-        var preferences = _accountManager.GetPreferencesByUserId(userId);
+        var preferences = await _accountManager.GetPreferencesByUserId(userId);
         var prompt = LlmSettingsService.BuildPrompt(request, preferences);
         var message = _llmService.GenerateRecipe(prompt);
-        return message;
+        return Ok(message);
     }
     
     [HttpPost("getmultiplechat")]
-    public string GetMultipleChat([FromBody] ChatRequestDto request)
+    public IActionResult GetMultipleChat([FromBody] ChatRequestDto request)
     {
         var message = _llmService.GenerateMultipleRecipes(request.Prompt, request.Amount);
-        return message;
+        return Ok(message);
     }
     
     [HttpPost("getimage")]
-    public string GetImage([FromBody] ChatRequestDto request)
+    public IActionResult GetImage([FromBody] ChatRequestDto request)
     {
         var imageUri = _llmService.GenerateRecipeImage(request.Prompt);
-        return imageUri?.ToString() ?? "Something went wrong";
+        return Ok(imageUri?.ToString() ?? "Something went wrong");
     }
 }

@@ -6,10 +6,10 @@ namespace BL.Managers.Groceries;
 
 public interface IGroceryManager
 {
-    void CreateNewGroceryList(GroceryList groceryList);
-    GroceryListDto GetGroceryList(string id);
-    GroceryListDto GetGroceryListWithNextWeek(Guid id);
-    GroceryListDto GetGroceryListByAccountId(string accountId);
-    void AddItemToGroceryList(Guid userId, ItemQuantityDto addItem);
+    Task CreateNewGroceryList(GroceryList groceryList);
+    Task<GroceryListDto> GetGroceryList(string id);
+    Task<GroceryListDto> GetGroceryListWithNextWeek(Guid id);
+    Task<GroceryListDto> GetGroceryListByAccountId(string accountId);
+    Task AddItemToGroceryList(Guid userId, ItemQuantityDto addItem);
     Task RemoveItemFromGroceryList(Guid userId, ItemQuantityDto removeItem);
 }
