@@ -15,6 +15,7 @@ COPY BL/BL.csproj BL/
 COPY DAL/DAL.csproj DAL/
 COPY DOM/DOM.csproj DOM/
 COPY Tests/CulinaryCode.Tests/CulinaryCode.Tests.csproj Tests/CulinaryCode.Tests/
+COPY Configuration/Configuration.csproj Configuration/
 RUN dotnet restore
 
 # Copy the rest of the project files
