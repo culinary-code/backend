@@ -52,11 +52,4 @@ public class ChatController : ControllerBase
         var imageUri = _llmService.GenerateRecipeImage(request.Prompt);
         return imageUri?.ToString() ?? "Something went wrong";
     }
-    
-    /*[HttpPost("getlocalchat")]
-    public string GetLocalChat([FromBody] ChatRequestDto request)
-    {
-        var message = _localLlmService.GenerateRecipe(request.Prompt);
-        return message;
-    }*/
 }
