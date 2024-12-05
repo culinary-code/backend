@@ -24,6 +24,7 @@ public class CulinaryCodeDbContext : DbContext
     public DbSet<IngredientQuantity> IngredientQuantities { get; set; }
     public DbSet<ItemQuantity> ItemQuantities { get; set; }
     public DbSet<Group> Groups { get; set; }
+    public DbSet<Invitation> Invitations { get; set; }
 
     public CulinaryCodeDbContext(DbContextOptions options) : base(options)
     {
@@ -130,5 +131,17 @@ public class CulinaryCodeDbContext : DbContext
             .HasOne(g => g.MealPlanner)
             .WithOne(m => m.Group)
             .HasForeignKey<Group>(g => g.PlannerId);
+        
+        modelBuilder.Entity<Invitation>()
+            .HasOne(i => i.Inviter)
+            .WithMany()
+            .HasForeignKey(i => i.InviterId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Invitation>()
+            .HasOne(i => i.Group)
+            .WithMany()
+            .HasForeignKey(i => i.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

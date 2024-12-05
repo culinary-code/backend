@@ -48,6 +48,7 @@ builder.Services.AddScoped<IGroceryRepository, GroceryRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IPreferenceRepository, PreferenceRepository>();
 builder.Services.AddScoped<IGroupRepository, GroupRepository>();
+builder.Services.AddScoped<IInvitationRepository, InvitationRepository>();
 
 
 // Managers
@@ -58,10 +59,12 @@ builder.Services.AddScoped<IGroceryManager, GroceryManager>();
 builder.Services.AddScoped<IReviewManager, ReviewManager>();
 builder.Services.AddScoped<IPreferenceManager, PreferenceManager>();
 builder.Services.AddScoped<IGroupManager, GroupManager>();
+builder.Services.AddScoped<IInvitationManager, InvitationManager>();
 
 // Services
 builder.Services.AddHttpClient<IIdentityProviderService, KeyCloakService>();
 builder.Services.AddScoped<IIdentityProviderService, KeyCloakService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Automapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));

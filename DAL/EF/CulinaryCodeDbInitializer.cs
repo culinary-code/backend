@@ -419,7 +419,7 @@ internal static class CulinaryCodeDbInitializer
         
         Account account2 = new Account
         {
-            AccountId = new Guid(),
+            AccountId = Guid.Parse("718a1b80-7ae4-4ae0-a26c-87770f54d517"),
             Name = "nikl",
             Email = "nisko@n.n",
             FamilySize = 4,
@@ -435,6 +435,17 @@ internal static class CulinaryCodeDbInitializer
         // Account reviews
         account1.Reviews = [review1, review2, review3, review4];
         
+        
+        // Groups
+
+        Group group1 = new Group()
+        {
+            GroupId = Guid.Parse("1bde5dcd-816f-4d97-bb0f-e3d60cceb200"),
+            GroupName = "nisso",
+        };
+        
+        context.Groups.Add(group1);
+        group1.Accounts.Add(account1);
         
         // Save changes
         context.SaveChanges();
