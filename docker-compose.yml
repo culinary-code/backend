@@ -1,6 +1,0 @@
-﻿services:
-  webapplication3:
-    image: webapplication3
-    build:
-      context: .
-      dockerfile: WebApplication3/Dockerfile

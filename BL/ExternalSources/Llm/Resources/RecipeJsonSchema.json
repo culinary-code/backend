@@ -1,0 +1,105 @@
+﻿{
+  "type": "object",
+  "properties": {
+    "recipeName": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "diet": {
+      "type": "string"
+    },
+    "recipeType": {
+      "type": "string",
+      "enum": [
+        "Breakfast",
+        "Lunch",
+        "Dinner",
+        "Dessert",
+        "Snack"
+      ]
+    },
+    "cookingTime": {
+      "type": "integer"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "NotAvailable",
+        "Easy",
+        "Intermediate",
+        "Difficult"
+      ]
+    },
+    "amount_of_people": {
+      "type": "number"
+    },
+    "ingredients": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "measurementType": {
+            "type": "string",
+            "enum": [
+              "Kilogram",
+              "Litre",
+              "Pound",
+              "Ounce",
+              "Teaspoon",
+              "Tablespoon",
+              "Piece",
+              "Millilitre",
+              "Gram",
+              "Pinch",
+              "ToTaste",
+              "Clove"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "amount",
+          "measurementType"
+        ]
+      }
+    },
+    "recipeSteps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "stepNumber": {
+            "type": "number"
+          },
+          "instruction": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "stepNumber",
+          "instruction"
+        ]
+      }
+    }
+  },
+  "required": [
+    "recipeName",
+    "description",
+    "ingredients",
+    "diet",
+    "recipeType",
+    "cookingTime",
+    "difficulty",
+    "recipeSteps",
+    "amount_of_people"
+  ]
+}
+                           

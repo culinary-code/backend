@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Configuration.Options;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace WEBAPI.Controllers;
 
@@ -6,23 +8,20 @@ namespace WEBAPI.Controllers;
 [Route("[controller]")]
 public class ConnectionController : ControllerBase
 {
+    private readonly KeycloakOptions _keycloakOptions;
     private readonly ILogger<ConnectionController> _logger;
 
-    public ConnectionController(ILogger<ConnectionController> logger)
+    public ConnectionController(ILogger<ConnectionController> logger, IOptions<KeycloakOptions> keycloakOptions)
     {
         _logger = logger;
+        _keycloakOptions = keycloakOptions.Value;
     }
-    
+
     [HttpGet]
-    public async Task<IActionResult> Get()
+    public IActionResult Get()
     {
         _logger.LogInformation("Connection request received.");
-        string? keycloakUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? null;
-        if (keycloakUrl == null)
-        {
-            _logger.LogError("Keycloak URL was not found, ensure the environment variable KEYCLOAK_BASE_URL is set");
-            return NotFound();
-        }
-        return Ok(keycloakUrl);
+        string keycloakUrl = _keycloakOptions.BaseUrl;
+        return Ok(new { keycloakUrl, verifier = "Culinary Code" });
     }
 }
