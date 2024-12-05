@@ -44,7 +44,7 @@ public class AccountManager : IAccountManager
 
     public async Task<List<RecipeDto>> GetFavoriteRecipesByUserId(Guid userId)
     {
-        var favoriteRecipes = await _accountRepository.ReadFavoriteRecipesByUserId(userId);
+        var favoriteRecipes = await _accountRepository.ReadFavoriteRecipesByUserIdNoTracking(userId);
         return _mapper.Map<List<RecipeDto>>(favoriteRecipes);
     }
 
@@ -97,7 +97,7 @@ public class AccountManager : IAccountManager
             return _mapper.Map<AccountDto>(account);
         }
 
-        var preference = await _preferenceRepository.ReadPreferenceByName(preferenceDto.PreferenceName);
+        var preference = await _preferenceRepository.ReadPreferenceByNameNoTracking(preferenceDto.PreferenceName);
 
         Preference newPreference;
 

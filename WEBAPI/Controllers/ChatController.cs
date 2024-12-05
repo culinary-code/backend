@@ -1,7 +1,9 @@
+using BL.DTOs.Accounts;
 using BL.DTOs.Llm;
 using BL.DTOs.Recipes;
 using BL.ExternalSources.Llm;
 using BL.Managers.Accounts;
+using BL.Managers.Recipes;
 using BL.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +20,7 @@ public class ChatController : ControllerBase
     private readonly ILlmService _llmService;
     private readonly IIdentityProviderService _identityProviderService;
     private readonly IAccountManager _accountManager;
+    
 
     public ChatController(ILogger<ChatController> logger, ILlmService llmService, IIdentityProviderService identityProviderService, IAccountManager accountManager)
     {
@@ -30,7 +33,6 @@ public class ChatController : ControllerBase
     [HttpPost("getchat")]
     public async Task<IActionResult> GetChat([FromBody] RecipeFilterDto request)
     {
-        
         var prompt = LlmSettingsService.BuildPrompt(request, null);
         var message = _llmService.GenerateRecipe(prompt);
         return Ok(message);

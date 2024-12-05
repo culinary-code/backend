@@ -211,7 +211,7 @@ public class AccountManagerTests
         };
 
         _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).ReturnsAsync(account);
-        _mockPreferenceRepository.Setup(pr => pr.ReadPreferenceByName(preferenceDto.PreferenceName))
+        _mockPreferenceRepository.Setup(pr => pr.ReadPreferenceByNameNoTracking(preferenceDto.PreferenceName))
             .ReturnsAsync((Preference)null); // Simulate that preference does not exist
         _mockPreferenceRepository.Setup(pr => pr.CreatePreference(It.IsAny<Preference>()))
             .ReturnsAsync(new Preference { PreferenceName = preferenceDto.PreferenceName });
@@ -308,7 +308,7 @@ public class AccountManagerTests
                 new Recipe { RecipeId = recipeId2, RecipeName = "Recipe 2" }
             };
 
-            _mockRepository.Setup(repo => repo.ReadFavoriteRecipesByUserId(userId)).ReturnsAsync(favoriteRecipes);
+            _mockRepository.Setup(repo => repo.ReadFavoriteRecipesByUserIdNoTracking(userId)).ReturnsAsync(favoriteRecipes);
 
             var expectedRecipes = new List<RecipeDto>
             {
@@ -332,7 +332,7 @@ public class AccountManagerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-         _mockRepository.Setup(repo => repo.ReadFavoriteRecipesByUserId(userId))
+         _mockRepository.Setup(repo => repo.ReadFavoriteRecipesByUserIdNoTracking(userId))
             .ThrowsAsync(new RecipeNotFoundException("No favorite recipes found for the given account."));
 
         // Act & Assert
@@ -361,7 +361,7 @@ public class AccountManagerTests
         };
 
         _mockRepository.Setup(r => r.ReadAccount(accountId)).ReturnsAsync(account);
-        _mockRecipeRepository.Setup(r => r.ReadRecipeById(recipeId)).ReturnsAsync(recipe);
+        _mockRecipeRepository.Setup(r => r.ReadRecipeWithRelatedInformationByIdNoTracking(recipeId)).ReturnsAsync(recipe);
 
         _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>()))
             .Returns((Account sourceAccount) => new AccountDto

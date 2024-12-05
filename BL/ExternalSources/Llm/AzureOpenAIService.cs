@@ -116,6 +116,7 @@ public class AzureOpenAIService : ILlmService
         _logger.LogInformation("Received chat completion response from Azure OpenAI API");
         _logger.LogInformation(response);
 
+        
         return response;
     }
 

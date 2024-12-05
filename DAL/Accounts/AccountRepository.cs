@@ -16,6 +16,7 @@ public class AccountRepository : IAccountRepository
         _ctx = ctx;
     }
     
+    // used to update account, needs to be tracked
     public async Task<Account> ReadAccount(Guid id)
     {
         Account? account = await _ctx.Accounts.FindAsync(id);
@@ -26,6 +27,7 @@ public class AccountRepository : IAccountRepository
         return account;
     }
 
+    // used to update preferences, needs to be tracked
     public async Task<Account> ReadAccountWithPreferencesByAccountId(Guid id)
     {
         var account = await _ctx.Accounts
@@ -40,7 +42,8 @@ public class AccountRepository : IAccountRepository
         return account;
     }
 
-    public async Task<Account> ReadAccountWithMealPlannerNextWeekAndWithGroceryList(Guid id)
+    // used to create a grocerylistdto, does not need to be tracked
+    public async Task<Account> ReadAccountWithMealPlannerNextWeekAndWithGroceryListNoTracking(Guid id)
     {
         var account = await _ctx.Accounts
             .Include(a => a.GroceryList)
@@ -60,6 +63,7 @@ public class AccountRepository : IAccountRepository
             .Include(a => a.Planner)
                 .ThenInclude(p => p!.NextWeek)
                 .ThenInclude(p => p.Recipe)
+            .AsNoTrackingWithIdentityResolution()
             .FirstOrDefaultAsync(a => a.AccountId == id);
         
         if (account == null)
@@ -70,19 +74,18 @@ public class AccountRepository : IAccountRepository
         return account;
     }
 
-    public async Task<List<Recipe?>> ReadFavoriteRecipesByUserId(Guid userId)
+    // used to return a dto, doesn't need to be tracked
+    public async Task<List<Recipe?>> ReadFavoriteRecipesByUserIdNoTracking(Guid userId)
     {
         var favoriteRecipes = await _ctx.FavoriteRecipes
             .Where(fr => fr.Account != null && fr.Account.AccountId == userId)
-            .Select(fr => fr.Recipe)
-            .Where(r => r != null)
+            .Include(favoriteRecipe => favoriteRecipe.Recipe)
+            .AsNoTrackingWithIdentityResolution()
             .ToListAsync();
-        if (!favoriteRecipes.Any())
-        {
-            throw new RecipeNotFoundException("No favorite recipes found for the given account.");
-        }
+        
+        var recipes = favoriteRecipes.Select(fr => fr.Recipe).ToList();
 
-        return favoriteRecipes;
+        return recipes;
     }
 
     public async Task UpdateAccount(Account account)

@@ -5,7 +5,7 @@ namespace DAL.Groceries;
 
 public interface IGroceryRepository
 {
-    Task<GroceryList> ReadGroceryListById(Guid id);
+    Task<GroceryList> ReadGroceryListByIdNoTracking(Guid id);
     Task<ItemQuantity> ReadItemQuantityById(Guid id);
     Task<GroceryList> ReadGroceryListByAccountId(Guid accountId);
     Task<GroceryItem?> ReadPossibleGroceryItemByNameAndMeasurement(string name, MeasurementType measurement);

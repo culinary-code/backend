@@ -18,6 +18,7 @@ public class RecipeRepository : IRecipeRepository
         _ctx = ctx;
     }
 
+    // used create new favorite recipes and planned meals, needs to be tracked
     public async Task<Recipe> ReadRecipeById(Guid id)
     {
         Recipe? recipe = await _ctx.Recipes
@@ -35,11 +36,48 @@ public class RecipeRepository : IRecipeRepository
 
         return recipe;
     }
+    
+    // used to return dto, doesn't need to be tracked
+    public async Task<Recipe> ReadRecipeWithRelatedInformationByIdNoTracking(Guid id)
+    {
+        Recipe? recipe = await _ctx.Recipes
+            .Include(r => r.Ingredients)
+            .ThenInclude(i => i.Ingredient)
+            .Include(r => r.Instructions)
+            .Include(r => r.Reviews)
+            .ThenInclude(r => r.Account)
+            .Include(r => r.Preferences)
+            .AsNoTrackingWithIdentityResolution()
+            .FirstOrDefaultAsync(r => r.RecipeId == id);
+        if (recipe is null)
+        {
+            throw new RecipeNotFoundException($"No recipe found with id {id}");
+        }
 
-    public async Task<Recipe> ReadRecipeByName(string name)
+        return recipe;
+    }
+    
+    // used to create new reviews, needs to be tracked
+    public async Task<Recipe> ReadRecipeWithReviewsById(Guid id)
+    {
+        Recipe? recipe = await _ctx.Recipes
+            .Include(r => r.Reviews)
+            .ThenInclude(r => r.Account)
+            .FirstOrDefaultAsync(r => r.RecipeId == id);
+        if (recipe is null)
+        {
+            throw new RecipeNotFoundException($"No recipe found with id {id}");
+        }
+
+        return recipe;
+    }
+
+    // used to return a dto, doesn't need to be tracked
+    public async Task<Recipe> ReadRecipeByNameNoTracking(string name)
     {
         string lowerName = name.ToLower();
         Recipe? recipe = await _ctx.Recipes
+            .AsNoTrackingWithIdentityResolution()
             .FirstOrDefaultAsync(r => r.RecipeName.ToLower().Contains(lowerName));
         if (recipe is null)
         {
@@ -49,10 +87,14 @@ public class RecipeRepository : IRecipeRepository
         return recipe;
     }
 
-    public async Task<ICollection<Recipe>> ReadRecipesCollectionByName(string name)
+    // used to return a dto, doesn't need to be tracked
+    public async Task<ICollection<Recipe>> ReadRecipesCollectionByNameNoTracking(string name)
     {
         string lowerName = name.ToLower();
-        ICollection<Recipe> recipes = await _ctx.Recipes.Where(r => r.RecipeName.ToLower().Contains(lowerName)).ToListAsync();
+        ICollection<Recipe> recipes = await _ctx.Recipes
+            .Where(r => r.RecipeName.ToLower().Contains(lowerName))
+            .AsNoTrackingWithIdentityResolution()
+            .ToListAsync();
         if (recipes.Count <= 0)
         {
             throw new RecipeNotFoundException($"No recipes found with name {name}");
@@ -61,7 +103,8 @@ public class RecipeRepository : IRecipeRepository
         return recipes;
     }
 
-    public async Task<ICollection<Recipe>> GetFilteredRecipes(string recipeName, Difficulty difficulty,
+    // used to return a dto, doesn't need to be tracked
+    public async Task<ICollection<Recipe>> GetFilteredRecipesNoTracking(string recipeName, Difficulty difficulty,
         RecipeType recipeType, int cooktime, List<String> ingredientStrings)
     {
         var query = _ctx.Recipes.AsQueryable();
@@ -101,6 +144,7 @@ public class RecipeRepository : IRecipeRepository
 
         // Execute the query and return the results
         var recipes = await query
+            .AsNoTrackingWithIdentityResolution()
             .ToListAsync();
 
         return recipes;

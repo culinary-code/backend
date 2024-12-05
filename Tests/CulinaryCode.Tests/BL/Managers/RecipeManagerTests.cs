@@ -284,7 +284,7 @@ public class RecipeManagerTests
         var recipeDto = new RecipeDto { RecipeId = recipeId, RecipeName = sampleRecipe.RecipeName };
 
         _mockRepository
-            .Setup(repo => repo.ReadRecipeById(recipeId))
+            .Setup(repo => repo.ReadRecipeWithRelatedInformationByIdNoTracking(recipeId))
             .ReturnsAsync(sampleRecipe);
         _mockMapper
             .Setup(mapper => mapper.Map<RecipeDto>(sampleRecipe))
@@ -295,7 +295,7 @@ public class RecipeManagerTests
 
         // Assert
         Assert.Equal(recipeDto, result);
-        _mockRepository.Verify(repo => repo.ReadRecipeById(recipeId), Times.Once);
+        _mockRepository.Verify(repo => repo.ReadRecipeWithRelatedInformationByIdNoTracking(recipeId), Times.Once);
         _mockMapper.Verify(mapper => mapper.Map<RecipeDto>(sampleRecipe), Times.Once);
     }
 
@@ -307,7 +307,7 @@ public class RecipeManagerTests
         var recipeDto = new RecipeDto { RecipeId = sampleRecipe.RecipeId, RecipeName = sampleRecipe.RecipeName };
 
         _mockRepository
-            .Setup(repo => repo.ReadRecipeByName(sampleRecipe.RecipeName))
+            .Setup(repo => repo.ReadRecipeByNameNoTracking(sampleRecipe.RecipeName))
             .ReturnsAsync(sampleRecipe);
         _mockMapper
             .Setup(mapper => mapper.Map<RecipeDto>(sampleRecipe))
@@ -318,7 +318,7 @@ public class RecipeManagerTests
 
         // Assert
         Assert.Equal(recipeDto, result);
-        _mockRepository.Verify(repo => repo.ReadRecipeByName(sampleRecipe.RecipeName), Times.Once);
+        _mockRepository.Verify(repo => repo.ReadRecipeByNameNoTracking(sampleRecipe.RecipeName), Times.Once);
         _mockMapper.Verify(mapper => mapper.Map<RecipeDto>(sampleRecipe), Times.Once);
     }
 
@@ -332,7 +332,7 @@ public class RecipeManagerTests
             { new RecipeDto { RecipeId = sampleRecipe.RecipeId, RecipeName = sampleRecipe.RecipeName } };
 
         _mockRepository
-            .Setup(repo => repo.ReadRecipesCollectionByName(sampleRecipe.RecipeName))
+            .Setup(repo => repo.ReadRecipesCollectionByNameNoTracking(sampleRecipe.RecipeName))
             .ReturnsAsync(sampleRecipes);
         _mockMapper
             .Setup(mapper => mapper.Map<ICollection<RecipeDto>>(sampleRecipes))
@@ -343,7 +343,7 @@ public class RecipeManagerTests
 
         // Assert
         Assert.Equal(recipeDtos, result);
-        _mockRepository.Verify(repo => repo.ReadRecipesCollectionByName(sampleRecipe.RecipeName), Times.Once);
+        _mockRepository.Verify(repo => repo.ReadRecipesCollectionByNameNoTracking(sampleRecipe.RecipeName), Times.Once);
         _mockMapper.Verify(mapper => mapper.Map<ICollection<RecipeDto>>(sampleRecipes), Times.Once);
     }
 

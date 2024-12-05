@@ -16,7 +16,8 @@ public class GroceryRepository : IGroceryRepository
         _ctx = ctx;
     }
 
-    public async Task<GroceryList> ReadGroceryListById(Guid id)
+    // used to return a dto, doesn't need to be tracked
+    public async Task<GroceryList> ReadGroceryListByIdNoTracking(Guid id)
     {
         GroceryList? groceryList = await _ctx.GroceryLists
             .Include(gl => gl.Ingredients)
@@ -24,6 +25,7 @@ public class GroceryRepository : IGroceryRepository
             .Include(gl => gl.Items)
             .ThenInclude(i => i.GroceryItem)
             .Include(gl => gl.Account)
+            .AsNoTrackingWithIdentityResolution()
             .FirstOrDefaultAsync(gl => gl.GroceryListId == id);
         if (groceryList == null)
         {
@@ -33,6 +35,7 @@ public class GroceryRepository : IGroceryRepository
         return groceryList;
     }
 
+    // used to update itemQuantity, needs to be tracked
     public async Task<ItemQuantity> ReadItemQuantityById(Guid id)
     {
         ItemQuantity? itemQuantity = await _ctx.ItemQuantities.FindAsync(id);
@@ -43,6 +46,7 @@ public class GroceryRepository : IGroceryRepository
         return itemQuantity;
     }
 
+    // used to update grocerylist, needs to be tracked
     public async Task<GroceryList> ReadGroceryListByAccountId(Guid accountId)
     {
         var groceryList = await _ctx.GroceryLists
@@ -61,6 +65,7 @@ public class GroceryRepository : IGroceryRepository
         return groceryList;
     }
 
+    // used to update groceryList, needs to be tracked
     public async Task<GroceryItem?> ReadPossibleGroceryItemByNameAndMeasurement(string name, MeasurementType measurementType)
     {
         return await _ctx.GroceryItems.FirstOrDefaultAsync(gi => gi.GroceryItemName == name && gi.Measurement == measurementType);

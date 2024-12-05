@@ -17,12 +17,14 @@ public class PreferenceRepository : IPreferenceRepository
         _ctx = ctx;
     }
 
-    public async Task<Preference?> ReadPreferenceByName(string name)
+    // Used to update preferences one by one, doesn't need to be tracked
+    public async Task<Preference?> ReadPreferenceByNameNoTracking(string name)
     {
-        Preference? preference = await _ctx.Preferences.FirstOrDefaultAsync(p => p.PreferenceName == name);
+        Preference? preference = await _ctx.Preferences.AsNoTrackingWithIdentityResolution().FirstOrDefaultAsync(p => p.PreferenceName == name);
         return preference;
     }
 
+    // Returned as dto but also used to add preferences to recipes at creation, needs to be tracked
     public async Task<ICollection<Preference>> ReadStandardPreferences()
     {
         ICollection<Preference> preferences = await _ctx.Preferences.Where(p => p.StandardPreference).ToListAsync();

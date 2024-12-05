@@ -121,9 +121,9 @@ public class GroceryManagerTests
         var groceryListId = Guid.NewGuid();
         var groceryList = new GroceryList { GroceryListId = groceryListId };
 
-        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListById(groceryListId)).ReturnsAsync(groceryList);
+        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListByIdNoTracking(groceryListId)).ReturnsAsync(groceryList);
 
-        var result = await _mockGroceryRepository.Object.ReadGroceryListById(groceryListId);
+        var result = await _mockGroceryRepository.Object.ReadGroceryListByIdNoTracking(groceryListId);
 
         Assert.NotNull(result);
         Assert.Equal(groceryListId, result.GroceryListId);

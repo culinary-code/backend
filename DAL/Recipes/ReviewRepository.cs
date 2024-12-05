@@ -14,10 +14,12 @@ public class ReviewRepository : IReviewRepository
         _ctx = ctx;
     }
 
-    public async Task<Review> ReadReviewWithAccountByReviewId(Guid id)
+    // used to return a dto, doesn't need to be tracked
+    public async Task<Review> ReadReviewWithAccountByReviewIdNoTracking(Guid id)
     {
         var review = await _ctx.Reviews
             .Include(r => r.Account)
+            .AsNoTrackingWithIdentityResolution()
             .FirstOrDefaultAsync(r => r.ReviewId == id);
         if (review is null)
         {
@@ -27,11 +29,13 @@ public class ReviewRepository : IReviewRepository
         return review;
     }
 
-    public async Task<ICollection<Review>> ReadReviewsWithAccountByRecipeId(Guid recipeId)
+    // used to return a dto, doesn't need to be tracked
+    public async Task<ICollection<Review>> ReadReviewsWithAccountByRecipeIdNoTracking(Guid recipeId)
     {
         var reviews = await _ctx.Reviews
             .Where(r => r.Recipe != null && r.Recipe.RecipeId == recipeId)
             .Include(r => r.Account)
+            .AsNoTrackingWithIdentityResolution()
             .ToListAsync();
 
         return reviews;
@@ -46,6 +50,7 @@ public class ReviewRepository : IReviewRepository
     public async Task<bool> ReviewExistsForAccountAndRecipe(Guid accountId, Guid recipeId)
     {
         return await _ctx.Reviews
+            .AsNoTrackingWithIdentityResolution()
             .AnyAsync(r => r.Account!.AccountId == accountId && r.Recipe!.RecipeId == recipeId);
     }
 }

@@ -36,7 +36,7 @@ public class PreferenceRepositoryTests
         await _dbContext.SaveChangesAsync();
         
         // Act
-        var result = await _preferenceRepository.ReadPreferenceByName(preference.PreferenceName);
+        var result = await _preferenceRepository.ReadPreferenceByNameNoTracking(preference.PreferenceName);
         
         // Assert
         Assert.NotNull(result);
