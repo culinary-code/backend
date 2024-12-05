@@ -89,7 +89,7 @@ public class AccountControllerTests
 
         // Mock the identity provider update
         _identityProviderServiceMock
-            .Setup(s => s.UpdateUsernameAsync(updatedAccount, accountDto.Name))
+            .Setup(s => s.UpdateUsername(updatedAccount, accountDto.Name))
             .Returns(Task.CompletedTask);
 
         // Mock the HttpContext and Authorization header

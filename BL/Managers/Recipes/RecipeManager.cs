@@ -60,13 +60,13 @@ public class RecipeManager : IRecipeManager
         RecipeType recipeType, int cooktime, List<string> ingredients)
     {
         var recipes =
-            await _recipeRepository.GetFilteredRecipesAsync(recipeName, difficulty, recipeType, cooktime, ingredients);
+            await _recipeRepository.GetFilteredRecipes(recipeName, difficulty, recipeType, cooktime, ingredients);
         return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 
-    public async Task<int> GetAmountOfRecipesAsync()
+    public async Task<int> GetAmountOfRecipes()
     {
-        return await _recipeRepository.GetRecipeCountAsync();
+        return await _recipeRepository.GetRecipeCount();
     }
 
     public async Task<RecipeDto?> CreateRecipe(RecipeFilterDto request, List<PreferenceDto> preferences)
@@ -94,65 +94,6 @@ public class RecipeManager : IRecipeManager
                     return _mapper.Map<RecipeDto>(recipe);
                 }
 
-                var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
-                if (imageUri is not null)
-                {
-                    recipe.ImagePath = imageUri!.ToString();
-                    await _recipeRepository.UpdateRecipe(recipe);
-                }
-
-                return _mapper.Map<RecipeDto>(recipe);
-            }
-            catch (JsonReaderException ex)
-            {
-                _logger.LogError("Failed to parse JSON: {ErrorMessage}", ex.Message);
-                _logger.LogInformation("Attempt: {Attempts}", attempts);
-                _logger.LogInformation("Retrying to create recipe");
-                attempts++;
-            }
-            catch (RecipeNotAllowedException ex)
-            {
-                _logger.LogError("Recipe not allowed: {ErrorMessage}", ex.ReasonMessage);
-                throw new RecipeNotAllowedException(reasonMessage: ex.ReasonMessage);
-            }
-            catch (RecipeValidationFailException ex)
-            {
-                _logger.LogError("Failed to create recipe: {ErrorMessage}", ex.Message);
-                _logger.LogInformation("Attempt: {Attempts}", attempts);
-                _logger.LogInformation("Retrying to create recipe");
-                attempts++;
-            }
-        }
-
-        _logger.LogError("Failed to create recipe after 3 attempts");
-        return null;
-    }
-
-    public async Task<RecipeDto?> CreateRecipeAsync(RecipeFilterDto request, List<PreferenceDto> preferences)
-    {
-        byte attempts = 0;
-        var prompt = LlmSettingsService.BuildPrompt(request, preferences);
-        while (attempts < 3)
-        {
-            try
-            {
-                var generatedRecipeJson = _llmService.GenerateRecipe(prompt);
-
-                if (!RecipeValidation(generatedRecipeJson))
-                {
-                    _logger.LogError("Recipe validation failed");
-                    throw new RecipeValidationFailException("Recipe validation failed");
-                }
-
-                var recipe = await ConvertGeneratedRecipe(generatedRecipeJson);
-
-                await _recipeRepository.CreateRecipeAsync(recipe);
-
-                if (!string.IsNullOrEmpty(recipe.ImagePath))
-                {
-                    return _mapper.Map<RecipeDto>(recipe);
-                }
-                
                 var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
                 if (imageUri is not null)
                 {
@@ -232,16 +173,16 @@ public class RecipeManager : IRecipeManager
             
             // Add the task to the list
 
-            tasks.Add(CreateRecipeAsync(request, preferences));
+            tasks.Add(CreateRecipe(request, preferences));
         }
 
         // Await all tasks to complete
         await Task.WhenAll(tasks);
     }
 
-    public async Task RemoveUnusedRecipesAsync()
+    public async Task RemoveUnusedRecipes()
     {
-        await _recipeRepository.DeleteUnusedRecipesAsync();
+        await _recipeRepository.DeleteUnusedRecipes();
     }
 
     private bool RecipeValidation(string recipeJson)

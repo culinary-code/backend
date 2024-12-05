@@ -56,7 +56,7 @@ public class AccountController: ControllerBase
             {
                 case "updateusername":
                     var updatedUsername = await _accountManager.UpdateAccount(accountDto);
-                    await _identityProviderService.UpdateUsernameAsync(updatedUsername, accountDto.Name);
+                    await _identityProviderService.UpdateUsername(updatedUsername, accountDto.Name);
                     return Ok(updatedUsername);
                 
                 case "updatefamilysize":

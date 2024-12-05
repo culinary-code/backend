@@ -153,7 +153,7 @@ public class KeyCloakService : IIdentityProviderService
         throw new JwtTokenException("Failed to get username and email from account token");
     }
 
-    public async Task UpdateUsernameAsync(AccountDto account, string newUsername)
+    public async Task UpdateUsername(AccountDto account, string newUsername)
     {
         string accessToken = "";
         try

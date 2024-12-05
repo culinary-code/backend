@@ -61,7 +61,7 @@ public class RecipeRepository : IRecipeRepository
         return recipes;
     }
 
-    public async Task<ICollection<Recipe>> GetFilteredRecipesAsync(string recipeName, Difficulty difficulty,
+    public async Task<ICollection<Recipe>> GetFilteredRecipes(string recipeName, Difficulty difficulty,
         RecipeType recipeType, int cooktime, List<String> ingredientStrings)
     {
         var query = _ctx.Recipes.AsQueryable();
@@ -106,18 +106,12 @@ public class RecipeRepository : IRecipeRepository
         return recipes;
     }
 
-    public async Task<int> GetRecipeCountAsync()
+    public async Task<int> GetRecipeCount()
     {
         return await _ctx.Recipes.CountAsync();
     }
 
     public async Task CreateRecipe(Recipe recipe)
-    {
-        await _ctx.Recipes.AddAsync(recipe);
-        await _ctx.SaveChangesAsync();
-    }
-
-    public async Task CreateRecipeAsync(Recipe recipe)
     {
         await _ctx.Recipes.AddAsync(recipe);
         await _ctx.SaveChangesAsync();
@@ -129,7 +123,7 @@ public class RecipeRepository : IRecipeRepository
         await _ctx.SaveChangesAsync();
     }
 
-    public async Task DeleteUnusedRecipesAsync()
+    public async Task DeleteUnusedRecipes()
     {
         var thresholdDate = DateTime.UtcNow.AddDays(-31);
 
