@@ -4,9 +4,10 @@ using System.Text;
 using System.Text.Json;
 using BL.DTOs.Accounts;
 using BL.Managers.Accounts;
-using DOM.Accounts;
+using Configuration.Options;
 using Microsoft.Extensions.Configuration;
 using DOM.Exceptions;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BL.Services;
@@ -14,23 +15,23 @@ namespace BL.Services;
 public class KeyCloakService : IIdentityProviderService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _baseUrl;
     private readonly string _clientId;
     private readonly string _realm;
     private readonly string _adminUsername;
     private readonly string _adminPassword;
     private readonly IAccountManager _accountManager;
 
-    public KeyCloakService(HttpClient httpClient, IConfiguration configuration, IAccountManager accountManager)
+    public KeyCloakService(IConfiguration configuration, IAccountManager accountManager, IOptions<KeycloakOptions> keycloakOptions, IHttpClientFactory httpFactory)
     {
-        _httpClient = httpClient;
+        _httpClient = httpFactory.CreateClient("Keycloak");
+        
         _accountManager = accountManager;
         
-        _baseUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_BASE_URL environment variable is not set.");
-        _clientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_CLIENT_ID environment variable is not set.");
-        _realm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_REALM environment variable is not set.");
-        _adminUsername = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_USERNAME") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_ADMIN_USERNAME environment variable is not set.");
-        _adminPassword = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_ADMIN_PASSWORD environment variable is not set.");
+        var keycloakOptionsValue = keycloakOptions.Value;
+        _clientId = keycloakOptionsValue.ClientId;
+        _realm = keycloakOptionsValue.Realm;
+        _adminUsername = keycloakOptionsValue.AdminUsername;
+        _adminPassword = keycloakOptionsValue.AdminPassword;
     }
 
     // Login as admin and store the access token
@@ -44,7 +45,7 @@ public class KeyCloakService : IIdentityProviderService
             new KeyValuePair<string, string>("password", password)
         });
 
-        var response = await _httpClient.PostAsync($"{_baseUrl}/realms/{_realm}/protocol/openid-connect/token", content);
+        var response = await _httpClient.PostAsync($"/realms/{_realm}/protocol/openid-connect/token", content);
         
         if (!response.IsSuccessStatusCode)
             throw new LoginAdminException("Failed to get access_token");
@@ -81,7 +82,7 @@ public class KeyCloakService : IIdentityProviderService
         var jsonPayload = JsonSerializer.Serialize(userPayload);
         var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/admin/realms/{_realm}/users")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/realms/{_realm}/users")
         {
             Content = content,
             Headers =
@@ -177,7 +178,7 @@ public class KeyCloakService : IIdentityProviderService
         var jsonPayload = JsonSerializer.Serialize(userPayload);
         var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
         
-        var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/admin/realms/{_realm}/users/{account.AccountId}")
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/admin/realms/{_realm}/users/{account.AccountId}")
         {
             Content = content,
             Headers =

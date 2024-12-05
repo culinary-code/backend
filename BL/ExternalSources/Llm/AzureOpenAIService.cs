@@ -5,8 +5,10 @@ using Azure;
 using Azure.AI.OpenAI;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Configuration.Options;
 using DOM.Exceptions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OpenAI.Chat;
 using OpenAI.Images;
 
@@ -25,24 +27,15 @@ public class AzureOpenAIService : ILlmService
 
     private readonly ILogger<AzureOpenAIService> _logger;
 
-    public AzureOpenAIService(ILogger<AzureOpenAIService> logger)
+    public AzureOpenAIService(ILogger<AzureOpenAIService> logger, IOptions<AzureOpenAIOptions> azureOpenAiOptions, IOptions<AzureStorageOptions> azureStorageOptions)
     {
-        DotNetEnv.Env.Load("../.env");
-
-        _apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY") ??
-                  throw new EnvironmentVariableNotAvailableException(
-                      "AZURE_OPENAI_API_KEY environment variable is not set.");
-        _endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ??
-                    throw new EnvironmentVariableNotAvailableException(
-                        "AZURE_OPENAI_ENDPOINT environment variable is not set.");
-        _blobConnectionString =
-            Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING") ??
-            throw new EnvironmentVariableNotAvailableException(
-                "AZURE_STORAGE_CONNECTION_STRING environment variable is not set.");
-        _blobContainerName = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONTAINER_NAME") ??
-                             throw new EnvironmentVariableNotAvailableException(
-                                 "AZURE_STORAGE_CONTAINER_NAME environment variable is not set.");
-
+        var azureOpenAiOptionsValue = azureOpenAiOptions.Value;
+        var azureStorageOptionsValue = azureStorageOptions.Value;
+        
+        _apiKey = azureOpenAiOptionsValue.ApiKey;
+        _endpoint = azureOpenAiOptionsValue.Endpoint;
+        _blobConnectionString = azureStorageOptionsValue.ConnectionString;
+        _blobContainerName = azureStorageOptionsValue.ContainerName;
 
         _logger = logger;
         _azureClient = new AzureOpenAIClient(

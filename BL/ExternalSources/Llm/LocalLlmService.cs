@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using Configuration.Options;
+using Microsoft.Extensions.Options;
 
 namespace BL.ExternalSources.Llm;
 
@@ -9,10 +11,9 @@ public class LocalLlmService : ILlmService
 {
     private readonly string _localServerUrl;
 
-    public LocalLlmService()
+    public LocalLlmService(IOptions<LocalLlmServerOptions> options)
     {
-        DotNetEnv.Env.Load();
-        _localServerUrl = DotNetEnv.Env.GetString("LOCAL_LLM_SERVER_URL");
+        _localServerUrl = options.Value.ServerUrl;
     }
 
     private static readonly HttpClient Client = new HttpClient();
