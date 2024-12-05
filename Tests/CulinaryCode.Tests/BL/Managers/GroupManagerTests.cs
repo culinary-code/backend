@@ -43,4 +43,26 @@ public class GroupManagerTests
         // Assert
         _groupRepositoryMock.Verify(repo => repo.CreateGroupAsync(It.Is<Group>(g => g.GroupName == groupName && g.Accounts.Contains(ownerAccount))), Times.Once);
     }
+    
+    [Fact]
+    public async Task AddUserToGroupAsync_AddsUser_WhenGroupExists()
+    {
+        // Arrange
+        var groupId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var group = new Group { GroupId = groupId, GroupName = "Test Group" };
+        var user = new Account { AccountId = userId, Name = "Test User" };
+
+        _groupRepositoryMock.Setup(repo => repo.ReadGroupById(groupId)).ReturnsAsync(group);
+        _groupRepositoryMock.Setup(repo => repo.AddUserToGroupAsync(groupId, userId));
+
+        // Act
+        await _groupManager.AddUserToGroupAsync(groupId, userId);
+        _testOutputHelper.WriteLine(group.Accounts.Count.ToString());
+        _testOutputHelper.WriteLine(group.GroupId.ToString());
+        _testOutputHelper.WriteLine(group.GroupName);
+
+        // Assert
+        _groupRepositoryMock.Verify(repo => repo.AddUserToGroupAsync(groupId, userId), Times.Once);
+    }
 }

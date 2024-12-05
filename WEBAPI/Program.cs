@@ -47,6 +47,7 @@ builder.Services.AddScoped<IMealPlannerRepository, MealPlannerRepository>();
 builder.Services.AddScoped<IGroceryRepository, GroceryRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IPreferenceRepository, PreferenceRepository>();
+builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 
 
 // Managers
@@ -56,6 +57,7 @@ builder.Services.AddScoped<IMealPlannerManager, MealPlannerManager>();
 builder.Services.AddScoped<IGroceryManager, GroceryManager>();
 builder.Services.AddScoped<IReviewManager, ReviewManager>();
 builder.Services.AddScoped<IPreferenceManager, PreferenceManager>();
+builder.Services.AddScoped<IGroupManager, GroupManager>();
 
 // Services
 builder.Services.AddHttpClient<IIdentityProviderService, KeyCloakService>();

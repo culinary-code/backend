@@ -6,5 +6,5 @@ public interface IGroupRepository
 {
     Task CreateGroupAsync(Group group);
     Task<Group> ReadGroupById(Guid groupId);
-    Task AddUserToGroupAsync(Guid groupId, Guid userId);
+    Task<Group> AddUserToGroupAsync(Guid groupId, Guid userId);
 }

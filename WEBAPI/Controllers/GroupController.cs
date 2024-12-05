@@ -42,4 +42,21 @@ public class GroupController : ControllerBase
             return BadRequest();
         }
     }
+
+    [HttpPost("{groupId}/addUserToGroup")]
+    public async Task<IActionResult> AddUserToGroup(Guid groupId)
+    {
+        try
+        {
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+
+            await _groupManager.AddUserToGroupAsync(groupId, userId);
+            return Ok(groupId);
+        }
+        catch
+        {
+            _logger.LogError($"Could not add user to group {groupId}");
+            return BadRequest();
+        }
+    }
 }

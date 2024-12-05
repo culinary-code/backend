@@ -41,7 +41,7 @@ public class GroupRepository : IGroupRepository
         return group;
     }
 
-    public async Task AddUserToGroupAsync(Guid groupId, Guid userId)
+    public async Task<Group> AddUserToGroupAsync(Guid groupId, Guid userId)
     {
         var group = await ReadGroupById(groupId);
         if (group is null)
@@ -57,5 +57,6 @@ public class GroupRepository : IGroupRepository
         
         group.Accounts.Add(user);
         await _ctx.SaveChangesAsync();
+        return group;
     }
 }
