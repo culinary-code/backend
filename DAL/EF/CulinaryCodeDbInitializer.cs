@@ -216,7 +216,7 @@ internal static class CulinaryCodeDbInitializer
         {
             RecipeName = "Test Recept 1",
             Ingredients = [],
-            RecipePreferences = [],
+            Preferences = [],
             RecipeType = RecipeType.Snack,
             Description = "Dit is een test recept voor een snack.",
             CookingTime = 5,
@@ -233,16 +233,8 @@ internal static class CulinaryCodeDbInitializer
         recipe1.Ingredients.Add(ingredientQuantity2);
         recipe1.Ingredients.Add(ingredientQuantity3);
 
-        recipe1.RecipePreferences.Add(new RecipePreference()
-        {
-            Recipe = recipe1,
-            Preference = preference1
-        });
-        recipe1.RecipePreferences.Add(new RecipePreference()
-        {
-            Recipe = recipe1,
-            Preference = preference2
-        });
+        recipe1.Preferences.Add(preference1);
+        recipe1.Preferences.Add(preference2);
 
         recipe1.Instructions.Add(instructionStep1);
         recipe1.Instructions.Add(instructionStep2);
@@ -263,7 +255,7 @@ internal static class CulinaryCodeDbInitializer
         {
             RecipeName = "Test Recept 2",
             Ingredients = [],
-            RecipePreferences = [],
+            Preferences = [],
             RecipeType = RecipeType.Breakfast,
             Description = "Dit is een testrecept voor een ontbijt.",
             CookingTime = 20,
@@ -278,11 +270,7 @@ internal static class CulinaryCodeDbInitializer
 
         recipe2.Ingredients.Add(ingredientQuantity4);
 
-        recipe2.RecipePreferences.Add(new RecipePreference()
-        {
-            Recipe = recipe1,
-            Preference = preference3
-        });
+        recipe2.Preferences.Add(preference3);
 
         recipe2.Instructions.Add(instructionStep8);
 
@@ -296,7 +284,7 @@ internal static class CulinaryCodeDbInitializer
         {
             RecipeName = "Test Recept 3",
             Ingredients = [],
-            RecipePreferences = [],
+            Preferences = [],
             RecipeType = RecipeType.Dinner,
             Description = "Dit is een testrecept voor een avondmaal.",
             CookingTime = 120,

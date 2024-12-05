@@ -61,7 +61,7 @@ public class RecipeManagerTests
         Difficulty difficulty,
         int amountOfPeople,
         List<IngredientQuantity> ingredientQuantities,
-        List<RecipePreference> preferences,
+        List<Preference> preferences,
         List<InstructionStep> instructions,
         List<Review> reviews)
     {
@@ -69,7 +69,7 @@ public class RecipeManagerTests
         {
             RecipeName = recipeName,
             Ingredients = ingredientQuantities,
-            RecipePreferences = preferences,
+            Preferences = preferences,
             RecipeType = recipeType,
             Description = description,
             CookingTime = cookingTime,
@@ -93,9 +93,9 @@ public class RecipeManagerTests
             new IngredientQuantity { Ingredient = ingredient2, Quantity = 100 }
         };
 
-        var recipePreferences = new List<RecipePreference>
+        var recipePreferences = new List<Preference>
         {
-            new RecipePreference { Preference = new Preference(){PreferenceName = "Veel wortels", StandardPreference = false}  }
+            new Preference(){PreferenceName = "Veel wortels", StandardPreference = false}  
         };
 
         var instructions = new List<InstructionStep>

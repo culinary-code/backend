@@ -17,17 +17,6 @@ public class PreferenceRepository : IPreferenceRepository
         _ctx = ctx;
     }
 
-
-    public async Task<Preference> ReadPreferenceById(Guid id)
-    {
-        Preference? preference = await _ctx.Preferences.FindAsync(id);
-        if (preference is null)
-        {
-            throw new PreferenceNotFoundException($"No preference found with id {id}");
-        }
-        return preference;
-    }
-
     public async Task<Preference?> ReadPreferenceByName(string name)
     {
         Preference? preference = await _ctx.Preferences.FirstOrDefaultAsync(p => p.PreferenceName == name);

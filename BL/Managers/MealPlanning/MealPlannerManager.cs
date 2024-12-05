@@ -43,13 +43,25 @@ public class MealPlannerManager : IMealPlannerManager
 
         var linkedRecipe = await _recipeRepository.ReadRecipeById(plannedMealDto.Recipe.RecipeId);
         var linkedIngredientQuantities = new List<IngredientQuantity>();
+        var ingredientDictionary = new Dictionary<Guid, Ingredient>();
         
         foreach (var ingredientQuantityDto in plannedMealDto.Ingredients)
         {
+            Ingredient ingredient;
+            var ingredientId = ingredientQuantityDto.Ingredient.IngredientId;
+            if (ingredientDictionary.TryGetValue(ingredientId, out var value))
+            {
+                ingredient = value;
+            }
+            else
+            {
+                ingredient = await _ingredientRepository.ReadIngredientById(ingredientId);
+                ingredientDictionary.Add(ingredientId, ingredient);
+            }
             var ingredientQuantity = new IngredientQuantity()
             {
                 Quantity = ingredientQuantityDto.Quantity,
-                Ingredient = await _ingredientRepository.ReadIngredientById(ingredientQuantityDto.Ingredient.IngredientId)
+                Ingredient = ingredient,
             };
             linkedIngredientQuantities.Add(ingredientQuantity);
         }

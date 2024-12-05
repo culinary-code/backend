@@ -12,6 +12,6 @@ public class Preference
     public bool StandardPreference { get; set; }
     
     // navigation properties
-    public IEnumerable<RecipePreference> RecipePreferences { get; set; } = new List<RecipePreference>();
+    public IEnumerable<Recipe> Recipes { get; set; } = new List<Recipe>();
     public IEnumerable<Account> Accounts { get; set; } = new List<Account>();
 }

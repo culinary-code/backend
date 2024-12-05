@@ -26,7 +26,7 @@ public class CulinaryCodeDbContext : DbContext
 
     public CulinaryCodeDbContext(DbContextOptions options) : base(options)
     {
-        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: true);
+        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: false);
     }
 
 
@@ -48,10 +48,20 @@ public class CulinaryCodeDbContext : DbContext
                 .HasForeignKey(i => i.RecipeId) // explicitly define foreign key
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasMany(r => r.RecipePreferences)
-                .WithOne(i => i.Recipe)
-                .HasForeignKey(i => i.RecipeId)
-                .OnDelete(DeleteBehavior.Cascade);
+            // Many-to-Many relationship with Preferences
+            entity.HasMany(a => a.Preferences)
+                .WithMany(p => p.Recipes)
+                .UsingEntity<RecipePreference>(
+                    j => j.HasOne(rp => rp.Preference)
+                        .WithMany()
+                        .HasForeignKey(ap => ap.PreferenceId),
+                    j => j.HasOne(rp => rp.Recipe)
+                        .WithMany()
+                        .HasForeignKey(ap => ap.RecipeId),
+                    j =>
+                    {
+                        j.HasKey(ap => ap.RecipePreferenceId);
+                    });
 
             entity.HasMany(r => r.Reviews)
                 .WithOne(r => r.Recipe)
@@ -112,6 +122,21 @@ public class CulinaryCodeDbContext : DbContext
             entity.HasOne(a => a.GroceryList)
                 .WithOne(g => g.Account)
                 .HasForeignKey<GroceryList>(g => g.AccountId);
+            
+            // Many-to-Many relationship with Preferences
+            entity.HasMany(a => a.Preferences)
+                .WithMany(p => p.Accounts)
+                .UsingEntity<AccountPreference>(
+                    j => j.HasOne(ap => ap.Preference)
+                        .WithMany()
+                        .HasForeignKey(ap => ap.PreferenceId),
+                    j => j.HasOne(ap => ap.Account)
+                        .WithMany()
+                        .HasForeignKey(ap => ap.AccountId),
+                    j =>
+                    {
+                        j.HasKey(ap => ap.AccountPreferenceId);
+                    });
         });
 
         // GroceryList Entity Configuration
@@ -159,16 +184,18 @@ public class CulinaryCodeDbContext : DbContext
         modelBuilder.Entity<Preference>(entity =>
         {
             entity.HasKey(r => r.PreferenceId);
-            entity.HasMany(r => r.RecipePreferences)
-                .WithOne(i => i.Preference)
-                .HasForeignKey(i => i.PreferenceId)
-                .OnDelete(DeleteBehavior.Cascade);
         });
         
         // RecipePreference Entity Configuration
         modelBuilder.Entity<RecipePreference>(entity =>
         {
             entity.HasKey(r => r.RecipePreferenceId);
+        });
+        
+        // RecipePreference Entity Configuration
+        modelBuilder.Entity<AccountPreference>(entity =>
+        {
+            entity.HasKey(r => r.AccountPreferenceId);
         });
         
         // Review Entity Configuration

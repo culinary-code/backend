@@ -25,7 +25,7 @@ public class IngredientRepository : IIngredientRepository
         }
         return ingredient;
     }
-
+    
     public async Task<IngredientQuantity> ReadIngredientQuantityById(Guid id)
     {
         IngredientQuantity? ingredientQuantity = await _ctx.IngredientQuantities.FindAsync(id);
@@ -35,16 +35,7 @@ public class IngredientRepository : IIngredientRepository
         }
         return ingredientQuantity;
     }
-
-    public async Task<Ingredient> ReadIngredientByName(string name)
-    {
-        Ingredient? ingredient = await _ctx.Ingredients.FirstOrDefaultAsync(i => i.IngredientName == name);
-        if (ingredient is null)
-        {
-            throw new IngredientNotFoundException($"No ingredient found with name {name}");
-        }
-        return ingredient;
-    }
+    
 
     public async Task<Ingredient?> ReadPossibleIngredientByNameAndMeasurement(string name, MeasurementType measurementType)
     {

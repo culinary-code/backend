@@ -18,7 +18,7 @@ public static class RecipeUtil
             Ingredients = new List<IngredientQuantity>(),
             Instructions = new List<InstructionStep>(),
             Reviews = new List<Review>(),
-            RecipePreferences = new List<RecipePreference>(),
+            Preferences = new List<Preference>(),
             RecipeType = recipeType,
             CookingTime = cookTime,
             Difficulty = difficulty,

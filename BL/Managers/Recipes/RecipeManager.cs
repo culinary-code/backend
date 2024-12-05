@@ -244,17 +244,13 @@ public class RecipeManager : IRecipeManager
             RecipeName = recipeName!.ToString(),
             Description = description!.ToString(),
             RecipeType = recipeTypeEnum,
-            RecipePreferences = new List<RecipePreference>() {new RecipePreference()
-            {
-                Preference = dietPreference
-            }},
+            Preferences = new List<Preference>() {dietPreference},
             CookingTime = int.Parse(cookingTime!.ToString()),
             Difficulty = difficultyEnum,
             CreatedAt = DateTime.UtcNow,
             LastUsedAt = DateTime.UtcNow,
             AmountOfPeople = int.Parse(amountOfPeople!.ToString()),
             ImagePath = imagePath?.ToString() ?? string.Empty,
-
             Ingredients = ingredientQuantities,
             Instructions = instructionSteps
         };
