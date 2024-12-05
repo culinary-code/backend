@@ -82,14 +82,14 @@ public class KeyCloakController : ControllerBase, IIdentityProviderController
         // Check if user exists in our database
         try
         {
-            var account = _accountManager.GetAccountById(userId.ToString());
+            await _accountManager.GetAccountById(userId.ToString());
             
             return Ok("User account exists.");
         } catch (AccountNotFoundException)
         {
             // If user does not exist, create a new account
             var (username, email) = _identityProviderService.GetUsernameAndEmailFromAccessToken(token);
-            _accountManager.CreateAccount(username, email, userId);
+            await _accountManager.CreateAccount(username, email, userId);
             
             return Created("", "User account created.");
         }

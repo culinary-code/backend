@@ -75,8 +75,8 @@ public class ReviewManagerTests
         var account = new Account();
         var recipe = new Recipe();
         var existingReview = new List<Review> { new Review { Account = new Account { AccountId = accountId } } };
-        _accountRepository.Setup(x => x.ReadAccount(accountId)).Returns(account);
-        _recipeRepository.Setup(x => x.ReadRecipeById(recipeId)).Returns(recipe);
+        _accountRepository.Setup(x => x.ReadAccount(accountId)).ReturnsAsync(account);
+        _recipeRepository.Setup(x => x.ReadRecipeById(recipeId)).ReturnsAsync(recipe);
         _reviewRepository.Setup(x => x.ReviewExistsForAccountAndRecipe(accountId, recipeId)).ReturnsAsync(true);
 
         // Act
@@ -95,8 +95,8 @@ public class ReviewManagerTests
         var account = new Account();
         var recipe = new Recipe();
         var existingReview = new List<Review>();
-        _accountRepository.Setup(x => x.ReadAccount(accountId)).Returns(account);
-        _recipeRepository.Setup(x => x.ReadRecipeById(recipeId)).Returns(recipe);
+        _accountRepository.Setup(x => x.ReadAccount(accountId)).ReturnsAsync(account);
+        _recipeRepository.Setup(x => x.ReadRecipeById(recipeId)).ReturnsAsync(recipe);
         _reviewRepository.Setup(x => x.ReadReviewsWithAccountByRecipeId(recipeId)).ReturnsAsync(existingReview);
 
         // Act
