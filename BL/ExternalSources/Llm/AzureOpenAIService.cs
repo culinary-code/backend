@@ -29,13 +29,13 @@ public class AzureOpenAIService : ILlmService
 
     public AzureOpenAIService(ILogger<AzureOpenAIService> logger, IOptions<AzureOpenAIOptions> azureOpenAiOptions, IOptions<AzureStorageOptions> azureStorageOptions)
     {
-        var azureOpenAiOptions1 = azureOpenAiOptions.Value;
-        var azureStorageOptions1 = azureStorageOptions.Value;
+        var azureOpenAiOptionsValue = azureOpenAiOptions.Value;
+        var azureStorageOptionsValue = azureStorageOptions.Value;
         
-        _apiKey = azureOpenAiOptions1.ApiKey;
-        _endpoint = azureOpenAiOptions1.Endpoint;
-        _blobConnectionString = azureStorageOptions1.ConnectionString;
-        _blobContainerName = azureStorageOptions1.ContainerName;
+        _apiKey = azureOpenAiOptionsValue.ApiKey;
+        _endpoint = azureOpenAiOptionsValue.Endpoint;
+        _blobConnectionString = azureStorageOptionsValue.ConnectionString;
+        _blobContainerName = azureStorageOptionsValue.ContainerName;
 
         _logger = logger;
         _azureClient = new AzureOpenAIClient(
