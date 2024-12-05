@@ -5,12 +5,11 @@ namespace DAL.Recipes;
 
 public interface IIngredientRepository
 {
-    public Ingredient ReadIngredientById(Guid id);
-    public IngredientQuantity ReadIngredientQuantityById(Guid id);
-    public Ingredient ReadIngredientByName(string name);
-    public Ingredient? ReadPossibleIngredientByNameAndMeasurement(string name, MeasurementType measurement);
-    public Ingredient ReadIngredientByNameAndMeasurementType(string name, MeasurementType measurementType);
-    public void CreateIngredient(Ingredient ingredient);
-    public void UpdateIngredient(Ingredient ingredient);
-    public Task DeleteIngredientQuantity(Guid userId, Guid ingredientQuantityId);
+    Task<Ingredient> ReadIngredientById(Guid id);
+    Task<IngredientQuantity> ReadIngredientQuantityById(Guid id);
+    Task<Ingredient> ReadIngredientByName(string name);
+    Task<Ingredient?> ReadPossibleIngredientByNameAndMeasurement(string name, MeasurementType measurement);
+    Task<Ingredient> ReadIngredientByNameAndMeasurementType(string name, MeasurementType measurementType);
+    Task CreateIngredient(Ingredient ingredient);
+    Task DeleteIngredientQuantity(Guid userId, Guid ingredientQuantityId);
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using DAL.EF;
 using DOM.Accounts;
 using DOM.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Recipes;
 
@@ -17,9 +18,9 @@ public class PreferenceRepository : IPreferenceRepository
     }
 
 
-    public Preference ReadPreferenceById(Guid id)
+    public async Task<Preference> ReadPreferenceById(Guid id)
     {
-        Preference? preference = _ctx.Preferences.Find(id);
+        Preference? preference = await _ctx.Preferences.FindAsync(id);
         if (preference is null)
         {
             throw new PreferenceNotFoundException($"No preference found with id {id}");
@@ -27,15 +28,15 @@ public class PreferenceRepository : IPreferenceRepository
         return preference;
     }
 
-    public Preference? ReadPreferenceByName(string name)
+    public async Task<Preference?> ReadPreferenceByName(string name)
     {
-        Preference? preference = _ctx.Preferences.FirstOrDefault(p => p.PreferenceName == name);
+        Preference? preference = await _ctx.Preferences.FirstOrDefaultAsync(p => p.PreferenceName == name);
         return preference;
     }
 
-    public ICollection<Preference> ReadStandardPreferences()
+    public async Task<ICollection<Preference>> ReadStandardPreferences()
     {
-        ICollection<Preference> preferences = _ctx.Preferences.Where(p => p.StandardPreference).ToList();
+        ICollection<Preference> preferences = await _ctx.Preferences.Where(p => p.StandardPreference).ToListAsync();
         if (preferences.Count <= 0)
         {
             throw new PreferenceNotFoundException("No standard preferences found");
@@ -43,10 +44,10 @@ public class PreferenceRepository : IPreferenceRepository
         return preferences;
     }
 
-    public Preference CreatePreference(Preference preference)
+    public async Task<Preference> CreatePreference(Preference preference)
     {
-        _ctx.Preferences.Add(preference);
-        _ctx.SaveChanges();
+        await _ctx.Preferences.AddAsync(preference);
+        await _ctx.SaveChangesAsync();
         return preference;
     }
 }

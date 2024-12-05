@@ -49,15 +49,15 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     }
 
     [Fact]
-    public void ReadRecipeById_RecipeExists_ReturnsRecipe()
+    public async Task ReadRecipeById_RecipeExists_ReturnsRecipe()
     {
         // Arrange
         var recipe = RecipeUtil.CreateRecipe();
         _dbContext.Recipes.Add(recipe);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = _recipeRepository.ReadRecipeById(recipe.RecipeId);
+        var result = await _recipeRepository.ReadRecipeById(recipe.RecipeId);
 
         // Assert
         Assert.NotNull(result);
@@ -66,25 +66,25 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     }
 
     [Fact]
-    public void ReadRecipeById_RecipeDoesNotExist_ThrowsRecipeNotFoundException()
+    public async Task ReadRecipeById_RecipeDoesNotExist_ThrowsRecipeNotFoundException()
     {
         // Arrange
         var recipeId = Guid.NewGuid();
 
         // Act & Assert
-        Assert.Throws<RecipeNotFoundException>(() => _recipeRepository.ReadRecipeById(recipeId));
+        await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _recipeRepository.ReadRecipeById(recipeId));
     }
 
     [Fact]
-    public void ReadRecipeByName_RecipeExists_ReturnsRecipe()
+    public async Task ReadRecipeByName_RecipeExists_ReturnsRecipe()
     {
         // Arrange
         var recipe = RecipeUtil.CreateRecipe();
         _dbContext.Recipes.Add(recipe);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = _recipeRepository.ReadRecipeByName(recipe.RecipeName);
+        var result = await _recipeRepository.ReadRecipeByName(recipe.RecipeName);
 
         // Assert
         Assert.NotNull(result);
@@ -93,27 +93,27 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     }
 
     [Fact]
-    public void ReadRecipeByName_RecipeDoesNotExist_ThrowsRecipeNotFoundException()
+    public async Task ReadRecipeByName_RecipeDoesNotExist_ThrowsRecipeNotFoundException()
     {
         // Arrange
         var recipeName = "Test Recipe";
 
         // Act & Assert
-        Assert.Throws<RecipeNotFoundException>(() => _recipeRepository.ReadRecipeByName(recipeName));
+        await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _recipeRepository.ReadRecipeByName(recipeName));
     }
 
     [Fact]
-    public void ReadRecipesCollectionByName_RecipesExist_ReturnsCollection()
+    public async Task ReadRecipesCollectionByName_RecipesExist_ReturnsCollection()
     {
         // Arrange
         var recipe1 = RecipeUtil.CreateRecipe("Test Recipe 1");
         var recipe2 = RecipeUtil.CreateRecipe("Test Recipe 2");
         _dbContext.Recipes.Add(recipe1);
         _dbContext.Recipes.Add(recipe2);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = _recipeRepository.ReadRecipesCollectionByName("Test Recipe");
+        var result = await _recipeRepository.ReadRecipesCollectionByName("Test Recipe");
 
         // Assert
         Assert.NotNull(result);
@@ -121,45 +121,45 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
     }
 
     [Fact]
-    public void ReadRecipesCollectionByName_RecipesDoNotExist_ThrowsRecipeNotFoundException()
+    public async Task ReadRecipesCollectionByName_RecipesDoNotExist_ThrowsRecipeNotFoundException()
     {
         // Arrange
         var recipeName = "Test Recipe";
 
         // Act & Assert
-        Assert.Throws<RecipeNotFoundException>(() => _recipeRepository.ReadRecipesCollectionByName(recipeName));
+        await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _recipeRepository.ReadRecipesCollectionByName(recipeName));
     }
 
     [Fact]
-    public void CreateRecipe_ValidRecipe_CreatesRecipe()
+    public async Task CreateRecipe_ValidRecipe_CreatesRecipe()
     {
         // Arrange
         var recipe = RecipeUtil.CreateRecipe();
 
         // Act
-        _recipeRepository.CreateRecipe(recipe);
+        await _recipeRepository.CreateRecipe(recipe);
 
         // Assert
-        var result = _dbContext.Recipes.Find(recipe.RecipeId);
+        var result = await _dbContext.Recipes.FindAsync(recipe.RecipeId);
         Assert.NotNull(result);
         Assert.Equal(recipe.RecipeId, result.RecipeId);
         Assert.Equal(recipe.RecipeName, result.RecipeName);
     }
 
     [Fact]
-    public void UpdateRecipe_ValidRecipe_UpdatesRecipe()
+    public async Task UpdateRecipe_ValidRecipe_UpdatesRecipe()
     {
         // Arrange
         var recipe = RecipeUtil.CreateRecipe();
         _dbContext.Recipes.Add(recipe);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Act
         recipe.RecipeName = "Updated Recipe";
-        _recipeRepository.UpdateRecipe(recipe);
+        await _recipeRepository.UpdateRecipe(recipe);
 
         // Assert
-        var result = _dbContext.Recipes.Find(recipe.RecipeId);
+        var result = await _dbContext.Recipes.FindAsync(recipe.RecipeId);
         Assert.NotNull(result);
         Assert.Equal(recipe.RecipeId, result.RecipeId);
         Assert.Equal(recipe.RecipeName, result.RecipeName);
@@ -177,7 +177,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipesAsync("Spaghetti", Difficulty.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipes("Spaghetti", Difficulty.NotAvailable,
             RecipeType.NotAvailable, 0, new List<string>());
 
         // Assert
@@ -201,7 +201,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.Easy, RecipeType.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.Easy, RecipeType.NotAvailable,
             0, new List<string>());
 
         // Assert
@@ -224,7 +224,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.NotAvailable, RecipeType.Dinner,
+        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.NotAvailable, RecipeType.Dinner,
             0, new List<string>());
 
         // Assert
@@ -246,7 +246,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.NotAvailable,
             RecipeType.NotAvailable, 30, new List<string>());
 
         // Assert
@@ -282,7 +282,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         _dbContext.ChangeTracker.Clear();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.NotAvailable,
             RecipeType.NotAvailable, 0, new List<string> { "Tomato", "Basil" });
 
         // Assert
@@ -299,7 +299,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         // No recipes added to the database.
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.NotAvailable,
             RecipeType.NotAvailable, 0, new List<string>());
 
         // Assert
@@ -332,7 +332,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         _dbContext.ChangeTracker.Clear();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipesAsync("Tomato", Difficulty.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipes("Tomato", Difficulty.NotAvailable,
             RecipeType.NotAvailable, 30, new List<string>());
 
         // Assert
@@ -368,7 +368,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         _dbContext.ChangeTracker.Clear();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.Intermediate,
+        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.Intermediate,
             RecipeType.NotAvailable, 0, new List<string> { "Chicken", "Garlic" });
 
         // Assert
@@ -393,7 +393,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         _dbContext.ChangeTracker.Clear();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipesAsync("", Difficulty.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.NotAvailable,
             RecipeType.Dinner, 25, new List<string>());
 
         // Assert
@@ -431,7 +431,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         _dbContext.ChangeTracker.Clear();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipesAsync("Chicken", Difficulty.Easy,
+        var result = await _recipeRepository.GetFilteredRecipes("Chicken", Difficulty.Easy,
             RecipeType.Dinner, 25, new List<string> { "Rice", "Chicken" });
 
         // Assert
@@ -466,7 +466,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        await _recipeRepository.DeleteUnusedRecipesAsync();
+        await _recipeRepository.DeleteUnusedRecipes();
 
         // Assert
         var remainingRecipes = await _dbContext.Recipes.ToListAsync();

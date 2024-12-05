@@ -105,7 +105,7 @@ public class KeyCloakService : IIdentityProviderService
             throw new RegisterUserException($"Failed to create user: access token is empty");
         }
         var userId = GetGuidFromAccessToken(accessToken);
-        _accountManager.CreateAccount(username, email, userId);
+        await _accountManager.CreateAccount(username, email, userId);
         
     }
     
@@ -153,7 +153,7 @@ public class KeyCloakService : IIdentityProviderService
         throw new JwtTokenException("Failed to get username and email from account token");
     }
 
-    public async Task UpdateUsernameAsync(AccountDto account, string newUsername)
+    public async Task UpdateUsername(AccountDto account, string newUsername)
     {
         string accessToken = "";
         try

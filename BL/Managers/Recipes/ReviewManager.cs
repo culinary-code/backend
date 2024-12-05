@@ -38,8 +38,8 @@ public class ReviewManager : IReviewManager
     public async Task<ReviewDto> CreateReview(Guid accountId, Guid recipeId, string description, int amountOfStars)
     {
         _logger.LogInformation($"Creating review for account with id {accountId} and recipe with id {recipeId}");
-        var account = _accountRepository.ReadAccount(accountId);
-        var recipe = _recipeRepository.ReadRecipeById(recipeId);
+        var account = await _accountRepository.ReadAccount(accountId);
+        var recipe = await _recipeRepository.ReadRecipeById(recipeId);
         
         
         // check if account already has a review on this recipe, which is not allowed
@@ -62,7 +62,7 @@ public class ReviewManager : IReviewManager
         
         recipe.AmountOfRatings++;
         recipe.AverageRating = (recipe.AverageRating * (recipe.AmountOfRatings - 1) + amountOfStars) / recipe.AmountOfRatings;
-        _recipeRepository.UpdateRecipe(recipe);
+        await _recipeRepository.UpdateRecipe(recipe);
         
         return _mapper.Map<ReviewDto>(review);
     }

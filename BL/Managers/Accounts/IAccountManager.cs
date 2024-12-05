@@ -6,14 +6,14 @@ namespace BL.Managers.Accounts;
 
 public interface IAccountManager
 {
-    AccountDto GetAccountById(string id);
-    List<PreferenceDto> GetPreferencesByUserId(Guid userId);
-    List<RecipeDto> GetFavoriteRecipesByUserId(Guid userId);
-    AccountDto UpdateAccount(AccountDto account);
-    public AccountDto UpdateFamilySize(AccountDto updatedAccount);
-    void CreateAccount(string username, string email, Guid userId);
-    AccountDto AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto);
-    AccountDto AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId);
+    Task<AccountDto> GetAccountById(string id);
+    Task<List<PreferenceDto>> GetPreferencesByUserId(Guid userId);
+    Task<List<RecipeDto>> GetFavoriteRecipesByUserId(Guid userId);
+    Task<AccountDto> UpdateAccount(AccountDto account);
+    Task<AccountDto> UpdateFamilySize(AccountDto updatedAccount);
+    Task CreateAccount(string username, string email, Guid userId);
+    Task<AccountDto> AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto);
+    Task<AccountDto> AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId);
+    Task RemovePreferenceFromAccount(Guid accountId, Guid preferenceId);
     Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid recipeId);
-    void RemovePreferenceFromAccount(Guid accountId, Guid preferenceId);
 }

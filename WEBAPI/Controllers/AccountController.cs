@@ -25,11 +25,11 @@ public class AccountController: ControllerBase
     }
     
     [HttpGet("{accountId}")]
-    public IActionResult GetUserById(string accountId)
+    public async Task<IActionResult> GetUserById(string accountId)
     {
         try
         {
-            var user = _accountManager.GetAccountById(accountId); 
+            var user = await _accountManager.GetAccountById(accountId); 
             return Ok(user);
         }
         catch (AccountNotFoundException e)
@@ -55,12 +55,12 @@ public class AccountController: ControllerBase
             switch (actionType.ToLowerInvariant())
             {
                 case "updateusername":
-                    var updatedUsername = _accountManager.UpdateAccount(accountDto);
-                    await _identityProviderService.UpdateUsernameAsync(updatedUsername, accountDto.Name);
+                    var updatedUsername = await _accountManager.UpdateAccount(accountDto);
+                    await _identityProviderService.UpdateUsername(updatedUsername, accountDto.Name);
                     return Ok(updatedUsername);
                 
                 case "updatefamilysize":
-                    var updatedFamilySize = _accountManager.UpdateFamilySize(accountDto);
+                    var updatedFamilySize = await _accountManager.UpdateFamilySize(accountDto);
                     return Ok(updatedFamilySize);
                 
                 default:
@@ -75,14 +75,14 @@ public class AccountController: ControllerBase
     }
     
     [HttpGet("getPreferences")]
-    public IActionResult GetUserPreferences()
+    public async Task<IActionResult> GetUserPreferences()
     {
         try
         {
             string token = Request.Headers["Authorization"].ToString().Substring(7);
             Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
         
-            var preferences = _accountManager.GetPreferencesByUserId(userId);
+            var preferences = await _accountManager.GetPreferencesByUserId(userId);
             return Ok(preferences);
         }
         catch (AccountNotFoundException ex)
@@ -105,7 +105,7 @@ public class AccountController: ControllerBase
 
         try
         {
-            var updatedAccount = _accountManager.AddPreferenceToAccount(userId, preferenceDto);
+            var updatedAccount = await _accountManager.AddPreferenceToAccount(userId, preferenceDto);
             return Ok(updatedAccount);
         }
         catch (AccountNotFoundException e)
@@ -121,14 +121,14 @@ public class AccountController: ControllerBase
     }
     
     [HttpDelete("deletePreference/{preferenceId}")]
-    public IActionResult DeletePreference(Guid preferenceId)
+    public async Task<IActionResult> DeletePreference(Guid preferenceId)
     {
         try
         {
             string token = Request.Headers["Authorization"].ToString().Substring(7); 
             Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
             
-            _accountManager.RemovePreferenceFromAccount(userId, preferenceId);
+            await _accountManager.RemovePreferenceFromAccount(userId, preferenceId);
 
             return Ok("Preference deleted successfully.");
         }
@@ -145,14 +145,14 @@ public class AccountController: ControllerBase
     }
 
     [HttpGet("getFavoriteRecipes")]
-    public IActionResult GetFavoriteRecipes()
+    public async Task<IActionResult> GetFavoriteRecipes()
     {
         try
         {
             string token = Request.Headers["Authorization"].ToString().Substring(7);
             Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
         
-            var favoriteRecipes = _accountManager.GetFavoriteRecipesByUserId(userId);
+            var favoriteRecipes = await _accountManager.GetFavoriteRecipesByUserId(userId);
             return Ok(favoriteRecipes);
         }
         catch (AccountNotFoundException ex)
@@ -174,7 +174,7 @@ public class AccountController: ControllerBase
 
         try
         {
-            var updatedAccount = _accountManager.AddFavoriteRecipeToAccount(userId, recipeDto.RecipeId);
+            var updatedAccount = await _accountManager.AddFavoriteRecipeToAccount(userId, recipeDto.RecipeId);
             return Ok(updatedAccount);
         }
         catch (AccountNotFoundException ex)

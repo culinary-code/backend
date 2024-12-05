@@ -35,15 +35,15 @@ public class GroceryRepositoryTests : IClassFixture<TestPostgresContainerFixture
 
 
     [Fact]
-    public void ReadGroceryListById_GroceryListExists_ReturnsGroceryList()
+    public async Task ReadGroceryListById_GroceryListExists_ReturnsGroceryList()
     {
         // Arrange
         var groceryList = GroceryUtil.CreateGroceryList();
         _dbContext.GroceryLists.Add(groceryList);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = _groceryRepository.ReadGroceryListById(groceryList.GroceryListId);
+        var result = await _groceryRepository.ReadGroceryListById(groceryList.GroceryListId);
 
         // Assert
         Assert.NotNull(result);
@@ -52,15 +52,15 @@ public class GroceryRepositoryTests : IClassFixture<TestPostgresContainerFixture
     }
 
     [Fact]
-    public void ReadItemQuantityById_ItemQuantityExists_ReturnsItemQuantity()
+    public async Task ReadItemQuantityById_ItemQuantityExists_ReturnsItemQuantity()
     {
         // Arrange
         var itemQuantity = GroceryUtil.CreateItemQuantity();
         _dbContext.ItemQuantities.Add(itemQuantity);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = _groceryRepository.ReadItemQuantityById(itemQuantity.ItemQuantityId);
+        var result = await _groceryRepository.ReadItemQuantityById(itemQuantity.ItemQuantityId);
 
         // Assert
         Assert.NotNull(result);
@@ -69,15 +69,15 @@ public class GroceryRepositoryTests : IClassFixture<TestPostgresContainerFixture
     }
 
     [Fact]
-    public void ReadGroceryListByAccountId_AccountHasGroceryList_ReturnsGroceryList()
+    public async Task ReadGroceryListByAccountId_AccountHasGroceryList_ReturnsGroceryList()
     {
         // Arrange
         var groceryList = GroceryUtil.CreateGroceryList();
         _dbContext.GroceryLists.Add(groceryList);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = _groceryRepository.ReadGroceryListByAccountId(groceryList.Account.AccountId);
+        var result = await _groceryRepository.ReadGroceryListByAccountId(groceryList.Account.AccountId);
 
         // Assert
         Assert.NotNull(result);
@@ -86,15 +86,15 @@ public class GroceryRepositoryTests : IClassFixture<TestPostgresContainerFixture
     }
 
     [Fact]
-    public void ReadPossibleGroceryItemByNameAndMeasurement_ItemExists_ReturnsGroceryItem()
+    public async Task ReadPossibleGroceryItemByNameAndMeasurement_ItemExists_ReturnsGroceryItem()
     {
         // Arrange
         var groceryItem = GroceryUtil.CreateGroceryItem();
         _dbContext.GroceryItems.Add(groceryItem);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Act
-        var result =
+        var result = await 
             _groceryRepository.ReadPossibleGroceryItemByNameAndMeasurement(groceryItem.GroceryItemName,
                 groceryItem.Measurement);
 
@@ -105,13 +105,13 @@ public class GroceryRepositoryTests : IClassFixture<TestPostgresContainerFixture
     }
 
     [Fact]
-    public void CreateGroceryList_ValidGroceryList_AddsToDatabase()
+    public async Task CreateGroceryList_ValidGroceryList_AddsToDatabase()
     {
         // Arrange
         var groceryList = GroceryUtil.CreateGroceryList();
 
         // Act
-        _groceryRepository.CreateGroceryList(groceryList);
+        await _groceryRepository.CreateGroceryList(groceryList);
 
         // Assert
         var result = _dbContext.GroceryLists.Find(groceryList.GroceryListId);
@@ -120,16 +120,16 @@ public class GroceryRepositoryTests : IClassFixture<TestPostgresContainerFixture
     }
 
     [Fact]
-    public void AddGroceryListItem_ValidItem_AddsToGroceryList()
+    public async Task AddGroceryListItem_ValidItem_AddsToGroceryList()
     {
         // Arrange
         var groceryList = GroceryUtil.CreateGroceryList();
         var itemQuantity = GroceryUtil.CreateItemQuantity();
         _dbContext.GroceryLists.Add(groceryList);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Act
-        _groceryRepository.AddGroceryListItem(groceryList, itemQuantity);
+        await _groceryRepository.AddGroceryListItem(groceryList, itemQuantity);
 
         // Assert
         var result = _dbContext.GroceryLists
@@ -149,7 +149,7 @@ public class GroceryRepositoryTests : IClassFixture<TestPostgresContainerFixture
         var itemQuantity = GroceryUtil.CreateItemQuantity();
         groceryList.Items.Add(itemQuantity);
         _dbContext.GroceryLists.Add(groceryList);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Act
         await _groceryRepository.DeleteItemQuantity(groceryList.Account.AccountId, itemQuantity.ItemQuantityId);
@@ -160,50 +160,50 @@ public class GroceryRepositoryTests : IClassFixture<TestPostgresContainerFixture
     }
 
     [Fact]
-    public void ReadGroceryListById_GroceryListDoesNotExist_ThrowsGroceryListNotFoundException()
+    public async Task ReadGroceryListById_GroceryListDoesNotExist_ThrowsGroceryListNotFoundException()
     {
         // Arrange
         var nonExistentId = Guid.NewGuid();
 
         // Act & Assert
-        var exception = Assert.Throws<GroceryListNotFoundException>(() =>
-            _groceryRepository.ReadGroceryListById(nonExistentId));
+        var exception = await Assert.ThrowsAsync<GroceryListNotFoundException>(async () =>
+           await _groceryRepository.ReadGroceryListById(nonExistentId));
         Assert.Equal("Grocery list not found!", exception.Message);
     }
 
     [Fact]
-    public void ReadItemQuantityById_ItemQuantityDoesNotExist_ThrowsItemQuantityNotFoundException()
+    public async Task ReadItemQuantityById_ItemQuantityDoesNotExist_ThrowsItemQuantityNotFoundException()
     {
         // Arrange
         var nonExistentId = Guid.NewGuid();
 
         // Act & Assert
-        var exception = Assert.Throws<ItemQuantityNotFoundException>(() =>
-            _groceryRepository.ReadItemQuantityById(nonExistentId));
+        var exception = await Assert.ThrowsAsync<ItemQuantityNotFoundException>(async () =>
+           await _groceryRepository.ReadItemQuantityById(nonExistentId));
         Assert.Equal($"No itemQuantity found with id {nonExistentId}", exception.Message);
     }
     
     [Fact]
-    public void AddGroceryListItem_NullGroceryList_ThrowsGroceryListNotFoundException()
+    public async Task AddGroceryListItem_NullGroceryList_ThrowsGroceryListNotFoundException()
     {
         // Arrange
         GroceryList? groceryList = null;
         var itemQuantity = GroceryUtil.CreateItemQuantity();
 
         // Act & Assert
-        var exception = Assert.Throws<GroceryListNotFoundException>(() =>
+        var exception = await Assert.ThrowsAsync<GroceryListNotFoundException>(async () => await 
             _groceryRepository.AddGroceryListItem(groceryList, itemQuantity));
         Assert.Equal("Grocery list or new item cannot be null.", exception.Message);
     }
     
     [Fact]
-    public void ReadGroceryListByAccountId_AccountDoesNotHaveGroceryList_ThrowsGroceryListNotFoundException()
+    public async Task ReadGroceryListByAccountId_AccountDoesNotHaveGroceryList_ThrowsGroceryListNotFoundException()
     {
         // Arrange
         var nonExistentAccountId = Guid.NewGuid();
 
         // Act & Assert
-        var exception = Assert.Throws<GroceryListNotFoundException>(() =>
+        var exception = await Assert.ThrowsAsync<GroceryListNotFoundException>(async () => await 
             _groceryRepository.ReadGroceryListByAccountId(nonExistentAccountId));
         Assert.Equal("No grocery list found for this account.", exception.Message);
     }

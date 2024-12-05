@@ -20,9 +20,9 @@ public class PreferenceManager : IPreferenceManager
         _mapper = mapper;
     }
 
-    public List<PreferenceDto> GetStandardPreferences()
+    public async Task<List<PreferenceDto>> GetStandardPreferences()
     {
-        var preferences = _preferenceRepository.ReadStandardPreferences();
+        var preferences = await _preferenceRepository.ReadStandardPreferences();
         return _mapper.Map<List<PreferenceDto>>(preferences);
     }
 }
