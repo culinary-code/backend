@@ -22,6 +22,5 @@ public class Account
     //navigation properties
     public Guid? PlannerId { get; set; }
     public Guid? GroceryListId { get; set; }
-    
-    
+    public Guid? ChosenGroupId { get; set; }
 }

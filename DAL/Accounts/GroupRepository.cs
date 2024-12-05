@@ -1,0 +1,61 @@
+﻿using DAL.EF;
+using DOM.Accounts;
+using DOM.Exceptions;
+using Microsoft.EntityFrameworkCore;
+
+namespace DAL.Accounts;
+
+public class GroupRepository : IGroupRepository
+{
+    private readonly CulinaryCodeDbContext _ctx;
+    private readonly IAccountRepository _accountRepository;
+
+    public GroupRepository(CulinaryCodeDbContext ctx, IAccountRepository accountRepository)
+    {
+        _ctx = ctx;
+        _accountRepository = accountRepository;
+    }
+
+    public async Task CreateGroupAsync(Group group)
+    {
+        if (group is null)
+        {
+            throw new ArgumentNullException(nameof(group));
+        }
+        
+        await _ctx.Groups.AddAsync(group);
+        await _ctx.SaveChangesAsync();
+    }
+
+    public async Task<Group> ReadGroupById(Guid groupId)
+    {
+        var group = await _ctx.Groups
+            .Include(g => g.Accounts)
+            .FirstOrDefaultAsync(g => g.GroupId == groupId);
+
+        if (group == null)
+        {
+            return null;
+        }
+        
+        return group;
+    }
+
+    public async Task AddUserToGroupAsync(Guid groupId, Guid userId)
+    {
+        var group = await ReadGroupById(groupId);
+        if (group is null)
+        {
+            throw new ArgumentNullException(nameof(group));
+        }
+
+        var user = await _accountRepository.ReadAccount(userId);
+        if (user is null)
+        {
+            throw new AccountNotFoundException(nameof(user));
+        }
+        
+        group.Accounts.Add(user);
+        await _ctx.SaveChangesAsync();
+    }
+}
