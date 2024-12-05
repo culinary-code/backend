@@ -9,11 +9,10 @@ namespace DOM.Recipes;
 
 public class Recipe
 {
-    [Key] 
     public Guid RecipeId { get; set; }
     public string RecipeName { get; set; } = "Default Recipe Name";
     public ICollection<IngredientQuantity> Ingredients { get; set; } = new List<IngredientQuantity>();
-    public ICollection<Preference> Preferences { get; set; } = new List<Preference>();
+    public ICollection<RecipePreference> RecipePreferences { get; set; } = new List<RecipePreference>();
     public RecipeType RecipeType { get; set; }
     public string Description { get; set; } = "Default Description";
     public int CookingTime { get; set; }

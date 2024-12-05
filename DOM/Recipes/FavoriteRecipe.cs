@@ -6,10 +6,14 @@ namespace DOM.Recipes;
 
 public class FavoriteRecipe
 {
-    [Key] public Guid FavoriteRecipeId { get; set; }
+    public Guid FavoriteRecipeId { get; set; }
     public Recipe? Recipe { get; set; }
     public DateTime CreatedAt { get; set; }
     
     // navigation properties
     public Account? Account { get; set; }
+    
+    // Foreign keys
+    public Guid? AccountId { get; set; }
+    public Guid? RecipeId { get; set; }
 }

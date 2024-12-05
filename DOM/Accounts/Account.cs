@@ -8,7 +8,7 @@ namespace DOM.Accounts;
 
 public class Account
 {
-    [Key] public Guid AccountId { get; set; }
+    public Guid AccountId { get; set; }
     public string Name { get; set; } = "Default username";
     public string Email { get; set; } = string.Empty;
     public ICollection<Preference> Preferences { get; set; } = new List<Preference>();

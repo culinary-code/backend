@@ -26,7 +26,7 @@ public class CulinaryCodeDbContext : DbContext
 
     public CulinaryCodeDbContext(DbContextOptions options) : base(options)
     {
-        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: false);
+        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: true);
     }
 
 
@@ -34,86 +34,166 @@ public class CulinaryCodeDbContext : DbContext
     {
         // configure logging: write to debug output window
         optionsBuilder.LogTo(message => Debug.WriteLine(message), LogLevel.Information);
-        
     }
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Recipe>()
-            .HasMany(r => r.Ingredients)
-            .WithOne(i => i.Recipe)
-            .OnDelete(DeleteBehavior.Cascade);
-        
-        //TODO: many to many relationship, make our own class definition?
-        modelBuilder.Entity<Recipe>()
-            .HasMany(r => r.Preferences)
-            .WithMany(p => p.Recipes);
+        // Recipe Entity Configuration
+        modelBuilder.Entity<Recipe>(entity =>
+        {
+            entity.HasKey(r => r.RecipeId);
 
-        modelBuilder.Entity<Recipe>()
-            .HasMany(r => r.Reviews)
-            .WithOne(r => r.Recipe)
-            .OnDelete(DeleteBehavior.Cascade);
-        
-        modelBuilder.Entity<Recipe>()
-            .HasMany(r => r.Instructions)
-            .WithOne(i => i.Recipe)
-            .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(r => r.Ingredients)
+                .WithOne(i => i.Recipe)
+                .HasForeignKey(i => i.RecipeId) // explicitly define foreign key
+                .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<PlannedMeal>()
-            .HasOne(p => p.Recipe)
-            .WithMany(r => r.PlannedMeals)
-            .OnDelete(DeleteBehavior.Cascade);
-        
-        modelBuilder.Entity<PlannedMeal>()
-            .HasMany(p => p.Ingredients)
-            .WithOne(i => i.PlannedMeal)
-            .OnDelete(DeleteBehavior.Cascade);
-        
-        modelBuilder.Entity<MealPlanner>()
-            .HasMany(m => m.NextWeek)
-            .WithOne(p => p.NextWeekMealPlanner);
-        
-        modelBuilder.Entity<MealPlanner>()
-            .HasMany(m => m.History)
-            .WithOne(p => p.HistoryMealPlanner);
-        
-        modelBuilder.Entity<Account>()
-            .HasMany(a => a.Reviews)
-            .WithOne(r => r.Account);
-        
-        modelBuilder.Entity<Account>()
-            .HasMany(a => a.FavoriteRecipes)
-            .WithOne(f => f.Account);
+            entity.HasMany(r => r.RecipePreferences)
+                .WithOne(i => i.Recipe)
+                .HasForeignKey(i => i.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<Account>()
-            .HasOne(a => a.Planner)
-            .WithOne(m => m.Account)
-            .HasForeignKey<Account>(a => a.PlannerId);
+            entity.HasMany(r => r.Reviews)
+                .WithOne(r => r.Recipe)
+                .HasForeignKey(r => r.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(r => r.Instructions)
+                .WithOne(i => i.Recipe)
+                .HasForeignKey(i => i.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+
+        // PlannedMeal Entity Configuration
+        modelBuilder.Entity<PlannedMeal>(entity =>
+        {
+            entity.HasKey(r => r.PlannedMealId);
+            entity.HasOne(p => p.Recipe)
+                .WithMany(r => r.PlannedMeals)
+                .HasForeignKey(p => p.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(p => p.Ingredients)
+                .WithOne(i => i.PlannedMeal)
+                .HasForeignKey(i => i.PlannedMealId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // MealPlanner Entity Configuration
+        modelBuilder.Entity<MealPlanner>(entity =>
+        {
+            entity.HasKey(r => r.MealPlannerId);
+            entity.HasMany(m => m.NextWeek)
+                .WithOne(p => p.NextWeekMealPlanner)
+                .HasForeignKey(p => p.NextWeekMealPlannerId);
+
+            entity.HasMany(m => m.History)
+                .WithOne(p => p.HistoryMealPlanner)
+                .HasForeignKey(p => p.HistoryMealPlannerId);
+        });
+
+        // Account Entity Configuration
+        modelBuilder.Entity<Account>(entity =>
+        {
+            entity.HasKey(r => r.AccountId);
+            entity.HasMany(a => a.Reviews)
+                .WithOne(r => r.Account)
+                .HasForeignKey(r => r.AccountId);
+
+            entity.HasMany(a => a.FavoriteRecipes)
+                .WithOne(f => f.Account)
+                .HasForeignKey(f => f.AccountId);
+
+            entity.HasOne(a => a.Planner)
+                .WithOne(m => m.Account)
+                .HasForeignKey<MealPlanner>(m => m.AccountId);
+
+            entity.HasOne(a => a.GroceryList)
+                .WithOne(g => g.Account)
+                .HasForeignKey<GroceryList>(g => g.AccountId);
+        });
+
+        // GroceryList Entity Configuration
+        modelBuilder.Entity<GroceryList>(entity =>
+        {
+            entity.HasKey(r => r.GroceryListId);
+            entity.HasMany(g => g.Ingredients)
+                .WithOne(i => i.GroceryList)
+                .HasForeignKey(i => i.GroceryListId);
+
+            entity.HasMany(g => g.Items)
+                .WithOne(i => i.GroceryList)
+                .HasForeignKey(i => i.GroceryListId);
+        });
+
+        // IngredientQuantity Entity Configuration
+        modelBuilder.Entity<IngredientQuantity>(entity =>
+        {
+            entity.HasKey(r => r.IngredientQuantityId);
+            entity.HasOne(iq => iq.Ingredient)
+                .WithMany(i => i.IngredientQuantities)
+                .HasForeignKey(iq => iq.IngredientId);
+        });
+
+        // ItemQuantity Entity Configuration
+        modelBuilder.Entity<ItemQuantity>(entity =>
+        {
+            entity.HasKey(r => r.ItemQuantityId);
+            entity.HasOne(iq => iq.GroceryItem)
+                .WithMany(gi => gi.ItemQuantities)
+                .HasForeignKey(iq => iq.GroceryItemId);
+        });
+
+        // FavoriteRecipe Entity Configuration
+        modelBuilder.Entity<FavoriteRecipe>(entity =>
+        {
+            entity.HasKey(r => r.FavoriteRecipeId);
+            entity.HasOne(fr => fr.Recipe)
+                .WithMany(r => r.FavoriteRecipes)
+                .HasForeignKey(fr => fr.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Preference Entity Configuration
+        modelBuilder.Entity<Preference>(entity =>
+        {
+            entity.HasKey(r => r.PreferenceId);
+            entity.HasMany(r => r.RecipePreferences)
+                .WithOne(i => i.Preference)
+                .HasForeignKey(i => i.PreferenceId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
         
-        modelBuilder.Entity<Account>()
-            .HasOne(a => a.GroceryList)
-            .WithOne(g => g.Account)
-            .HasForeignKey<Account>(a => a.GroceryListId);
+        // RecipePreference Entity Configuration
+        modelBuilder.Entity<RecipePreference>(entity =>
+        {
+            entity.HasKey(r => r.RecipePreferenceId);
+        });
         
-        modelBuilder.Entity<GroceryList>()
-            .HasMany(g => g.Ingredients)
-            .WithOne(i => i.GroceryList);
+        // Review Entity Configuration
+        modelBuilder.Entity<Review>(entity =>
+        {
+            entity.HasKey(r => r.ReviewId);
+        });
         
-        modelBuilder.Entity<GroceryList>()
-            .HasMany(g => g.Items)
-            .WithOne(i => i.GroceryList);
+        // GroceryItem Entity Configuration
+        modelBuilder.Entity<GroceryItem>(entity =>
+        {
+            entity.HasKey(r => r.GroceryItemId);
+        });
         
-        modelBuilder.Entity<IngredientQuantity>()
-            .HasOne(i => i.Ingredient)
-            .WithMany(i => i.IngredientQuantities);
+        // Ingredient Entity Configuration
+        modelBuilder.Entity<Ingredient>(entity =>
+        {
+            entity.HasKey(r => r.IngredientId);
+        });
         
-        modelBuilder.Entity<ItemQuantity>()
-            .HasOne(i => i.GroceryItem)
-            .WithMany(i => i.ItemQuantities);
+        // InstructionStep Entity Configuration
+        modelBuilder.Entity<InstructionStep>(entity =>
+        {
+            entity.HasKey(r => r.InstructionStepId);
+        });
         
-        modelBuilder.Entity<FavoriteRecipe>()
-            .HasOne(f => f.Recipe)
-            .WithMany(r => r.FavoriteRecipes)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

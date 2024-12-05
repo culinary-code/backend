@@ -26,7 +26,8 @@ public class RecipeRepository : IRecipeRepository
             .Include(r => r.Instructions)
             .Include(r => r.Reviews)
             .ThenInclude(r => r.Account)
-            .Include(r => r.Preferences)
+            .Include(r => r.RecipePreferences)
+            .ThenInclude(rp => rp.Preference)
             .FirstOrDefaultAsync(r => r.RecipeId == id);
         if (recipe is null)
         {

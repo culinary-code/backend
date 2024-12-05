@@ -30,11 +30,8 @@ public class ChatController : ControllerBase
     [HttpPost("getchat")]
     public async Task<IActionResult> GetChat([FromBody] RecipeFilterDto request)
     {
-        string token = Request.Headers["Authorization"].ToString().Substring(7);
-        Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
         
-        var preferences = await _accountManager.GetPreferencesByUserId(userId);
-        var prompt = LlmSettingsService.BuildPrompt(request, preferences);
+        var prompt = LlmSettingsService.BuildPrompt(request, null);
         var message = _llmService.GenerateRecipe(prompt);
         return Ok(message);
     }
