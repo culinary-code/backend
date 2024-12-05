@@ -35,19 +35,6 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         return Task.CompletedTask;
     }
 
-    private static Recipe CreateRecipe(string recipeName = "Test Recipe")
-    {
-        return new Recipe
-        {
-            RecipeId = Guid.NewGuid(),
-            RecipeName = recipeName,
-            Ingredients = new List<IngredientQuantity>(),
-            Instructions = new List<InstructionStep>(),
-            Reviews = new List<Review>(),
-            Preferences = new List<Preference>()
-        };
-    }
-
     [Fact]
     public async Task ReadRecipeById_RecipeExists_ReturnsRecipe()
     {

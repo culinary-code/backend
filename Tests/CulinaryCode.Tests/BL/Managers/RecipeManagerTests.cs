@@ -61,7 +61,7 @@ public class RecipeManagerTests
         Difficulty difficulty,
         int amountOfPeople,
         List<IngredientQuantity> ingredientQuantities,
-        List<Preference> preferences,
+        List<RecipePreference> preferences,
         List<InstructionStep> instructions,
         List<Review> reviews)
     {
@@ -69,7 +69,7 @@ public class RecipeManagerTests
         {
             RecipeName = recipeName,
             Ingredients = ingredientQuantities,
-            Preferences = preferences,
+            RecipePreferences = preferences,
             RecipeType = recipeType,
             Description = description,
             CookingTime = cookingTime,
@@ -93,9 +93,9 @@ public class RecipeManagerTests
             new IngredientQuantity { Ingredient = ingredient2, Quantity = 100 }
         };
 
-        var preferences = new List<Preference>
+        var recipePreferences = new List<RecipePreference>
         {
-            new Preference { PreferenceName = "Veel wortels", StandardPreference = false }
+            new RecipePreference { Preference = new Preference(){PreferenceName = "Veel wortels", StandardPreference = false}  }
         };
 
         var instructions = new List<InstructionStep>
@@ -119,7 +119,7 @@ public class RecipeManagerTests
             imagePath: "https://picsum.photos/200/300",
             createdAt: DateTime.UtcNow,
             ingredientQuantities: ingredientQuantities,
-            preferences: preferences,
+            preferences: recipePreferences,
             instructions: instructions,
             reviews: reviews
         );
