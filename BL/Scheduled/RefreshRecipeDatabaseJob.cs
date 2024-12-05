@@ -1,7 +1,7 @@
-﻿using BL.DTOs.Accounts;
-using BL.Managers.Recipes;
-using DOM.Exceptions;
+﻿using BL.Managers.Recipes;
+using Configuration.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace BL.Scheduled;
 
@@ -11,21 +11,22 @@ using System.Threading.Tasks;
 
 public class RefreshRecipeDatabaseJob : IJob
 {
+    private readonly JobSettingsOptions _jobSettingsOptions;
     private readonly ILogger<RefreshRecipeDatabaseJob> _logger;
     private readonly IRecipeManager _recipeManager;
     
-    public RefreshRecipeDatabaseJob(ILogger<RefreshRecipeDatabaseJob> logger, IRecipeManager recipeManager)
+    public RefreshRecipeDatabaseJob(ILogger<RefreshRecipeDatabaseJob> logger, IRecipeManager recipeManager, IOptions<JobSettingsOptions> jobSettingsOptions)
     {
         _logger = logger;
         _recipeManager = recipeManager;
+        _jobSettingsOptions = jobSettingsOptions.Value;
     }
     
     public async Task Execute(IJobExecutionContext context)
     {
         _logger.LogInformation($"DatabaseJob started at {DateTime.Now}");
         
-        var minAmountString = Environment.GetEnvironmentVariable("RECIPE_JOB_MIN_AMOUNT") ?? throw new EnvironmentVariableNotAvailableException("RECIPE_JOB_MIN_AMOUNT environment variable is not set.");
-        int minAmountInDatabase = int.Parse(minAmountString);
+        int minAmountInDatabase = _jobSettingsOptions.MinAmount;
 
         await _recipeManager.RemoveUnusedRecipesAsync();
         
