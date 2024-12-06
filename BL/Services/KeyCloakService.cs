@@ -21,12 +21,13 @@ public class KeyCloakService : IIdentityProviderService
     private readonly string _adminPassword;
     private readonly IAccountManager _accountManager;
 
-    public KeyCloakService(IConfiguration configuration, IAccountManager accountManager, IOptions<KeycloakOptions> keycloakOptions, IHttpClientFactory httpFactory)
+    public KeyCloakService(IConfiguration configuration, IAccountManager accountManager,
+        IOptions<KeycloakOptions> keycloakOptions, IHttpClientFactory httpFactory)
     {
         _httpClient = httpFactory.CreateClient("Keycloak");
-        
+
         _accountManager = accountManager;
-        
+
         var keycloakOptionsValue = keycloakOptions.Value;
         _clientId = keycloakOptionsValue.ClientId;
         _realm = keycloakOptionsValue.Realm;
@@ -35,7 +36,7 @@ public class KeyCloakService : IIdentityProviderService
     }
 
     // Login as admin and store the access token
-    private async Task<string?> LoginAsync(string username, string password)
+    private async Task<Result<string>> LoginAsync(string username, string password)
     {
         var content = new FormUrlEncodedContent(new[]
         {
@@ -46,23 +47,27 @@ public class KeyCloakService : IIdentityProviderService
         });
 
         var response = await _httpClient.PostAsync($"/realms/{_realm}/protocol/openid-connect/token", content);
-        
+
         if (!response.IsSuccessStatusCode)
-            throw new LoginAdminException("Failed to get access_token");
+        {
+            Result<string>.Failure("Failed to get access_token", ResultFailureType.None);
+        }
 
         var responseBody = await response.Content.ReadAsStringAsync();
         var jsonDocument = JsonDocument.Parse(responseBody);
-        return jsonDocument.RootElement.GetProperty("access_token").GetString();
+        var accessToken = jsonDocument.RootElement.GetProperty("access_token").GetString();
+        if (accessToken == null) return Result<string>.Failure("Failed to get access_token", ResultFailureType.None);
+        return Result<string>.Success(accessToken);
     }
 
     // Create a new user in Keycloak
-    public async Task RegisterUserAsync(string username, string email, string password)
+    public async Task<Result<Unit>> RegisterUserAsync(string username, string email, string password)
     {
-        var accessToken = await LoginAsync(_adminUsername, _adminPassword);
+        var accessTokenResult = await LoginAsync(_adminUsername, _adminPassword);
+        if (!accessTokenResult.IsSuccess)
+            return Result<Unit>.Failure(accessTokenResult.ErrorMessage!, accessTokenResult.FailureType);
+        var accessToken = accessTokenResult.Value!;
 
-        if (string.IsNullOrEmpty(accessToken))
-            throw new LoginAdminException("Failed to read admin accesstoken when registering a new user");
-        
         var userPayload = new
         {
             username,
@@ -92,26 +97,33 @@ public class KeyCloakService : IIdentityProviderService
         };
 
         var response = await _httpClient.SendAsync(request);
-        
+
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync();
             throw new RegisterUserException($"Failed to create user: {errorContent}");
         }
-        
-        accessToken = await LoginAsync(username, password);
 
-        if (accessToken.IsNullOrEmpty())
+        accessTokenResult = await LoginAsync(username, password);
+        if (!accessTokenResult.IsSuccess)
+            return Result<Unit>.Failure(accessTokenResult.ErrorMessage!, accessTokenResult.FailureType);
+        accessToken = accessTokenResult.Value!;
+
+        var userIdResult = GetGuidFromAccessToken(accessToken);
+        if (!userIdResult.IsSuccess) return Result<Unit>.Failure(userIdResult.ErrorMessage!, userIdResult.FailureType);
+        var userId = userIdResult.Value!;
+
+        var createAccountResult = await _accountManager.CreateAccount(username, email, userId);
+        if (!createAccountResult.IsSuccess)
         {
-            throw new RegisterUserException($"Failed to create user: access token is empty");
+            return Result<Unit>.Failure(createAccountResult.ErrorMessage!, createAccountResult.FailureType);
         }
-        var userId = GetGuidFromAccessToken(accessToken);
-        await _accountManager.CreateAccount(username, email, userId);
-        
-    }
-    
 
-    public Guid GetGuidFromAccessToken(string accessToken)
+        return Result<Unit>.Success(new Unit());
+    }
+
+
+    public Result<Guid> GetGuidFromAccessToken(string accessToken)
     {
         // Initialize the JWT token handler
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -127,13 +139,14 @@ public class KeyCloakService : IIdentityProviderService
             // Convert the "sub" claim to GUID if it exists
             if (Guid.TryParse(userIdClaim, out Guid userId))
             {
-                return userId;
+                return Result<Guid>.Success(userId);
             }
         }
-        throw new JwtTokenException("Failed to get userId from account token");
+
+        return Result<Guid>.Failure("Failed to get guid from access token", ResultFailureType.Error);
     }
 
-    public (string, string) GetUsernameAndEmailFromAccessToken(string accessToken)
+    public Result<(string, string)> GetUsernameAndEmailFromAccessToken(string accessToken)
     {
         // Initialize the JWT token handler
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -145,39 +158,36 @@ public class KeyCloakService : IIdentityProviderService
 
             // Extract the "preferred_username" claim (which usually contains the username in Keycloak tokens)
             var usernameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value;
+            if (usernameClaim == null)
+                return Result<(string, string)>.Failure("Username not found in access token", ResultFailureType.Error);
 
             // Extract the "email" claim (which usually contains the email in Keycloak tokens)
             var emailClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+            if (emailClaim == null)
+                return Result<(string, string)>.Failure("email not found in access token", ResultFailureType.Error);
 
-            return (usernameClaim, emailClaim)!;
+            return Result<(string, string)>.Success((usernameClaim, emailClaim));
         }
+
         throw new JwtTokenException("Failed to get username and email from account token");
     }
 
-    public async Task UpdateUsername(AccountDto account, string newUsername)
+    public async Task<Result<Unit>> UpdateUsername(AccountDto account, string newUsername)
     {
         string accessToken = "";
-        try
-        {
-            accessToken = await LoginAsync(_adminUsername, _adminPassword);
 
-        }
-        catch (Exception e)
-        {
-            throw new LoginAdminException("Failed to read admin access token", e);
-        }
-        
-        if (string.IsNullOrEmpty(accessToken!))
-            throw new LoginAdminException("Failed to read admin access token.");
-        
+        var accessTokenResult = await LoginAsync(_adminUsername, _adminPassword);
+        if (!accessTokenResult.IsSuccess)
+            return Result<Unit>.Failure(accessTokenResult.ErrorMessage!, accessTokenResult.FailureType);
+        accessToken = accessTokenResult.Value!;
+
         var userPayload = new
         {
             username = newUsername,
-            
         };
         var jsonPayload = JsonSerializer.Serialize(userPayload);
         var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-        
+
         var request = new HttpRequestMessage(HttpMethod.Put, $"/admin/realms/{_realm}/users/{account.AccountId}")
         {
             Content = content,
@@ -186,13 +196,14 @@ public class KeyCloakService : IIdentityProviderService
                 Authorization = new AuthenticationHeaderValue("Bearer", accessToken)
             }
         };
-        
+
         var response = await _httpClient.SendAsync(request);
-        
+
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync();
-            throw new RegisterUserException($"Failed to change username: {errorContent}");
+            return Result<Unit>.Failure($"Failed to change username: {errorContent}", ResultFailureType.Error);
         }
+        return Result<Unit>.Success(new Unit());
     }
 }
