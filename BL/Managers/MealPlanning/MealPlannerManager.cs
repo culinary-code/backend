@@ -32,7 +32,7 @@ public class MealPlannerManager : IMealPlannerManager
     {
         // get mealplanner for user with userid
 
-        MealPlanner mealPlanner = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeek(userId);
+        MealPlanner mealPlanner = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeekNoTracking(userId);
         
         // check if planned meal exists for date
         var alreadyPlannedMeal = mealPlanner.NextWeek.FirstOrDefault(pm => pm.PlannedDate.ToUniversalTime().Date == plannedMealDto.PlannedDate.Date);
@@ -43,13 +43,25 @@ public class MealPlannerManager : IMealPlannerManager
 
         var linkedRecipe = await _recipeRepository.ReadRecipeById(plannedMealDto.Recipe.RecipeId);
         var linkedIngredientQuantities = new List<IngredientQuantity>();
+        var ingredientDictionary = new Dictionary<Guid, Ingredient>();
         
         foreach (var ingredientQuantityDto in plannedMealDto.Ingredients)
         {
+            Ingredient ingredient;
+            var ingredientId = ingredientQuantityDto.Ingredient.IngredientId;
+            if (ingredientDictionary.TryGetValue(ingredientId, out var value))
+            {
+                ingredient = value;
+            }
+            else
+            {
+                ingredient = await _ingredientRepository.ReadIngredientById(ingredientId);
+                ingredientDictionary.Add(ingredientId, ingredient);
+            }
             var ingredientQuantity = new IngredientQuantity()
             {
                 Quantity = ingredientQuantityDto.Quantity,
-                Ingredient = await _ingredientRepository.ReadIngredientById(ingredientQuantityDto.Ingredient.IngredientId)
+                Ingredient = ingredient,
             };
             linkedIngredientQuantities.Add(ingredientQuantity);
         }
@@ -74,11 +86,11 @@ public class MealPlannerManager : IMealPlannerManager
         List<PlannedMeal> plannedMeals;
         if (dateTime.Date == DateTime.Now.Date)
         {
-            plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMeals(userId);
+            plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTracking(userId);
         }
         else
         {
-            plannedMeals = await _mealPlannerRepository.ReadPlannedMealsAfterDate(dateTime, userId);
+            plannedMeals = await _mealPlannerRepository.ReadPlannedMealsAfterDateNoTracking(dateTime, userId);
         }
         return _mapper.Map<List<PlannedMealDto>>(plannedMeals);
     }
@@ -86,7 +98,7 @@ public class MealPlannerManager : IMealPlannerManager
     public async Task<List<IngredientQuantityDto>> GetNextWeekIngredients(Guid userId)
     {
         // Get all planned meals for next week
-        List<PlannedMeal> plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMeals(userId);
+        List<PlannedMeal> plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTracking(userId);
     
         // Aggregate the ingredients
         var aggregatedIngredients = new Dictionary<Guid, IngredientQuantityDto>();

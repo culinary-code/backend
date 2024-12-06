@@ -109,7 +109,6 @@ public class LlmSettingsService
 
                        """ + RecipeJsonSchema + "ALWAYS ADHERE TO THE JSON SCHEMA FORMAT, AND ENSURE YOUR RESPONSE IS IN A VALID JSON FORMAT. Do not change any field names or the structure of the schema. Do not add any extra characters like underscores in the keys.";
     }
-    
     private static string LoadAndMinifyJsonSchema(string filePath)
     {
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
@@ -117,8 +116,7 @@ public class LlmSettingsService
         var jsonSchema = File.ReadAllText(filePath);
         return Regex.Replace(jsonSchema, @"\s+", string.Empty);
     }
-    
-    public static string BuildPrompt(RecipeFilterDto request, List<PreferenceDto> preferences)
+    public static string BuildPrompt(RecipeFilterDto request, List<PreferenceDto>? preferences)
     {
         var promptBuilder = new StringBuilder();
 

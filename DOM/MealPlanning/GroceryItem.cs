@@ -5,7 +5,6 @@ namespace DOM.MealPlanning;
 
 public class GroceryItem
 {
-    [Key]
     public Guid GroceryItemId { get; set; }
     public string GroceryItemName{ get; set; } = "Default Grocery Item";
     

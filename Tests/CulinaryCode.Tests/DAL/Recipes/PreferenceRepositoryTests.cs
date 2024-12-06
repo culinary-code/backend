@@ -23,38 +23,6 @@ public class PreferenceRepositoryTests
     }
     
     [Fact]
-    public async Task ReadPreferenceById_PreferenceExists_ReturnsPreference()
-    {
-        // Arrange
-        var preference = new Preference
-        {
-            PreferenceId = Guid.NewGuid(),
-            PreferenceName = "Test Preference",
-            StandardPreference = false
-        };
-        _dbContext.Preferences.Add(preference);
-        await _dbContext.SaveChangesAsync();
-        
-        // Act
-        var result = await _preferenceRepository.ReadPreferenceById(preference.PreferenceId);
-        
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(preference.PreferenceId, result.PreferenceId);
-        Assert.Equal(preference.PreferenceName, result.PreferenceName);
-    }
-    
-    [Fact]
-    public async Task ReadPreferenceById_PreferenceDoesNotExist_ThrowsPreferenceNotFoundException()
-    {
-        // Arrange
-        var preferenceId = Guid.NewGuid();
-        
-        // Act & Assert
-        await Assert.ThrowsAsync<PreferenceNotFoundException>(async () => await _preferenceRepository.ReadPreferenceById(preferenceId));
-    }
-    
-    [Fact]
     public async Task ReadPreferenceByName_PreferenceExists_ReturnsPreference()
     {
         // Arrange
@@ -68,7 +36,7 @@ public class PreferenceRepositoryTests
         await _dbContext.SaveChangesAsync();
         
         // Act
-        var result = await _preferenceRepository.ReadPreferenceByName(preference.PreferenceName);
+        var result = await _preferenceRepository.ReadPreferenceByNameNoTracking(preference.PreferenceName);
         
         // Assert
         Assert.NotNull(result);

@@ -43,7 +43,7 @@ public class GroceryRepositoryTests : IClassFixture<TestPostgresContainerFixture
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _groceryRepository.ReadGroceryListById(groceryList.GroceryListId);
+        var result = await _groceryRepository.ReadGroceryListByIdNoTracking(groceryList.GroceryListId);
 
         // Assert
         Assert.NotNull(result);
@@ -167,7 +167,7 @@ public class GroceryRepositoryTests : IClassFixture<TestPostgresContainerFixture
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<GroceryListNotFoundException>(async () =>
-           await _groceryRepository.ReadGroceryListById(nonExistentId));
+           await _groceryRepository.ReadGroceryListByIdNoTracking(nonExistentId));
         Assert.Equal("Grocery list not found!", exception.Message);
     }
 

@@ -9,7 +9,6 @@ namespace DOM.Recipes;
 
 public class Recipe
 {
-    [Key] 
     public Guid RecipeId { get; set; }
     public string RecipeName { get; set; } = "Default Recipe Name";
     public ICollection<IngredientQuantity> Ingredients { get; set; } = new List<IngredientQuantity>();

@@ -36,7 +36,7 @@ public class GroceryManager : IGroceryManager
 
     public async Task<GroceryListDto> GetGroceryListWithNextWeek(Guid accountId)
     {
-        var account = await _accountRepository.ReadAccountWithMealPlannerNextWeekAndWithGroceryList(accountId);
+        var account = await _accountRepository.ReadAccountWithMealPlannerNextWeekAndWithGroceryListNoTracking(accountId);
         var completeGroceryList = account.GroceryList;
 
         foreach (var plannedMeal in account.Planner.NextWeek)
@@ -54,7 +54,7 @@ public class GroceryManager : IGroceryManager
     public async Task<GroceryListDto> GetGroceryList(string id)
     {
         Guid groceryId = Guid.Parse(id);
-        var groceryList = await _groceryRepository.ReadGroceryListById(groceryId);
+        var groceryList = await _groceryRepository.ReadGroceryListByIdNoTracking(groceryId);
         return _mapper.Map<GroceryListDto>(groceryList);
     }
 
