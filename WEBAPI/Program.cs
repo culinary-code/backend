@@ -70,6 +70,12 @@ builder.Services.AddHttpClient("Keycloak", httpClient =>
     }
 );
 
+// Add a named HttpClient to be used for the AzureOpenAiService
+builder.Services.AddHttpClient("AzureOpenAIService");
+
+// Add a named HttpClient to be used for the LocalLlmService
+builder.Services.AddHttpClient("LocalLlmService");
+
 // Add services to the container.
 
 // Repositories

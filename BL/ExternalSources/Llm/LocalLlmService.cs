@@ -10,14 +10,15 @@ using Newtonsoft.Json;
 public class LocalLlmService : ILlmService
 {
     private readonly string _localServerUrl;
+    private readonly HttpClient _httpClient;
 
-    public LocalLlmService(IOptions<LocalLlmServerOptions> options)
+    public LocalLlmService(IOptions<LocalLlmServerOptions> options, IHttpClientFactory httpFactory)
     {
         _localServerUrl = options.Value.ServerUrl;
+        _httpClient = httpFactory.CreateClient("LocalLlmService");
+
     }
-
-    private static readonly HttpClient Client = new HttpClient();
-
+    
     public string GenerateRecipe(string message)
     {
         var systemPrompt = LlmSettingsService.SystemPrompt;
@@ -51,7 +52,7 @@ public class LocalLlmService : ILlmService
 
         try
         {
-            var response = Client.PostAsync(requestUri, content);
+            var response = _httpClient.PostAsync(requestUri, content);
 
             response.Result.EnsureSuccessStatusCode();
 

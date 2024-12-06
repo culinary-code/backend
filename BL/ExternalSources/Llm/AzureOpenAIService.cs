@@ -16,6 +16,7 @@ namespace BL.ExternalSources.Llm;
 
 public class AzureOpenAIService : ILlmService
 {
+    private readonly HttpClient _httpClient;
     private readonly string _apiKey;
     private readonly string _endpoint;
     private readonly string _blobConnectionString;
@@ -27,8 +28,10 @@ public class AzureOpenAIService : ILlmService
 
     private readonly ILogger<AzureOpenAIService> _logger;
 
-    public AzureOpenAIService(ILogger<AzureOpenAIService> logger, IOptions<AzureOpenAIOptions> azureOpenAiOptions, IOptions<AzureStorageOptions> azureStorageOptions)
+    public AzureOpenAIService(ILogger<AzureOpenAIService> logger, IOptions<AzureOpenAIOptions> azureOpenAiOptions, IOptions<AzureStorageOptions> azureStorageOptions, IHttpClientFactory httpFactory)
     {
+        _httpClient = httpFactory.CreateClient("AzureOpenAIService");
+
         var azureOpenAiOptionsValue = azureOpenAiOptions.Value;
         var azureStorageOptionsValue = azureStorageOptions.Value;
         
@@ -134,8 +137,7 @@ public class AzureOpenAIService : ILlmService
 
                 // Azure returns an image URI that only lasts for 24 hours and is not accessible, so we need to download the image and upload it to Blob Storage
                 Uri azureImageUri = response.Value.ImageUri;
-                HttpClient client = new HttpClient();
-                var imageBytes = client.GetByteArrayAsync(azureImageUri).Result;
+                var imageBytes = _httpClient.GetByteArrayAsync(azureImageUri).Result;
 
                 _logger.LogInformation($"Generated image: {azureImageUri}");
                 _logger.LogInformation($"Generated image bytes length: {imageBytes.Length}");
