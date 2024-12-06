@@ -121,8 +121,6 @@ public class LlmSettingsService
         var promptBuilder = new StringBuilder();
 
         if (!string.IsNullOrWhiteSpace(request.RecipeName))
-            
-            
         {
             promptBuilder.AppendLine($"I want a recipe for {request.RecipeName}.");
         }
@@ -139,8 +137,6 @@ public class LlmSettingsService
 
         if (!string.IsNullOrWhiteSpace(request.Difficulty))
         {
-            
-            
             Enum.TryParse<Difficulty>(request.Difficulty, out var difficultyEnum);
             if (difficultyEnum != Difficulty.NotAvailable)
             {
@@ -162,9 +158,9 @@ public class LlmSettingsService
             promptBuilder.AppendLine($"The cooking time should be around {request.CookTime} minutes.");
         }
 
-        if (!preferences.IsNullOrEmpty() && preferences.Any())
+        if (!preferences.IsNullOrEmpty() && preferences!.Any())
         {
-            foreach (var preference in preferences)
+            foreach (var preference in preferences!)
             {
                 if (preference.PreferenceName.Contains("allergie", StringComparison.OrdinalIgnoreCase) || preference.PreferenceName.Contains("intolerant", StringComparison.OrdinalIgnoreCase))
                 {
