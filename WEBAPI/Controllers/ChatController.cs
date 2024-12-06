@@ -51,4 +51,11 @@ public class ChatController : ControllerBase
         var imageUri = _llmService.GenerateRecipeImage(request.Prompt);
         return Ok(imageUri?.ToString() ?? "Something went wrong");
     }
+    
+    [HttpGet("getSuggestions")]
+    public IActionResult GetSuggestions()
+    {
+        var suggestions = _llmService.GenerateMultipleRecipeNamesAndDescriptions("Ik wil graag een recept voor een lekker gerecht", 5);
+        return Ok(suggestions);
+    }
 }

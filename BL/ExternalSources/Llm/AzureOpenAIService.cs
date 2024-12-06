@@ -56,7 +56,7 @@ public class AzureOpenAIService : ILlmService
         
         ChatCompletion completion = _chatClient.CompleteChat(
         [
-            new SystemChatMessage($"Based on the input, generate {amount} different recipe names along with a short description. Place each recipe on its own line, no new line between them. Do not add order numbers, name and description should be on the same line. Output no other information. Always respond in the Dutch language."),
+            new SystemChatMessage($"Based on the input, generate {amount} different recipe names along with a short description. Base yourself on everything in the input, may it be a recipe name, or if it doesn't have one, the ingredients or preferences, take everything into consideration. If a difficulty is specified, give recipes that match that difficulty level. If only one or a few ingredients are given, make recipes that have those ingredients in them, give recipes that contain those ingredients, but also may contain other non-specified ingredients. If no ingredients at all are specified, then give random recipes that fit the available specifications. If a cooking time is specified, give recipes that fall near that cooking time. If anything in the input is inedible or dangerous to eat, skip any recipe generation and return \"NOT_POSSIBLE REASON\", fill in REASON with your reason. Place each recipe on its own line, no new line between them. Do not add order numbers, name and description should be on the same line, add a colon : between the name and description like so: recipeName: Description. Output no other information. Always respond in the Dutch language."),
 
             new UserChatMessage(message),
         ], completionOptions);
