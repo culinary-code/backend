@@ -1,8 +1,9 @@
-﻿
-using BL.DTOs.Accounts;
-using DOM.Accounts;
+﻿using BL.DTOs.Accounts;
+using DOM.Exceptions;
+
+namespace BL.Managers.Accounts;
 
 public interface IPreferenceManager
 {
-    Task<List<PreferenceDto>> GetStandardPreferences();
+    Task<Result<List<PreferenceDto>>> GetStandardPreferences();
 }
