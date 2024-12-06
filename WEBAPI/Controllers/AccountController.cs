@@ -5,6 +5,7 @@ using BL.Services;
 using DOM.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WEBAPI.ResultExtension;
 
 namespace WEBAPI.Controllers;
 
@@ -27,24 +28,21 @@ public class AccountController: ControllerBase
     [HttpGet("{accountId}")]
     public async Task<IActionResult> GetUserById(string accountId)
     {
-        try
-        {
-            var user = await _accountManager.GetAccountById(accountId); 
-            return Ok(user);
-        }
-        catch (AccountNotFoundException e)
-        {
-            _logger.LogError("An error occured trying to fetch user: {ErrorMessage}", e.Message);
-            return NotFound(e.Message);
-        }
+        var user = await _accountManager.GetAccountById(accountId); 
+            
+        return user.ToActionResult();
     }
 
     [HttpPut("updateAccount")]
     public async Task<IActionResult> UpdateAccount([FromBody] AccountDto accountDto, [FromQuery] string actionType)
     {
-        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+        var userIdResult = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+        if (!userIdResult.IsSuccess)
+        {
+            return BadRequest(userIdResult.ErrorMessage);
+        }
+        var userId = userIdResult.Value;
         accountDto.AccountId = userId;
-        
         try
         {
             if (string.IsNullOrEmpty(actionType))
