@@ -112,7 +112,7 @@ public class GroceryManager : IGroceryManager
         // if no ingredient is found with that id, it is an item
         if (ingredient == null)
         {
-            GroceryItem? groceryItem = await _groceryRepository.ReadPossibleGroceryItemByNameAndMeasurement(name, measurementType);
+            GroceryItem? groceryItem = await _groceryRepository.ReadGroceryItemByNameAndMeasurement(name, measurementType);
             ItemQuantity newItemQuantity;
             if (groceryItem == null)
             {

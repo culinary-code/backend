@@ -279,7 +279,7 @@ public class GroceryManagerTests
             .ReturnsAsync((Ingredient)null);
 
         _mockGroceryRepository
-            .Setup(repo => repo.ReadPossibleGroceryItemByNameAndMeasurement("Milk", MeasurementType.Litre))
+            .Setup(repo => repo.ReadGroceryItemByNameAndMeasurement("Milk", MeasurementType.Litre))
             .ReturnsAsync(existingGroceryItem);
 
         // Act

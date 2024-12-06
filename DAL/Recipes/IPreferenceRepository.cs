@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using DOM.Accounts;
+using DOM.Exceptions;
 
 namespace DAL.Recipes;
 
 public interface IPreferenceRepository
 {
-    Task<Preference?> ReadPreferenceByNameNoTracking(string name);
-    Task<ICollection<Preference>> ReadStandardPreferences();
-    Task<Preference> CreatePreference(Preference preference);
+    Task<Result<Preference>> ReadPreferenceByNameNoTracking(string name);
+    Task<Result<ICollection<Preference>>> ReadStandardPreferences();
+    Task<Result<Preference>> CreatePreference(Preference preference);
 }

@@ -17,18 +17,18 @@ public class AccountRepository : IAccountRepository
     }
     
     // used to update account, needs to be tracked
-    public async Task<Account> ReadAccount(Guid id)
+    public async Task<Result<Account>> ReadAccount(Guid id)
     {
         Account? account = await _ctx.Accounts.FindAsync(id);
         if (account == null)
         {
-            throw new AccountNotFoundException("Account not found");
+            return Result<Account>.Failure($"No account found with id {id}", ResultFailureType.NotFound);
         }
-        return account;
+        return Result<Account>.Success(account);
     }
 
     // used to update preferences, needs to be tracked
-    public async Task<Account> ReadAccountWithPreferencesByAccountId(Guid id)
+    public async Task<Result<Account>> ReadAccountWithPreferencesByAccountId(Guid id)
     {
         var account = await _ctx.Accounts
             .Include(a => a.Preferences)
@@ -36,14 +36,14 @@ public class AccountRepository : IAccountRepository
         
         if (account == null)
         {
-            throw new AccountNotFoundException("Account not found");
+            return Result<Account>.Failure($"No account found with id {id}", ResultFailureType.NotFound);
         }
         
-        return account;
+        return Result<Account>.Success(account);
     }
 
     // used to create a grocerylistdto, does not need to be tracked
-    public async Task<Account> ReadAccountWithMealPlannerNextWeekAndWithGroceryListNoTracking(Guid id)
+    public async Task<Result<Account>> ReadAccountWithMealPlannerNextWeekAndWithGroceryListNoTracking(Guid id)
     {
         var account = await _ctx.Accounts
             .Include(a => a.GroceryList)
@@ -68,14 +68,14 @@ public class AccountRepository : IAccountRepository
         
         if (account == null)
         {
-            throw new AccountNotFoundException("Account not found");
+            return Result<Account>.Failure($"No account found with id {id}", ResultFailureType.NotFound);
         }
         
-        return account;
+        return Result<Account>.Success(account);
     }
 
     // used to return a dto, doesn't need to be tracked
-    public async Task<List<Recipe?>> ReadFavoriteRecipesByUserIdNoTracking(Guid userId)
+    public async Task<Result<List<Recipe?>>> ReadFavoriteRecipesByUserIdNoTracking(Guid userId)
     {
         var favoriteRecipes = await _ctx.FavoriteRecipes
             .Where(fr => fr.Account != null && fr.Account.AccountId == userId)
@@ -85,37 +85,59 @@ public class AccountRepository : IAccountRepository
         
         var recipes = favoriteRecipes.Select(fr => fr.Recipe).ToList();
 
-        return recipes;
+        return Result<List<Recipe?>>.Success(recipes);
+
     }
 
-    public async Task UpdateAccount(Account account)
+    public async Task<Result<Unit>> UpdateAccount(Account account)
     {
         _ctx.Accounts.Update(account);
         await _ctx.SaveChangesAsync();    
+        return Result<Unit>.Success(new Unit());
+
     }
 
-    public async Task CreateAccount(Account account)
+    public async Task<Result<Unit>> CreateAccount(Account account)
     {
         await _ctx.Accounts.AddAsync(account);
         await _ctx.SaveChangesAsync(); 
+        return Result<Unit>.Success(new Unit());
+
     }
 
-    public async Task DeletePreferenceFromAccount(Guid accountId, Guid preferenceId)
+    public async Task<Result<Unit>> DeletePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
-        var account = await ReadAccountWithPreferencesByAccountId(accountId);
-        var preferenceToRemove = account.Preferences?.FirstOrDefault(p => p.PreferenceId == preferenceId);
+        var accountResult = await ReadAccountWithPreferencesByAccountId(accountId);
+        if (!accountResult.IsSuccess)
+        {
+            return Result<Unit>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
+        }
+        var account = accountResult.Value;
+        
+        var preferenceToRemove = account!.Preferences.FirstOrDefault(p => p.PreferenceId == preferenceId);
         if (preferenceToRemove == null)
         {
-            throw new PreferenceNotFoundException("Preference not found for this account");
+            return Result<Unit>.Failure($"No preference found with id {preferenceId}", ResultFailureType.NotFound);
         } 
+        
         account.Preferences = account.Preferences.Where(p => p.PreferenceId != preferenceId).ToList(); 
         await _ctx.SaveChangesAsync();
+        
+        return Result<Unit>.Success(new Unit());
     }
 
-    public async Task DeleteFavoriteRecipeByUserId(Guid accountId, Guid recipeId)
+    public async Task<Result<Unit>> DeleteFavoriteRecipeByUserId(Guid accountId, Guid recipeId)
     { 
         var favoriteRecipeToRemove = _ctx.FavoriteRecipes.FirstOrDefault(r => r.Recipe.RecipeId == recipeId && r.Account.AccountId == accountId); 
+        
+        if (favoriteRecipeToRemove == null)
+        {
+            return Result<Unit>.Failure($"No favorite recipe found with id {recipeId}", ResultFailureType.NotFound);
+        } 
+        
         _ctx.FavoriteRecipes.Remove(favoriteRecipeToRemove);
         await _ctx.SaveChangesAsync();
+        
+        return Result<Unit>.Success(new Unit());
     }
 }

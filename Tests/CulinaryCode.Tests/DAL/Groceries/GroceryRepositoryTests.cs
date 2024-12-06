@@ -95,7 +95,7 @@ public class GroceryRepositoryTests : IClassFixture<TestPostgresContainerFixture
 
         // Act
         var result = await 
-            _groceryRepository.ReadPossibleGroceryItemByNameAndMeasurement(groceryItem.GroceryItemName,
+            _groceryRepository.ReadGroceryItemByNameAndMeasurement(groceryItem.GroceryItemName,
                 groceryItem.Measurement);
 
         // Assert

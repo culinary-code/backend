@@ -1,16 +1,17 @@
-﻿using DOM.MealPlanning;
+﻿using DOM.Exceptions;
+using DOM.MealPlanning;
 using DOM.Recipes.Ingredients;
 
 namespace DAL.Groceries;
 
 public interface IGroceryRepository
 {
-    Task<GroceryList> ReadGroceryListByIdNoTracking(Guid id);
-    Task<ItemQuantity> ReadItemQuantityById(Guid id);
-    Task<GroceryList> ReadGroceryListByAccountId(Guid accountId);
-    Task<GroceryItem?> ReadPossibleGroceryItemByNameAndMeasurement(string name, MeasurementType measurement);
-    Task CreateGroceryList(GroceryList groceryList);
-    Task UpdateGroceryList(GroceryList groceryList);
-    Task AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem);
-    Task DeleteItemQuantity(Guid userId, Guid itemId);
+    Task<Result<GroceryList>> ReadGroceryListByIdNoTracking(Guid id);
+    Task<Result<ItemQuantity>> ReadItemQuantityById(Guid id);
+    Task<Result<GroceryList>> ReadGroceryListByAccountId(Guid accountId);
+    Task<Result<GroceryItem>> ReadGroceryItemByNameAndMeasurement(string name, MeasurementType measurement);
+    Task<Result<Unit>> CreateGroceryList(GroceryList groceryList);
+    Task<Result<Unit>> UpdateGroceryList(GroceryList groceryList);
+    Task<Result<Unit>> AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem);
+    Task<Result<Unit>> DeleteItemQuantity(Guid userId, Guid itemId);
 }

@@ -17,7 +17,7 @@ public class GroceryRepository : IGroceryRepository
     }
 
     // used to return a dto, doesn't need to be tracked
-    public async Task<GroceryList> ReadGroceryListByIdNoTracking(Guid id)
+    public async Task<Result<GroceryList>> ReadGroceryListByIdNoTracking(Guid id)
     {
         GroceryList? groceryList = await _ctx.GroceryLists
             .Include(gl => gl.Ingredients)
@@ -29,25 +29,25 @@ public class GroceryRepository : IGroceryRepository
             .FirstOrDefaultAsync(gl => gl.GroceryListId == id);
         if (groceryList == null)
         {
-            throw new GroceryListNotFoundException("Grocery list not found!");
+            return Result<GroceryList>.Failure($"No groceryList found with id {id}", ResultFailureType.NotFound);
         }
         
-        return groceryList;
+        return Result<GroceryList>.Success(groceryList);
     }
 
     // used to update itemQuantity, needs to be tracked
-    public async Task<ItemQuantity> ReadItemQuantityById(Guid id)
+    public async Task<Result<ItemQuantity>> ReadItemQuantityById(Guid id)
     {
         ItemQuantity? itemQuantity = await _ctx.ItemQuantities.FindAsync(id);
         if (itemQuantity == null)
         {
-            throw new ItemQuantityNotFoundException($"No itemQuantity found with id {id}");
+            return Result<ItemQuantity>.Failure($"No item quantity found with id {id}", ResultFailureType.NotFound);
         }
-        return itemQuantity;
+        return Result<ItemQuantity>.Success(itemQuantity);
     }
 
     // used to update grocerylist, needs to be tracked
-    public async Task<GroceryList> ReadGroceryListByAccountId(Guid accountId)
+    public async Task<Result<GroceryList>> ReadGroceryListByAccountId(Guid accountId)
     {
         var groceryList = await _ctx.GroceryLists
             .Include(gl => gl.Ingredients)
@@ -59,55 +59,67 @@ public class GroceryRepository : IGroceryRepository
         
         if (groceryList == null)
         {
-            throw new GroceryListNotFoundException("No grocery list found for this account.");
+            return Result<GroceryList>.Failure($"No grocery list found for account with id {accountId}", ResultFailureType.NotFound);
         }
 
-        return groceryList;
+        return Result<GroceryList>.Success(groceryList);
     }
 
     // used to update groceryList, needs to be tracked
-    public async Task<GroceryItem?> ReadPossibleGroceryItemByNameAndMeasurement(string name, MeasurementType measurementType)
+    public async Task<Result<GroceryItem>> ReadGroceryItemByNameAndMeasurement(string name, MeasurementType measurementType)
     {
-        return await _ctx.GroceryItems.FirstOrDefaultAsync(gi => gi.GroceryItemName == name && gi.Measurement == measurementType);
+        var groceryItem = await _ctx.GroceryItems.FirstOrDefaultAsync(gi => gi.GroceryItemName == name && gi.Measurement == measurementType);
+        if (groceryItem == null)
+        {
+            return Result<GroceryItem>.Failure($"No grocery item found with name: {name}", ResultFailureType.NotFound);
+        }
+        return Result<GroceryItem>.Success(groceryItem);
     }
 
-    public async Task CreateGroceryList(GroceryList groceryList)
+    public async Task<Result<Unit>> CreateGroceryList(GroceryList groceryList)
     {
         await _ctx.GroceryLists.AddAsync(groceryList);
         await _ctx.SaveChangesAsync();
+        return Result<Unit>.Success(new Unit());
     }
 
-    public async Task UpdateGroceryList(GroceryList groceryList)
+    public async Task<Result<Unit>> UpdateGroceryList(GroceryList groceryList)
     {
         _ctx.GroceryLists.Update(groceryList);
         await _ctx.SaveChangesAsync();
+        return Result<Unit>.Success(new Unit());
     }
     
-    public async Task AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem)
+    public async Task<Result<Unit>> AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem)
     {
-        if (groceryList == null || newItem == null)
-        {
-            throw new GroceryListNotFoundException("Grocery list or new item cannot be null.");
-        }
-        
         groceryList.Items.Add(newItem); 
 
         await _ctx.ItemQuantities.AddAsync(newItem);
         await _ctx.GroceryItems.AddAsync(newItem.GroceryItem);
 
         await _ctx.SaveChangesAsync();
+        
+        return Result<Unit>.Success(new Unit());
     }
 
-    public async Task DeleteItemQuantity(Guid userId, Guid itemId)
+    public async Task<Result<Unit>> DeleteItemQuantity(Guid userId, Guid itemId)
     {
         var itemQuantity = await _ctx.ItemQuantities
                 .Include(i => i.GroceryList)
                 .ThenInclude(i => i.Account)
-                .FirstAsync(i => i.ItemQuantityId == itemId);
+                .FirstOrDefaultAsync(i => i.ItemQuantityId == itemId);
+        if (itemQuantity == null)
+        {
+            return Result<Unit>.Failure($"No itemquantity found with id: {itemId}", ResultFailureType.NotFound);
+        }
+        
         if (itemQuantity.GroceryList!.Account!.AccountId == userId)
         {
             _ctx.ItemQuantities.Remove(itemQuantity);
             await _ctx.SaveChangesAsync();
+            return Result<Unit>.Success(new Unit());
         }
+        return Result<Unit>.Failure($"No itemquantity does not belong to user with id: {userId}", ResultFailureType.Error);
+
     }
 }

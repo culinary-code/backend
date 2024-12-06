@@ -1,12 +1,13 @@
-﻿using DOM.MealPlanning;
+﻿using DOM.Exceptions;
+using DOM.MealPlanning;
 
 namespace DAL.MealPlanning;
 
 public interface IMealPlannerRepository
 { 
-    Task<MealPlanner> ReadMealPlannerByIdWithNextWeekNoTracking(Guid accountId);
-    Task DeletePlannedMeal(PlannedMeal plannedMeal);
-    Task<PlannedMeal> CreatePlannedMeal(PlannedMeal plannedMeal);
-    Task<List<PlannedMeal>> ReadNextWeekPlannedMealsNoTracking(Guid userId);
-    Task<List<PlannedMeal>> ReadPlannedMealsAfterDateNoTracking(DateTime dateTime, Guid mealPlannerId);
+    Task<Result<MealPlanner>> ReadMealPlannerByIdWithNextWeekNoTracking(Guid accountId);
+    Task<Result<Unit>> DeletePlannedMeal(PlannedMeal plannedMeal);
+    Task<Result<PlannedMeal>> CreatePlannedMeal(PlannedMeal plannedMeal);
+    Task<Result<List<PlannedMeal>>> ReadNextWeekPlannedMealsNoTracking(Guid userId);
+    Task<Result<List<PlannedMeal>>> ReadPlannedMealsAfterDateNoTracking(DateTime dateTime, Guid mealPlannerId);
 }
