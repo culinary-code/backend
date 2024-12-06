@@ -5,6 +5,7 @@ using DAL.Accounts;
 using DAL.Groceries;
 using DAL.MealPlanning;
 using DAL.Recipes;
+using DOM.Exceptions;
 using DOM.MealPlanning;
 using DOM.Recipes.Ingredients;
 
@@ -19,7 +20,8 @@ public class MealPlannerManager : IMealPlannerManager
     private readonly IMapper _mapper;
 
     public MealPlannerManager(IMealPlannerRepository mealPlannerRepository, IMapper mapper,
-        IRecipeRepository recipeRepository, IIngredientRepository ingredientRepository, IGroceryRepository groceryRepository)
+        IRecipeRepository recipeRepository, IIngredientRepository ingredientRepository,
+        IGroceryRepository groceryRepository)
     {
         _mealPlannerRepository = mealPlannerRepository;
         _mapper = mapper;
@@ -28,36 +30,51 @@ public class MealPlannerManager : IMealPlannerManager
         _groceryRepository = groceryRepository;
     }
 
-    public async Task CreateNewPlannedMeal(Guid userId, PlannedMealDto plannedMealDto)
+    public async Task<Result<Unit>> CreateNewPlannedMeal(Guid userId, PlannedMealDto plannedMealDto)
     {
         // get mealplanner for user with userid
 
-        MealPlanner mealPlanner = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeekNoTracking(userId);
-        
-        // check if planned meal exists for date
-        var alreadyPlannedMeal = mealPlanner.NextWeek.FirstOrDefault(pm => pm.PlannedDate.ToUniversalTime().Date == plannedMealDto.PlannedDate.Date);
-        if (alreadyPlannedMeal != null)
+        var mealPlannerResult = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeekNoTracking(userId);
+        if (!mealPlannerResult.IsSuccess)
         {
-            await _mealPlannerRepository.DeletePlannedMeal(alreadyPlannedMeal);
+            return Result<Unit>.Failure(mealPlannerResult.ErrorMessage!, mealPlannerResult.FailureType);
         }
 
-        var linkedRecipe = await _recipeRepository.ReadRecipeById(plannedMealDto.Recipe.RecipeId);
+        var mealPlanner = mealPlannerResult.Value!;
+
+        // check if planned meal exists for date
+        var alreadyPlannedMeal = mealPlanner.NextWeek.FirstOrDefault(pm =>
+            pm.PlannedDate.ToUniversalTime().Date == plannedMealDto.PlannedDate.Date);
+        if (alreadyPlannedMeal != null)
+        {
+            var deletePlannedMealResult = await _mealPlannerRepository.DeletePlannedMeal(alreadyPlannedMeal);
+            if (!deletePlannedMealResult.IsSuccess)
+            {
+                return Result<Unit>.Failure(deletePlannedMealResult.ErrorMessage!, deletePlannedMealResult.FailureType);
+            }
+        }
+
+        var linkedRecipeResult = await _recipeRepository.ReadRecipeById(plannedMealDto.Recipe.RecipeId);
+        if (!linkedRecipeResult.IsSuccess)
+        {
+            return Result<Unit>.Failure(linkedRecipeResult.ErrorMessage!, linkedRecipeResult.FailureType);
+        }
+
+        var linkedRecipe = linkedRecipeResult.Value!;
+
         var linkedIngredientQuantities = new List<IngredientQuantity>();
-        var ingredientDictionary = new Dictionary<Guid, Ingredient>();
-        
+
         foreach (var ingredientQuantityDto in plannedMealDto.Ingredients)
         {
-            Ingredient ingredient;
             var ingredientId = ingredientQuantityDto.Ingredient.IngredientId;
-            if (ingredientDictionary.TryGetValue(ingredientId, out var value))
+            
+            var ingredientResult = await _ingredientRepository.ReadIngredientById(ingredientId);
+            if (!ingredientResult.IsSuccess)
             {
-                ingredient = value;
+                return Result<Unit>.Failure(ingredientResult.ErrorMessage!, ingredientResult.FailureType);
             }
-            else
-            {
-                ingredient = await _ingredientRepository.ReadIngredientById(ingredientId);
-                ingredientDictionary.Add(ingredientId, ingredient);
-            }
+            var ingredient = ingredientResult.Value!;
+
             var ingredientQuantity = new IngredientQuantity()
             {
                 Quantity = ingredientQuantityDto.Quantity,
@@ -65,7 +82,7 @@ public class MealPlannerManager : IMealPlannerManager
             };
             linkedIngredientQuantities.Add(ingredientQuantity);
         }
-        
+
         PlannedMeal plannedMeal = new PlannedMeal()
         {
             PlannedDate = DateTime.SpecifyKind(plannedMealDto.PlannedDate.Date, DateTimeKind.Utc),
@@ -74,35 +91,56 @@ public class MealPlannerManager : IMealPlannerManager
             Ingredients = linkedIngredientQuantities,
             NextWeekMealPlanner = mealPlanner
         };
-        
+
         linkedRecipe.LastUsedAt = DateTime.UtcNow;
-        
-        await _mealPlannerRepository.CreatePlannedMeal(plannedMeal);
-        
+
+        var createPlannedMealResult = await _mealPlannerRepository.CreatePlannedMeal(plannedMeal);
+        if (!createPlannedMealResult.IsSuccess)
+        {
+            return Result<Unit>.Failure(createPlannedMealResult.ErrorMessage!, createPlannedMealResult.FailureType);
+        }
+
+        return Result<Unit>.Success(new Unit());
     }
 
-    public async Task<List<PlannedMealDto>> GetPlannedMealsFromUserAfterDate(DateTime dateTime, Guid userId)
+    public async Task<Result<List<PlannedMealDto>>> GetPlannedMealsFromUserAfterDate(DateTime dateTime, Guid userId)
     {
         List<PlannedMeal> plannedMeals;
         if (dateTime.Date == DateTime.Now.Date)
         {
-            plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTracking(userId);
+            var plannedMealsResult = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTracking(userId);
+            if (!plannedMealsResult.IsSuccess)
+            {
+                return Result<List<PlannedMealDto>>.Failure(plannedMealsResult.ErrorMessage!, plannedMealsResult.FailureType);
+            }
+            plannedMeals = plannedMealsResult.Value!;
         }
         else
         {
-            plannedMeals = await _mealPlannerRepository.ReadPlannedMealsAfterDateNoTracking(dateTime, userId);
+            var plannedMealsResult = await _mealPlannerRepository.ReadPlannedMealsAfterDateNoTracking(dateTime, userId);
+            if (!plannedMealsResult.IsSuccess)
+            {
+                return Result<List<PlannedMealDto>>.Failure(plannedMealsResult.ErrorMessage!, plannedMealsResult.FailureType);
+            }
+            plannedMeals = plannedMealsResult.Value!;
         }
-        return _mapper.Map<List<PlannedMealDto>>(plannedMeals);
+
+        return Result<List<PlannedMealDto>>.Success(_mapper.Map<List<PlannedMealDto>>(plannedMeals));
     }
-    
-    public async Task<List<IngredientQuantityDto>> GetNextWeekIngredients(Guid userId)
+
+    public async Task<Result<List<IngredientQuantityDto>>> GetNextWeekIngredients(Guid userId)
     {
         // Get all planned meals for next week
-        List<PlannedMeal> plannedMeals = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTracking(userId);
-    
+        var plannedMealsResult = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTracking(userId);
+        if (!plannedMealsResult.IsSuccess)
+        {
+            return Result<List<IngredientQuantityDto>>.Failure(plannedMealsResult.ErrorMessage!, plannedMealsResult.FailureType);
+        }
+        var plannedMeals = plannedMealsResult.Value!;
+
         // Aggregate the ingredients
         var aggregatedIngredients = new Dictionary<Guid, IngredientQuantityDto>();
-    
+
         foreach (var meal in plannedMeals)
         {
             foreach (var ingredientQuantity in meal.Ingredients)
@@ -110,7 +148,8 @@ public class MealPlannerManager : IMealPlannerManager
                 // If ingredient already exists in the dictionary, combine the quantities
                 if (aggregatedIngredients.ContainsKey(ingredientQuantity.Ingredient.IngredientId))
                 {
-                    aggregatedIngredients[ingredientQuantity.Ingredient.IngredientId].Quantity += ingredientQuantity.Quantity;
+                    aggregatedIngredients[ingredientQuantity.Ingredient.IngredientId].Quantity +=
+                        ingredientQuantity.Quantity;
                 }
                 else
                 {
@@ -126,6 +165,7 @@ public class MealPlannerManager : IMealPlannerManager
                 }
             }
         }
-        return aggregatedIngredients.Values.ToList();
+
+        return Result<List<IngredientQuantityDto>>.Success(aggregatedIngredients.Values.ToList());
     }
 }
