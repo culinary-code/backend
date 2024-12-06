@@ -7,7 +7,7 @@ namespace DOM.Accounts;
 
 public class Preference
 {
-    [Key] public Guid PreferenceId { get; set; }
+    public Guid PreferenceId { get; set; }
     public string PreferenceName { get; set; } = "Default Preference Name";
     public bool StandardPreference { get; set; }
     

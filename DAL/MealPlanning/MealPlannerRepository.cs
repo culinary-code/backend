@@ -14,7 +14,8 @@ public class MealPlannerRepository : IMealPlannerRepository
         _ctx = ctx;
     }
 
-    public async Task<MealPlanner> ReadMealPlannerByIdWithNextWeek(Guid accountId)
+    // used to create a new planned meal, needs to be tracked
+    public async Task<MealPlanner> ReadMealPlannerByIdWithNextWeekNoTracking(Guid accountId)
     {
         var mealPlanner = await _ctx.MealPlanners
             .Include(planner => planner.NextWeek)
@@ -23,24 +24,28 @@ public class MealPlannerRepository : IMealPlannerRepository
         return mealPlanner;
     }
     
-    private async Task<MealPlanner> ReadMealPlannerByIdWithNextWeekWithRecipe(Guid accountId)
+    // used to return a dto, doesn't need to be tracked
+    private async Task<MealPlanner> ReadMealPlannerByIdWithNextWeekWithRecipeNoTracking(Guid accountId)
     {
         var mealPlanner = await _ctx.MealPlanners
             .Include(planner => planner.NextWeek)
             .ThenInclude(p => p.Recipe)
+            .AsNoTrackingWithIdentityResolution()
             .FirstOrDefaultAsync(m => m.Account.AccountId == accountId);
         
         if (mealPlanner == null) throw new MealPlannerNotFoundException();
         return mealPlanner;
     }
     
-    private async Task<MealPlanner> ReadMealPlannerByIdWithNextWeekAndHistoryWithRecipe(Guid accountId)
+    // used to return a dto, doesn't need to be tracked
+    private async Task<MealPlanner> ReadMealPlannerByIdWithNextWeekAndHistoryWithRecipeNoTracking(Guid accountId)
     {
         return await _ctx.MealPlanners
             .Include(planner => planner.NextWeek)
             .ThenInclude(p => p.Recipe)
             .Include(planner => planner.History)
             .ThenInclude(p => p.Recipe)
+            .AsNoTrackingWithIdentityResolution()
             .FirstOrDefaultAsync(m => m.Account.AccountId == accountId);
     }
     
@@ -57,15 +62,17 @@ public class MealPlannerRepository : IMealPlannerRepository
         return plannedMeal;
     }
 
-    public async Task<List<PlannedMeal>> ReadNextWeekPlannedMeals(Guid userId)
+    // used to return dto, doesn't need to be tracked
+    public async Task<List<PlannedMeal>> ReadNextWeekPlannedMealsNoTracking(Guid userId)
     {
-        var mealPlanner = await ReadMealPlannerByIdWithNextWeekWithRecipe(userId);
+        var mealPlanner = await ReadMealPlannerByIdWithNextWeekWithRecipeNoTracking(userId);
         return mealPlanner.NextWeek.ToList();
     }
 
-    public async Task<List<PlannedMeal>> ReadPlannedMealsAfterDate(DateTime dateTime, Guid userId)
+    // used to return a dto, doesn't need to be tracked
+    public async Task<List<PlannedMeal>> ReadPlannedMealsAfterDateNoTracking(DateTime dateTime, Guid userId)
     {
-        var mealPlanner = await ReadMealPlannerByIdWithNextWeekAndHistoryWithRecipe(userId);
+        var mealPlanner = await ReadMealPlannerByIdWithNextWeekAndHistoryWithRecipeNoTracking(userId);
         var startDate = dateTime.Date;  // Ensures we are only comparing the date part
         var endDate = startDate.AddDays(7); // 7 days after the start date
 

@@ -40,19 +40,19 @@ public class RecipeManager : IRecipeManager
     public async Task<RecipeDto> GetRecipeDtoById(string id)
     {
         Guid parsedGuid = Guid.Parse(id);
-        var recipe = await _recipeRepository.ReadRecipeById(parsedGuid);
+        var recipe = await _recipeRepository.ReadRecipeWithRelatedInformationByIdNoTracking(parsedGuid);
         return _mapper.Map<RecipeDto>(recipe);
     }
 
     public async Task<RecipeDto> GetRecipeDtoByName(string name)
     {
-        var recipe = await _recipeRepository.ReadRecipeByName(name);
+        var recipe = await _recipeRepository.ReadRecipeByNameNoTracking(name);
         return _mapper.Map<RecipeDto>(recipe);
     }
 
     public async Task<ICollection<RecipeDto>> GetRecipesCollectionByName(string name)
     {
-        var recipes = await _recipeRepository.ReadRecipesCollectionByName(name);
+        var recipes = await _recipeRepository.ReadRecipesCollectionByNameNoTracking(name);
         return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 
@@ -60,7 +60,7 @@ public class RecipeManager : IRecipeManager
         RecipeType recipeType, int cooktime, List<string> ingredients)
     {
         var recipes =
-            await _recipeRepository.GetFilteredRecipes(recipeName, difficulty, recipeType, cooktime, ingredients);
+            await _recipeRepository.GetFilteredRecipesNoTracking(recipeName, difficulty, recipeType, cooktime, ingredients);
         return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 
@@ -94,6 +94,7 @@ public class RecipeManager : IRecipeManager
                     return _mapper.Map<RecipeDto>(recipe);
                 }
 
+                
                 var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
                 if (imageUri is not null)
                 {
@@ -244,14 +245,13 @@ public class RecipeManager : IRecipeManager
             RecipeName = recipeName!.ToString(),
             Description = description!.ToString(),
             RecipeType = recipeTypeEnum,
-            Preferences = new List<Preference>() { dietPreference },
+            Preferences = new List<Preference>() {dietPreference},
             CookingTime = int.Parse(cookingTime!.ToString()),
             Difficulty = difficultyEnum,
             CreatedAt = DateTime.UtcNow,
             LastUsedAt = DateTime.UtcNow,
             AmountOfPeople = int.Parse(amountOfPeople!.ToString()),
             ImagePath = imagePath?.ToString() ?? string.Empty,
-
             Ingredients = ingredientQuantities,
             Instructions = instructionSteps
         };

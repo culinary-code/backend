@@ -27,19 +27,19 @@ public class ReviewManager : IReviewManager
 
     public async Task<ReviewDto> GetReviewDtoById(Guid id)
     {
-        return _mapper.Map<ReviewDto>(await _reviewRepository.ReadReviewWithAccountByReviewId(id));
+        return _mapper.Map<ReviewDto>(await _reviewRepository.ReadReviewWithAccountByReviewIdNoTracking(id));
     }
 
     public async Task<ICollection<ReviewDto>> GetReviewDtosByRecipeId(Guid recipeId)
     {
-        return _mapper.Map<ICollection<ReviewDto>>(await _reviewRepository.ReadReviewsWithAccountByRecipeId(recipeId));
+        return _mapper.Map<ICollection<ReviewDto>>(await _reviewRepository.ReadReviewsWithAccountByRecipeIdNoTracking(recipeId));
     }
 
     public async Task<ReviewDto> CreateReview(Guid accountId, Guid recipeId, string description, int amountOfStars)
     {
         _logger.LogInformation($"Creating review for account with id {accountId} and recipe with id {recipeId}");
         var account = await _accountRepository.ReadAccount(accountId);
-        var recipe = await _recipeRepository.ReadRecipeById(recipeId);
+        var recipe = await _recipeRepository.ReadRecipeWithReviewsById(recipeId);
         
         
         // check if account already has a review on this recipe, which is not allowed

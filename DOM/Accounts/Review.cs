@@ -6,7 +6,7 @@ namespace DOM.Accounts;
 
 public class Review
 {
-    [Key] public Guid ReviewId { get; set; }
+    public Guid ReviewId { get; set; }
     public Account? Account { get; set; }
     public int AmountOfStars { get; set; }
     public string Description { get; set; } = "Default description";
@@ -14,4 +14,8 @@ public class Review
     
     // navigation properties
     public Recipe? Recipe { get; set; }
+    
+    // Foreign keys
+    public Guid? RecipeId { get; set; }
+    public Guid? AccountId { get; set; }
 }

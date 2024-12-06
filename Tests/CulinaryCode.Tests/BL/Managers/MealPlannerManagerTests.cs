@@ -74,7 +74,7 @@ public class MealPlannerManagerTests
         var recipe = new Recipe { RecipeId = plannedMealDto.Recipe.RecipeId };
 
         _mealPlannerRepositoryMock
-            .Setup(repo => repo.ReadMealPlannerByIdWithNextWeek(userId))
+            .Setup(repo => repo.ReadMealPlannerByIdWithNextWeekNoTracking(userId))
             .ReturnsAsync(mealPlanner);
 
         _mealPlannerRepositoryMock
@@ -117,7 +117,7 @@ public class MealPlannerManagerTests
         };
 
         _mealPlannerRepositoryMock
-            .Setup(repo => repo.ReadNextWeekPlannedMeals(userId))
+            .Setup(repo => repo.ReadNextWeekPlannedMealsNoTracking(userId))
             .ReturnsAsync(plannedMeals);
 
         _mapperMock
@@ -130,7 +130,7 @@ public class MealPlannerManagerTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(plannedMealDtos.Count, result.Count);
-        _mealPlannerRepositoryMock.Verify(repo => repo.ReadNextWeekPlannedMeals(userId), Times.Once);
+        _mealPlannerRepositoryMock.Verify(repo => repo.ReadNextWeekPlannedMealsNoTracking(userId), Times.Once);
         _mapperMock.Verify(mapper => mapper.Map<List<PlannedMealDto>>(plannedMeals), Times.Once);
     }
 
@@ -150,7 +150,7 @@ public class MealPlannerManagerTests
         };
 
         _mealPlannerRepositoryMock
-            .Setup(repo => repo.ReadPlannedMealsAfterDate(dateTime, userId))
+            .Setup(repo => repo.ReadPlannedMealsAfterDateNoTracking(dateTime, userId))
             .ReturnsAsync(plannedMeals);
 
         _mapperMock
@@ -163,7 +163,7 @@ public class MealPlannerManagerTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(plannedMealDtos.Count, result.Count);
-        _mealPlannerRepositoryMock.Verify(repo => repo.ReadPlannedMealsAfterDate(dateTime, userId), Times.Once);
+        _mealPlannerRepositoryMock.Verify(repo => repo.ReadPlannedMealsAfterDateNoTracking(dateTime, userId), Times.Once);
         _mapperMock.Verify(mapper => mapper.Map<List<PlannedMealDto>>(plannedMeals), Times.Once);
     }
 }
