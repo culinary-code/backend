@@ -1,15 +1,14 @@
 ﻿using BL.DTOs.MealPlanning;
 using BL.DTOs.Recipes.Ingredients;
+using DOM.Exceptions;
 using DOM.MealPlanning;
 
 namespace BL.Managers.Groceries;
 
 public interface IGroceryManager
 {
-    Task CreateNewGroceryList(GroceryList groceryList);
-    Task<GroceryListDto> GetGroceryList(string id);
-    Task<GroceryListDto> GetGroceryListWithNextWeek(Guid id);
-    Task<GroceryListDto> GetGroceryListByAccountId(string accountId);
-    Task AddItemToGroceryList(Guid userId, ItemQuantityDto addItem);
-    Task RemoveItemFromGroceryList(Guid userId, ItemQuantityDto removeItem);
+    Task<Result<GroceryListDto>> GetGroceryListWithNextWeek(Guid id);
+    Task<Result<GroceryListDto>> GetGroceryListByAccountId(string accountId);
+    Task<Result<Unit>> AddItemToGroceryList(Guid userId, ItemQuantityDto addItem);
+    Task<Result<Unit>> RemoveItemFromGroceryList(Guid userId, ItemQuantityDto removeItem);
 }
