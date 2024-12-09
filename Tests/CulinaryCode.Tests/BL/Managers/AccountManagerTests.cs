@@ -40,14 +40,15 @@ public class AccountManagerTests
         var accountId = Guid.NewGuid();
         var accountIdString = accountId.ToString();
         var expectedAccount = new AccountDto { AccountId = accountId, Name = "JohnDoe" };
-        _mockRepository.Setup(manager => manager.ReadAccount(accountId)).ReturnsAsync(new Account());
+        _mockRepository.Setup(manager => manager.ReadAccount(accountId)).ReturnsAsync(Result<Account>.Success(new Account()));
         _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(expectedAccount);
 
         // Act
         var result = await _accountManager.GetAccountById(accountIdString);
 
         // Assert
-        Assert.Equal(expectedAccount, result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expectedAccount, result.Value);
     }
     
     [Fact]
@@ -55,13 +56,14 @@ public class AccountManagerTests
     {
         // Arrange
         var accountId = Guid.NewGuid().ToString();
-        _mockRepository.Setup(manager => manager.ReadAccount(It.IsAny<Guid>())).ReturnsAsync((Account)null);
+        _mockRepository.Setup(manager => manager.ReadAccount(It.IsAny<Guid>())).ReturnsAsync(Result<Account>.Failure("", ResultFailureType.NotFound));
 
         // Act
         var result = await _accountManager.GetAccountById(accountId);
         
         // Assert
-        Assert.Null(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
     
     [Fact]
@@ -70,14 +72,15 @@ public class AccountManagerTests
         // Arrange
         var accountId = Guid.NewGuid();
         var updatedAccount = new AccountDto { AccountId = accountId, Name = "JohnDoe" };
-        _mockRepository.Setup(manager => manager.ReadAccount(accountId)).ReturnsAsync(new Account());
+        _mockRepository.Setup(manager => manager.ReadAccount(accountId)).ReturnsAsync(Result<Account>.Success(new Account()));
         _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(updatedAccount);
 
         // Act
         var result = await _accountManager.UpdateAccount(updatedAccount);
 
         // Assert
-        Assert.Equal(updatedAccount, result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(updatedAccount, result.Value);
     }
     
     [Fact]
@@ -86,14 +89,15 @@ public class AccountManagerTests
         // Arrange
         var accountId = Guid.NewGuid();
         var updatedAccount = new AccountDto { AccountId = accountId, FamilySize = 14 };
-        _mockRepository.Setup(manager => manager.ReadAccount(accountId)).ReturnsAsync(new Account());
+        _mockRepository.Setup(manager => manager.ReadAccount(accountId)).ReturnsAsync(Result<Account>.Success(new Account()));
         _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(updatedAccount);
 
         // Act
         var result = await _accountManager.UpdateAccount(updatedAccount);
 
         // Assert
-        Assert.Equal(updatedAccount, result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(updatedAccount, result.Value);
     }
     
     [Fact]
@@ -102,10 +106,12 @@ public class AccountManagerTests
         // Arrange
         var accountId = Guid.NewGuid();
         var updatedAccount = new AccountDto { AccountId = accountId, Name = "JohnDoe" };
-        _mockRepository.Setup(manager => manager.ReadAccount(accountId)).ReturnsAsync((Account)null);
+        _mockRepository.Setup(manager => manager.ReadAccount(accountId)).ReturnsAsync(Result<Account>.Failure("", ResultFailureType.NotFound));
 
         // Act & Assert
-        await Assert.ThrowsAsync<AccountNotFoundException>(async () => await _accountManager.UpdateAccount(updatedAccount));
+        var result = await _accountManager.UpdateAccount(updatedAccount);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
 
     [Fact]
@@ -115,13 +121,22 @@ public class AccountManagerTests
         var username = "JohnDoe";
         var email = "johndoe@example.org";
         var userId = Guid.NewGuid();
-        _mockRepository.Setup(manager => manager.ReadAccount(userId)).ReturnsAsync((Account)null);
+        Account account = new Account()
+        {
+            AccountId = userId,
+            Email = email,
+            Name = username,
+        };
+        
+        _mockRepository.Setup(accountRepository => accountRepository.CreateAccount(It.IsAny<Account>()))
+            .ReturnsAsync(Result<Unit>.Success(new Unit()));
 
         // Act
-        await _accountManager.CreateAccount(username, email, userId);
+        var result = await _accountManager.CreateAccount(username, email, userId);
 
         // Assert
-        _mockRepository.Verify(manager => manager.CreateAccount(It.IsAny<Account>()), Times.Once);
+        Assert.True(result.IsSuccess);
+        _mockRepository.Verify(accountRepository => accountRepository.CreateAccount(It.IsAny<Account>()), Times.Once);
     }
     
     [Fact]
@@ -150,17 +165,17 @@ public class AccountManagerTests
             Preferences = preferences
         };
 
-        _mockRepository.Setup(manager => manager.ReadAccountWithPreferencesByAccountId(userId)).ReturnsAsync(account);
+        _mockRepository.Setup(manager => manager.ReadAccountWithPreferencesByAccountId(userId)).ReturnsAsync(Result<Account>.Success(account));
         _mockMapper.Setup(mapper => mapper.Map<List<PreferenceDto>>(preferences)).Returns(expectedPreferences);
 
         // Act
         var result = await _accountManager.GetPreferencesByUserId(userId);
 
         // Assert
-        Assert.NotNull(result); 
-        Assert.Equal(expectedPreferences.Count, result.Count);
-        Assert.Equal(expectedPreferences[0].PreferenceId, result[0].PreferenceId);
-        Assert.Equal(expectedPreferences[1].PreferenceId, result[1].PreferenceId);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expectedPreferences.Count, result.Value!.Count);
+        Assert.Equal(expectedPreferences[0].PreferenceId, result.Value[0].PreferenceId);
+        Assert.Equal(expectedPreferences[1].PreferenceId, result.Value[1].PreferenceId);
     }
 
 
@@ -180,7 +195,7 @@ public class AccountManagerTests
             }
         };
 
-        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).ReturnsAsync(account);
+        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).ReturnsAsync(Result<Account>.Success(account));
 
         _mockRepository.Setup(r => r.DeletePreferenceFromAccount(accountId, preferenceId)).Verifiable();
 
@@ -210,22 +225,23 @@ public class AccountManagerTests
             Preferences = new List<PreferenceDto> { preferenceDto }
         };
 
-        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).ReturnsAsync(account);
+        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).ReturnsAsync(Result<Account>.Success(account));
         _mockPreferenceRepository.Setup(pr => pr.ReadPreferenceByNameNoTracking(preferenceDto.PreferenceName))
-            .ReturnsAsync((Preference)null); // Simulate that preference does not exist
+            .ReturnsAsync(Result<Preference>.Failure("", ResultFailureType.NotFound)); // Simulate that preference does not exist
         _mockPreferenceRepository.Setup(pr => pr.CreatePreference(It.IsAny<Preference>()))
-            .ReturnsAsync(new Preference { PreferenceName = preferenceDto.PreferenceName });
+            .ReturnsAsync(Result<Preference>.Success(new Preference { PreferenceName = preferenceDto.PreferenceName }));
         _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(updatedAccount);
-        _mockRepository.Setup(r => r.UpdateAccount(It.IsAny<Account>())).Verifiable();
+        _mockRepository.Setup(r => r.UpdateAccount(account)).ReturnsAsync(Result<Unit>.Success(new Unit())).Verifiable();;
+
 
         // Act
         var result = await _accountManager.AddPreferenceToAccount(accountId, preferenceDto);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(updatedAccount.AccountId, result.AccountId);
-        Assert.Single(result.Preferences);
-        Assert.Equal(preferenceDto.PreferenceName, result.Preferences.First().PreferenceName);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(updatedAccount.AccountId, result.Value!.AccountId);
+        Assert.Single(result.Value.Preferences);
+        Assert.Equal(preferenceDto.PreferenceName, result.Value.Preferences.First().PreferenceName);
         _mockRepository.Verify(r => r.UpdateAccount(It.IsAny<Account>()), Times.Once);
     }
 
@@ -247,16 +263,15 @@ public class AccountManagerTests
 
         var accountDto = new AccountDto { AccountId = accountId, Preferences = new List<PreferenceDto> { preferenceDto } };
 
-        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).ReturnsAsync(account);
+        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).ReturnsAsync(Result<Account>.Success(account));
         _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(accountDto);
 
         // Act
         var result = await _accountManager.AddPreferenceToAccount(accountId, preferenceDto);
 
         // Assert
-        Assert.Equal(accountDto.AccountId, result.AccountId);
-        Assert.Single(result.Preferences);  // Preference should not be duplicated
-        Assert.Equal(preferenceDto.PreferenceName, result.Preferences.First().PreferenceName);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.Error, result.FailureType);
     }
 
     [Fact]
@@ -281,17 +296,15 @@ public class AccountManagerTests
             Preferences = new List<PreferenceDto> { preferenceDto }
         };
 
-        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).ReturnsAsync(account);
+        _mockRepository.Setup(r => r.ReadAccountWithPreferencesByAccountId(accountId)).ReturnsAsync(Result<Account>.Failure("", ResultFailureType.NotFound));
         _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(accountDto);
 
         // Act
         var result = await _accountManager.AddPreferenceToAccount(accountId, preferenceDto);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(accountDto.AccountId, result.AccountId);
-        Assert.Single(result.Preferences);
-        Assert.Equal(preferenceDto.PreferenceName, result.Preferences.First().PreferenceName);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
     
     [Fact]
@@ -302,13 +315,13 @@ public class AccountManagerTests
             var recipeId1 = Guid.NewGuid();
             var recipeId2 = Guid.NewGuid();
 
-            var favoriteRecipes = new List<Recipe>
+            var favoriteRecipes = new List<Recipe?>
             {
                 new Recipe { RecipeId = recipeId1, RecipeName = "Recipe 1" },
                 new Recipe { RecipeId = recipeId2, RecipeName = "Recipe 2" }
             };
 
-            _mockRepository.Setup(repo => repo.ReadFavoriteRecipesByUserIdNoTracking(userId)).ReturnsAsync(favoriteRecipes);
+            _mockRepository.Setup(repo => repo.ReadFavoriteRecipesByUserIdNoTracking(userId)).ReturnsAsync(Result<List<Recipe?>>.Success(favoriteRecipes));
 
             var expectedRecipes = new List<RecipeDto>
             {
@@ -321,10 +334,10 @@ public class AccountManagerTests
             var result = await _accountManager.GetFavoriteRecipesByUserId(userId);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(expectedRecipes.Count, result.Count);
-            Assert.Equal(expectedRecipes[0].RecipeId, result[0].RecipeId);
-            Assert.Equal(expectedRecipes[1].RecipeId, result[1].RecipeId);
+            Assert.True(result.IsSuccess);
+            Assert.Equal(expectedRecipes.Count, result.Value!.Count);
+            Assert.Equal(expectedRecipes[0].RecipeId, result.Value[0].RecipeId);
+            Assert.Equal(expectedRecipes[1].RecipeId, result.Value[1].RecipeId);
         }
 
     [Fact]
@@ -333,11 +346,12 @@ public class AccountManagerTests
         // Arrange
         var userId = Guid.NewGuid();
          _mockRepository.Setup(repo => repo.ReadFavoriteRecipesByUserIdNoTracking(userId))
-            .ThrowsAsync(new RecipeNotFoundException("No favorite recipes found for the given account."));
+            .ReturnsAsync(Result<List<Recipe?>>.Failure("No favorite recipes found for the given account.", ResultFailureType.NotFound));
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _accountManager.GetFavoriteRecipesByUserId(userId));
-        Assert.Equal("No favorite recipes found for the given account.", exception.Message);
+        var result = await _accountManager.GetFavoriteRecipesByUserId(userId);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
     
     [Fact]
@@ -360,8 +374,10 @@ public class AccountManagerTests
             RecipeName = recipeName
         };
 
-        _mockRepository.Setup(r => r.ReadAccount(accountId)).ReturnsAsync(account);
-        _mockRecipeRepository.Setup(r => r.ReadRecipeById(recipeId)).ReturnsAsync(recipe);
+        _mockRepository.Setup(r => r.ReadAccount(accountId)).ReturnsAsync(Result<Account>.Success(account));
+        _mockRepository.Setup(r => r.UpdateAccount(account)).ReturnsAsync(Result<Unit>.Success(new Unit()));
+        _mockRecipeRepository.Setup(r => r.ReadRecipeById(recipeId)).ReturnsAsync(Result<Recipe>.Success(recipe));
+        _mockRecipeRepository.Setup(r => r.UpdateRecipe(recipe)).ReturnsAsync(Result<Unit>.Success(new Unit()));
 
         _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>()))
             .Returns((Account sourceAccount) => new AccountDto
@@ -383,9 +399,9 @@ public class AccountManagerTests
         var result = await _accountManager.AddFavoriteRecipeToAccount(accountId, recipeId);
         
         // Assert
-        Assert.NotNull(result);
-        Assert.Single(result.FavoriteRecipes);
-        Assert.Equal(recipeName, result.FavoriteRecipes.First().Recipe.RecipeName);
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!.FavoriteRecipes);
+        Assert.Equal(recipeName, result.Value.FavoriteRecipes.First().Recipe.RecipeName);
         _mockRepository.Verify(r => r.UpdateAccount(It.IsAny<Account>()), Times.Once);
     }
     
@@ -413,7 +429,7 @@ public class AccountManagerTests
             }
         };
 
-        _mockRepository.Setup(r => r.ReadAccount(accountId)).ReturnsAsync(account);
+        _mockRepository.Setup(r => r.ReadAccount(accountId)).ReturnsAsync(Result<Account>.Success(account));
         _mockRepository.Setup(r => r.DeleteFavoriteRecipeByUserId(accountId, favoriteRecipeId)).Verifiable();
 
         // Act

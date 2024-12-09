@@ -131,15 +131,10 @@ public class AccountManager : IAccountManager
         }
 
         var preferenceResult = await _preferenceRepository.ReadPreferenceByNameNoTracking(preferenceDto.PreferenceName);
-        if (!preferenceResult.IsSuccess)
-        {
-            return Result<AccountDto>.Failure(preferenceResult.ErrorMessage!, preferenceResult.FailureType);
-        }
-        var preference = preferenceResult.Value;
-
+        
         Preference newPreference;
 
-        if (preference == null)
+        if (!preferenceResult.IsSuccess)
         {
             var newPreferenceResult = await _preferenceRepository.CreatePreference(new Preference()
             {
@@ -154,7 +149,7 @@ public class AccountManager : IAccountManager
         }
         else
         {
-            newPreference = preference;
+            newPreference = preferenceResult.Value!;
         }
 
         account.Preferences.Add(newPreference);

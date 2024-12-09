@@ -189,7 +189,16 @@ public class RecipeManager : IRecipeManager
     public async Task<Result<ICollection<RecipeDto>>> CreateBatchRecipes(string input)
     {
         var recipes = new List<RecipeDto>();
-        var recipeJson = JObject.Parse(input);
+        JObject recipeJson;
+        try
+        {
+            recipeJson = JObject.Parse(input);
+        }catch (JsonReaderException ex)
+        {
+            _logger.LogError("Failed to parse JSON: {ErrorMessage}", ex.Message);
+            return Result<ICollection<RecipeDto>>.Failure("Failed to parse JSON", ResultFailureType.Error);
+        }
+        
         var recipeArray = recipeJson["recipes"];
 
         foreach (var recipe in recipeArray)
@@ -262,8 +271,18 @@ public class RecipeManager : IRecipeManager
         }
 
         var jsonSchema = LlmSettingsService.RecipeJsonSchema;
-        JSchema schema = JSchema.Parse(jsonSchema);
-        JObject recipe = JObject.Parse(recipeJson);
+        JSchema schema;
+        JObject recipe;
+        try
+        {
+            schema = JSchema.Parse(jsonSchema);
+            recipe = JObject.Parse(recipeJson);
+        }catch (JsonReaderException ex)
+        {
+            _logger.LogError("Failed to parse JSON: {ErrorMessage}", ex.Message);
+            return Result<Unit>.Failure("Failed to parse JSON", ResultFailureType.Error);
+        }
+        
 
         if (recipe.IsValid(schema, out IList<string> validationErrors))
             return Result<Unit>.Success(new Unit());
@@ -280,8 +299,16 @@ public class RecipeManager : IRecipeManager
     private async Task<Result<Recipe>> ConvertGeneratedRecipe(string generatedRecipe)
     {
         _logger.LogInformation("Converting generated recipe JSON object to Recipe object");
-
-        var generatedRecipeJson = JObject.Parse(generatedRecipe);
+        JObject generatedRecipeJson;
+        try
+        {
+             generatedRecipeJson = JObject.Parse(generatedRecipe);
+        }
+        catch (JsonReaderException ex)
+        {
+            _logger.LogError("Failed to parse JSON: {ErrorMessage}", ex.Message);
+            return Result<Recipe>.Failure("Failed to parse JSON", ResultFailureType.Error);
+        }
 
         generatedRecipeJson.TryGetValue("recipeName", out var recipeName);
         generatedRecipeJson.TryGetValue("description", out var description);
