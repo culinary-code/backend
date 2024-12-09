@@ -131,6 +131,8 @@ public class RecipeManager : IRecipeManager
 
     public async Task<ICollection<RecipeSuggestionDto>> CreateRecipeSuggestions(RecipeFilterDto request, List<PreferenceDto> preferences, int amount = 5)
     {
+        _logger.LogInformation("Creating recipe suggestions with prompt:\n name: {recipeName} \n difficulty: {Difficulty} \n mealtype: {MealType} \n cooktime: {CookTime}", request.RecipeName, request.Difficulty, request.MealType, request.CookTime);
+        
         var prompt = LlmSettingsService.BuildPrompt(request, preferences);
         var suggestions = _llmService.GenerateMultipleRecipeNamesAndDescriptions(prompt, amount);
 
