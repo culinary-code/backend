@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Collections;
+using AutoMapper;
 using BL.DTOs.Accounts;
 using BL.DTOs.Recipes;
 using BL.ExternalSources.Llm;
@@ -222,7 +223,7 @@ public class RecipeManager : IRecipeManager
         return Result<ICollection<RecipeDto>>.Success(recipes);
     }
     
-    public async Task<ICollection<RecipeSuggestionDto>> CreateRecipeSuggestions(RecipeFilterDto request, List<PreferenceDto> preferences, int amount = 5)
+    public async Task<Result<ICollection<RecipeSuggestionDto>>> CreateRecipeSuggestions(RecipeFilterDto request, List<PreferenceDto> preferences, int amount = 5)
     {
         _logger.LogInformation("Creating recipe suggestions with prompt:\n name: {recipeName} \n difficulty: {Difficulty} \n mealtype: {MealType} \n cooktime: {CookTime}", request.RecipeName, request.Difficulty, request.MealType, request.CookTime);
         
@@ -232,7 +233,7 @@ public class RecipeManager : IRecipeManager
         if (suggestions[0].StartsWith("NOT_POSSIBLE"))
         {
             _logger.LogError("Recipe generation failed: {ErrorMessage}", suggestions[0]);
-            return new List<RecipeSuggestionDto>();
+            return Result<ICollection<RecipeSuggestionDto>>.Failure("Recipe generation failed", ResultFailureType.Error);
         }
         
         var recipeSuggestions = suggestions
@@ -244,7 +245,7 @@ public class RecipeManager : IRecipeManager
             })
             .ToList();
 
-        return recipeSuggestions;
+        return Result<ICollection<RecipeSuggestionDto>>.Success(recipeSuggestions);
     }
 
     public async Task<Result<Unit>> CreateBatchRandomRecipes(int amount, List<PreferenceDto>? preferences)

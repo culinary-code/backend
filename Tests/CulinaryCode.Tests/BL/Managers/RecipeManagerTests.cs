@@ -513,7 +513,8 @@ public class RecipeManagerTests
         var result = await _recipeManager.CreateRecipeSuggestions(recipeDto, preferencesListDto);
 
         // Assert
-        Assert.Equal(5, result.Count);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(5, result.Value!.Count);
     }
     
     [Fact]
@@ -532,6 +533,7 @@ public class RecipeManagerTests
         var result = await _recipeManager.CreateRecipeSuggestions(recipeDto, preferencesListDto);
 
         // Assert
-        Assert.Empty(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.Error, result.FailureType);
     }
 }
