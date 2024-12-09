@@ -6,6 +6,7 @@ using BL.Managers.MealPlanning;
 using DAL.Groceries;
 using DAL.MealPlanning;
 using DAL.Recipes;
+using DOM.Exceptions;
 using DOM.MealPlanning;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
@@ -75,23 +76,23 @@ public class MealPlannerManagerTests
 
         _mealPlannerRepositoryMock
             .Setup(repo => repo.ReadMealPlannerByIdWithNextWeekNoTracking(userId))
-            .ReturnsAsync(mealPlanner);
+            .ReturnsAsync(Result<MealPlanner>.Success(mealPlanner));
 
         _mealPlannerRepositoryMock
             .Setup(repo => repo.DeletePlannedMeal(It.IsAny<PlannedMeal>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(Result<Unit>.Success(new Unit()));
 
         _recipeRepositoryMock
             .Setup(repo => repo.ReadRecipeById(plannedMealDto.Recipe.RecipeId))
-            .ReturnsAsync(recipe);
+            .ReturnsAsync(Result<Recipe>.Success(recipe));
 
         _ingredientRepositoryMock
             .Setup(repo => repo.ReadIngredientById(It.IsAny<Guid>()))
-            .ReturnsAsync(new Ingredient());
+            .ReturnsAsync(Result<Ingredient>.Success(new Ingredient()));
 
         _mealPlannerRepositoryMock
             .Setup(repo => repo.CreatePlannedMeal(It.IsAny<PlannedMeal>()))
-            .ReturnsAsync(new PlannedMeal());
+            .ReturnsAsync(Result<PlannedMeal>.Success(new PlannedMeal()));
 
         // Act
         await _mealPlannerManager.CreateNewPlannedMeal(userId, plannedMealDto);
@@ -118,7 +119,7 @@ public class MealPlannerManagerTests
 
         _mealPlannerRepositoryMock
             .Setup(repo => repo.ReadNextWeekPlannedMealsNoTracking(userId))
-            .ReturnsAsync(plannedMeals);
+            .ReturnsAsync(Result<List<PlannedMeal>>.Success(plannedMeals));
 
         _mapperMock
             .Setup(mapper => mapper.Map<List<PlannedMealDto>>(plannedMeals))
@@ -128,8 +129,8 @@ public class MealPlannerManagerTests
         var result = await _mealPlannerManager.GetPlannedMealsFromUserAfterDate(dateTime, userId);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(plannedMealDtos.Count, result.Count);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(plannedMealDtos.Count, result.Value!.Count);
         _mealPlannerRepositoryMock.Verify(repo => repo.ReadNextWeekPlannedMealsNoTracking(userId), Times.Once);
         _mapperMock.Verify(mapper => mapper.Map<List<PlannedMealDto>>(plannedMeals), Times.Once);
     }
@@ -151,7 +152,7 @@ public class MealPlannerManagerTests
 
         _mealPlannerRepositoryMock
             .Setup(repo => repo.ReadPlannedMealsAfterDateNoTracking(dateTime, userId))
-            .ReturnsAsync(plannedMeals);
+            .ReturnsAsync(Result<List<PlannedMeal>>.Success(plannedMeals));
 
         _mapperMock
             .Setup(mapper => mapper.Map<List<PlannedMealDto>>(plannedMeals))
@@ -161,8 +162,8 @@ public class MealPlannerManagerTests
         var result = await _mealPlannerManager.GetPlannedMealsFromUserAfterDate(dateTime, userId);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(plannedMealDtos.Count, result.Count);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(plannedMealDtos.Count, result.Value!.Count);
         _mealPlannerRepositoryMock.Verify(repo => repo.ReadPlannedMealsAfterDateNoTracking(dateTime, userId), Times.Once);
         _mapperMock.Verify(mapper => mapper.Map<List<PlannedMealDto>>(plannedMeals), Times.Once);
     }
