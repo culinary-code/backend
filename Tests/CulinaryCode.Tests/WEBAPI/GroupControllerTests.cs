@@ -41,7 +41,7 @@ public class GroupControllerTests
         var mockRequest = new Mock<HttpRequest>();
         var mockHeaders = new HeaderDictionary
         {
-            { "Authorization", "Bearer fake-jwt-token" }  // Simulate a valid authorization header
+            { "Authorization", "Bearer fake-jwt-token" }
         };
     
         mockRequest.Setup(r => r.Headers).Returns(mockHeaders);

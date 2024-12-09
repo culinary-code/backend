@@ -87,7 +87,7 @@ namespace CulinaryCode.Tests.BL.Managers
                 ExpirationDate = DateTime.UtcNow.AddDays(1)
             };
 
-            _mockInvitationRepository.Setup(repo => repo.GetInvitationByTokenAsync(token)).ReturnsAsync(invitation);
+            _mockInvitationRepository.Setup(repo => repo.ReadInvitationByTokenAsync(token)).ReturnsAsync(invitation);
 
             // Act
             var result = await _invitationManager.ValidateInvitationTokenAsync(token);

@@ -23,7 +23,6 @@ public class GroupManagerTests
         _groupManager = new GroupManager(_groupRepositoryMock.Object, _accountManagerMock.Object, _accountRepositoryMock.Object);
     }
     
-    
     [Fact]
     public async Task CreateGroupAsync_CreatesGroup_WhenDataIsValid()
     {

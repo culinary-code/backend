@@ -19,7 +19,7 @@ public class InvitationRepository : IInvitationRepository
         await _ctx.SaveChangesAsync();
     }
 
-    public async Task<Invitation> GetInvitationByTokenAsync(string token)
+    public async Task<Invitation> ReadInvitationByTokenAsync(string token)
     { 
         return await _ctx.Invitations
             .FirstOrDefaultAsync(i => i.Token == token);

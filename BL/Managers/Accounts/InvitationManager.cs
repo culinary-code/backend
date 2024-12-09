@@ -39,14 +39,13 @@ public class InvitationManager : IInvitationManager
             ExpirationDate = DateTime.UtcNow.AddDays(7),
             isAccepted = false
         };
-        Console.WriteLine("INVITATIONTOKEN:" + invitation.Token);
         await _invitationRepository.SaveInvitationAsync(invitation);
         await _emailService.SendInvitationEmailAsync(request.Email, invitation.Token, invitation.InvitedUserName, invitation.InviterName);
     }
 
     public async Task<Invitation> ValidateInvitationTokenAsync(string token)
     {
-        var invitation = await _invitationRepository.GetInvitationByTokenAsync(token);
+        var invitation = await _invitationRepository.ReadInvitationByTokenAsync(token);
         if (invitation.ExpirationDate < DateTime.UtcNow)
         {
             await _invitationRepository.DeleteInvitationAsync(invitation);
@@ -55,8 +54,6 @@ public class InvitationManager : IInvitationManager
         return invitation;
     }
 
-    // TODO: hier nog kijken, miss na acceptatie of wanneer expired, invitation verwijderen uit db
-    // TODO: ik denk overbodig nu
     public async Task AcceptInvitationAsync(Invitation invitation)
     {
         invitation.isAccepted = true;

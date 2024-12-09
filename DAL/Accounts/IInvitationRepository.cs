@@ -5,6 +5,6 @@ namespace DAL.Accounts;
 public interface IInvitationRepository
 {
     Task SaveInvitationAsync(Invitation invitation);
-    Task<Invitation> GetInvitationByTokenAsync(string token);
+    Task<Invitation> ReadInvitationByTokenAsync(string token);
     Task DeleteInvitationAsync(Invitation invitation);
 }
