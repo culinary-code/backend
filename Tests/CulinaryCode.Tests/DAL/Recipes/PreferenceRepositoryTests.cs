@@ -39,9 +39,9 @@ public class PreferenceRepositoryTests
         var result = await _preferenceRepository.ReadPreferenceByNameNoTracking(preference.PreferenceName);
         
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(preference.PreferenceId, result.PreferenceId);
-        Assert.Equal(preference.PreferenceName, result.PreferenceName);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(preference.PreferenceId, result.Value!.PreferenceId);
+        Assert.Equal(preference.PreferenceName, result.Value.PreferenceName);
     }
     
     [Fact]
@@ -68,17 +68,20 @@ public class PreferenceRepositoryTests
         var result = await _preferenceRepository.ReadStandardPreferences();
         
         // Assert
-        Assert.NotNull(result);
-        Assert.NotEmpty(result);
-        Assert.Contains(preference1, result);
-        Assert.Contains(preference2, result);
+        Assert.True(result.IsSuccess);
+        Assert.Contains(preference1, result.Value!);
+        Assert.Contains(preference2, result.Value!);
     }
     
     [Fact]
     public async Task ReadStandardPreferences_NoStandardPreferencesExist_ThrowsPreferenceNotFoundException()
     {
-        // Act & Assert
-        await Assert.ThrowsAsync<PreferenceNotFoundException>(async () => await _preferenceRepository.ReadStandardPreferences());
+        // Act
+        var result = await _preferenceRepository.ReadStandardPreferences();
+        
+        //Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
     
     [Fact]
@@ -93,9 +96,10 @@ public class PreferenceRepositoryTests
         };
         
         // Act
-        await _preferenceRepository.CreatePreference(preference);
+        var result = await _preferenceRepository.CreatePreference(preference);
         
         // Assert
+        Assert.True(result.IsSuccess);
         Assert.Contains(preference, _dbContext.Preferences);
     }
 }
