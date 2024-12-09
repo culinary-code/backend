@@ -49,9 +49,9 @@ public class MealPlannerRepositoryTests : IClassFixture<TestPostgresContainerFix
         var result = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeekNoTracking(accountId);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(accountId, result.Account.AccountId);
-        Assert.NotEmpty(result.NextWeek);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(accountId, result.Value!.Account.AccountId);
+        Assert.NotEmpty(result.Value.NextWeek);
     }
 
     [Fact]
@@ -79,9 +79,9 @@ public class MealPlannerRepositoryTests : IClassFixture<TestPostgresContainerFix
         var result = await _mealPlannerRepository.CreatePlannedMeal(plannedMeal);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.NotEqual(Guid.Empty, result.PlannedMealId);
-        Assert.NotNull(await _dbContext.PlannedMeals.FindAsync(result.PlannedMealId));
+        Assert.True(result.IsSuccess);
+        Assert.NotEqual(Guid.Empty, result.Value!.PlannedMealId);
+        Assert.NotNull(await _dbContext.PlannedMeals.FindAsync(result.Value.PlannedMealId));
     }
 
     [Fact]
@@ -105,9 +105,8 @@ public class MealPlannerRepositoryTests : IClassFixture<TestPostgresContainerFix
         var result = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTracking(userId);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.NotEmpty(result);
-        Assert.Equal(plannedMeals.Count, result.Count);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(plannedMeals.Count, result.Value!.Count);
     }
 
     [Fact]
@@ -138,8 +137,8 @@ public class MealPlannerRepositoryTests : IClassFixture<TestPostgresContainerFix
         var result = await _mealPlannerRepository.ReadPlannedMealsAfterDateNoTracking(DateTime.UtcNow, userId);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Single(result); // Should only return the meal in NextWeek
-        Assert.Equal("Next Week Recipe", result.First().Recipe?.RecipeName);
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!); // Should only return the meal in NextWeek
+        Assert.Equal("Next Week Recipe", result.Value!.First().Recipe?.RecipeName);
     }
 }
