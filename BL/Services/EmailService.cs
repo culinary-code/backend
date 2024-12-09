@@ -1,18 +1,31 @@
 ﻿using System.Net;
 using System.Net.Mail;
+using Configuration.Options;
+using Microsoft.Extensions.Options;
 
 namespace BL.Services;
 
 // Service voor het verzenden van emails met SMTP
 public class EmailService : IEmailService
 {
-    // TODO: gebruik echte gegevens 
+    private readonly string _smtpClient;
+    private readonly string _smtpUsername;
+    private readonly string _smtpPassword;
+
+    public EmailService(IOptions<EmailServiceOptions> options)
+    {
+        var emailServiceOptions = options.Value;
+        _smtpClient = emailServiceOptions.SmtpClient;
+        _smtpUsername = emailServiceOptions.SmtpUserName;
+        _smtpPassword = emailServiceOptions.SmtpPassword;
+    }
+    
     public async Task SendInvitationEmailAsync(string email, string token, string invitedUser, string inviterName)
     {
-        var smtpClient = new SmtpClient(Environment.GetEnvironmentVariable("SMTP_CLIENT"))
+        var smtpClient = new SmtpClient(_smtpClient)
         {
             Port = 587,
-            Credentials = new NetworkCredential(Environment.GetEnvironmentVariable("SMTP_USERNAME"), Environment.GetEnvironmentVariable("SMTP_PASSWORD")),
+            Credentials = new NetworkCredential(_smtpUsername, _smtpPassword),
             EnableSsl = true
         };
 
@@ -111,7 +124,6 @@ public class EmailService : IEmailService
                                     <p>Je bent uitgenodigd om deel te nemen aan de Culinary Code groep van {inviterName}! Om je uitnodiging te accepteren, klik je op de onderstaande knop:</p>
                                     
                                     <!-- Button Section -->
-                                    <a href='https://localhost:7098/api/Invitation/acceptInvitation/{token}' class='button'>Uitnodiging Accepteren</a>
                                     <a href='com.culinarycode://accept-invitation/{token}' class='button'>Uitnodiging Accepteren</a>
                                     
                                     <!-- Footer Section -->

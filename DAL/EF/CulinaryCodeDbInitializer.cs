@@ -13,7 +13,7 @@ internal static class CulinaryCodeDbInitializer
 {
     private static bool _hasRunDuringAppExecution = false;
 
-    public static void Initialize(CulinaryCodeDbContext context, bool dropCreateDatabase = false)
+    public static void Initialize(CulinaryCodeDbContext context, bool dropCreateDatabase = true)
     {
         if (!_hasRunDuringAppExecution)
         {

@@ -55,6 +55,11 @@ builder.Services.AddOptions<DatabaseOptions>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+builder.Services.AddOptions<EmailServiceOptions>()
+    .Bind(configuration.GetSection("EmailService"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
 
 var databaseOptions = builder.Configuration.GetSection("Database").Get<DatabaseOptions>();
 var connectionString = databaseOptions!.ConnectionString;

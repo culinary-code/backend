@@ -23,10 +23,12 @@ public class CulinaryCodeDbContext : DbContext
     public DbSet<InstructionStep> InstructionSteps { get; set; }
     public DbSet<IngredientQuantity> IngredientQuantities { get; set; }
     public DbSet<ItemQuantity> ItemQuantities { get; set; }
+    public DbSet<Group> Groups { get; set; }
+    public DbSet<Invitation> Invitations { get; set; }
 
     public CulinaryCodeDbContext(DbContextOptions options) : base(options)
     {
-        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: false);
+        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: true);
     }
 
 
