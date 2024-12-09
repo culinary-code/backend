@@ -285,7 +285,7 @@ public class RecipeManagerTests
 
         _mockRepository
             .Setup(repo => repo.ReadRecipeWithRelatedInformationByIdNoTracking(recipeId))
-            .ReturnsAsync(sampleRecipe);
+            .ReturnsAsync(Result<Recipe>.Success(sampleRecipe));
         _mockMapper
             .Setup(mapper => mapper.Map<RecipeDto>(sampleRecipe))
             .Returns(recipeDto);
@@ -294,7 +294,8 @@ public class RecipeManagerTests
         var result = await _recipeManager.GetRecipeDtoById(recipeId.ToString());
 
         // Assert
-        Assert.Equal(recipeDto, result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(recipeDto, result.Value);
         _mockRepository.Verify(repo => repo.ReadRecipeWithRelatedInformationByIdNoTracking(recipeId), Times.Once);
         _mockMapper.Verify(mapper => mapper.Map<RecipeDto>(sampleRecipe), Times.Once);
     }
@@ -308,7 +309,7 @@ public class RecipeManagerTests
 
         _mockRepository
             .Setup(repo => repo.ReadRecipeByNameNoTracking(sampleRecipe.RecipeName))
-            .ReturnsAsync(sampleRecipe);
+            .ReturnsAsync(Result<Recipe>.Success(sampleRecipe));
         _mockMapper
             .Setup(mapper => mapper.Map<RecipeDto>(sampleRecipe))
             .Returns(recipeDto);
@@ -317,7 +318,8 @@ public class RecipeManagerTests
         var result = await _recipeManager.GetRecipeDtoByName(sampleRecipe.RecipeName);
 
         // Assert
-        Assert.Equal(recipeDto, result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(recipeDto, result.Value);
         _mockRepository.Verify(repo => repo.ReadRecipeByNameNoTracking(sampleRecipe.RecipeName), Times.Once);
         _mockMapper.Verify(mapper => mapper.Map<RecipeDto>(sampleRecipe), Times.Once);
     }
@@ -333,7 +335,7 @@ public class RecipeManagerTests
 
         _mockRepository
             .Setup(repo => repo.ReadRecipesCollectionByNameNoTracking(sampleRecipe.RecipeName))
-            .ReturnsAsync(sampleRecipes);
+            .ReturnsAsync(Result<ICollection<Recipe>>.Success(sampleRecipes));
         _mockMapper
             .Setup(mapper => mapper.Map<ICollection<RecipeDto>>(sampleRecipes))
             .Returns(recipeDtos);
@@ -342,7 +344,8 @@ public class RecipeManagerTests
         var result = await _recipeManager.GetRecipesCollectionByName(sampleRecipe.RecipeName);
 
         // Assert
-        Assert.Equal(recipeDtos, result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(recipeDtos, result.Value);
         _mockRepository.Verify(repo => repo.ReadRecipesCollectionByNameNoTracking(sampleRecipe.RecipeName), Times.Once);
         _mockMapper.Verify(mapper => mapper.Map<ICollection<RecipeDto>>(sampleRecipes), Times.Once);
     }
@@ -366,13 +369,23 @@ public class RecipeManagerTests
             .Returns(imageUri);
         _mockRepository
             .Setup(repo => repo.CreateRecipe(It.IsAny<Recipe>()))
+            .ReturnsAsync(Result<Unit>.Success(new Unit()))
             .Verifiable();
         _mockPreferenceRepository
             .Setup(repo => repo.ReadStandardPreferences())
-            .ReturnsAsync(new List<Preference>());
+            .ReturnsAsync(Result<ICollection<Preference>>.Success(new List<Preference>()));
+        _mockPreferenceRepository
+            .Setup(repo => repo.CreatePreference(It.IsAny<Preference>()))
+            .ReturnsAsync(Result<Preference>.Success(new Preference()));
         _mockMapper
             .Setup(mapper => mapper.Map<RecipeDto>(It.IsAny<Recipe>()))
             .Returns(CreateSampleRecipeFromJsonDto);
+        _mockIngredientRepository
+            .Setup(repo => repo.ReadIngredientByNameAndMeasurementType(It.IsAny<string>(), It.IsAny<MeasurementType>()))
+            .ReturnsAsync(Result<Ingredient>.Failure("", ResultFailureType.NotFound));
+        _mockIngredientRepository
+            .Setup(repo => repo.CreateIngredient(It.IsAny<Ingredient>()))
+            .ReturnsAsync(Result<Unit>.Success(new Unit()));
 
 
         // Act
@@ -380,26 +393,27 @@ public class RecipeManagerTests
 
         // Assert
         // Assert fields because the RecipeDto is not the same instance as the one returned by the method
-        Assert.Equal(sampleRecipeDto.RecipeName, result.RecipeName);
-        Assert.Equal(sampleRecipeDto.Description, result.Description);
-        Assert.Equal(sampleRecipeDto.AmountOfPeople, result.AmountOfPeople);
-        Assert.Equal(sampleRecipeDto.CookingTime, result.CookingTime);
-        Assert.Equal(sampleRecipeDto.Difficulty, result.Difficulty);
-        Assert.Equal(sampleRecipeDto.Preferences[0].PreferenceName, result.Preferences[0].PreferenceName);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(sampleRecipeDto.RecipeName, result.Value!.RecipeName);
+        Assert.Equal(sampleRecipeDto.Description, result.Value.Description);
+        Assert.Equal(sampleRecipeDto.AmountOfPeople, result.Value.AmountOfPeople);
+        Assert.Equal(sampleRecipeDto.CookingTime, result.Value.CookingTime);
+        Assert.Equal(sampleRecipeDto.Difficulty, result.Value.Difficulty);
+        Assert.Equal(sampleRecipeDto.Preferences[0].PreferenceName, result.Value.Preferences[0].PreferenceName);
         
         for(int i = 0; i < sampleRecipeDto.Ingredients.Count; i++)
         {
-            Assert.Equal(sampleRecipeDto.Ingredients[i].Ingredient.IngredientName, result.Ingredients[i].Ingredient.IngredientName);
-            Assert.Equal(sampleRecipeDto.Ingredients[i].Quantity, result.Ingredients[i].Quantity);
+            Assert.Equal(sampleRecipeDto.Ingredients[i].Ingredient.IngredientName, result.Value.Ingredients[i].Ingredient.IngredientName);
+            Assert.Equal(sampleRecipeDto.Ingredients[i].Quantity, result.Value.Ingredients[i].Quantity);
         }
         
         for(int i = 0; i < sampleRecipeDto.Instructions.Count; i++)
         {
-            Assert.Equal(sampleRecipeDto.Instructions[i].Instruction, result.Instructions[i].Instruction);
-            Assert.Equal(sampleRecipeDto.Instructions[i].StepNumber, result.Instructions[i].StepNumber);
+            Assert.Equal(sampleRecipeDto.Instructions[i].Instruction, result.Value.Instructions[i].Instruction);
+            Assert.Equal(sampleRecipeDto.Instructions[i].StepNumber, result.Value.Instructions[i].StepNumber);
         }
         
-        Assert.Equal(sampleRecipeDto.RecipeType, result.RecipeType);
+        Assert.Equal(sampleRecipeDto.RecipeType, result.Value.RecipeType);
         
         _mockLlmService.Verify(service => service.GenerateRecipe(prompt), Times.Once);
         _mockRepository.Verify(repo => repo.CreateRecipe(It.IsAny<Recipe>()), Times.Once);
@@ -416,8 +430,11 @@ public class RecipeManagerTests
             .Setup(service => service.GenerateRecipe(prompt))
             .Returns("\"NOT_POSSIBLE with this reason Baksteensoep is niet eetbaar");
         
-        // Act & Assert
-        await Assert.ThrowsAsync<RecipeNotAllowedException>(async () => await _recipeManager.CreateRecipe(recipeDto, preferencesListDto));
+        // Act 
+        var result = await _recipeManager.CreateRecipe(recipeDto, preferencesListDto);
+        
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.Error, result.FailureType);
     }
 
     [Fact]
@@ -437,7 +454,8 @@ public class RecipeManagerTests
         var result = await _recipeManager.CreateRecipe(recipeDto, preferencesListDto);
         
         // Assert
-        Assert.Null(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.Error, result.FailureType);
     }
 
     [Fact]
@@ -457,6 +475,7 @@ public class RecipeManagerTests
         var result = await _recipeManager.CreateRecipe(recipeDto, preferencesListDto);
         
         // Assert
-        Assert.Null(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.Error, result.FailureType);
     }
 }
