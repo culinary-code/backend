@@ -33,4 +33,14 @@ public class GroupManager : IGroupManager
     {
         await _groupRepository.AddUserToGroupAsync(groupId, userId);
     }
+
+    public async Task<List<Group>> GetAllGroupsByUserIdAsync(Guid userId)
+    {
+        return await _groupRepository.ReadGroupsByUserId(userId);
+    }
+
+    public async Task RemoveUserFromGroup(Guid groupId, Guid userId)
+    {
+        await _groupRepository.DeleteUserFromGroup(groupId, userId);
+    }
 }

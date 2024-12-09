@@ -41,6 +41,20 @@ public class GroupRepository : IGroupRepository
         return group;
     }
 
+    public async Task<List<Group>> ReadGroupsByUserId(Guid userId)
+    {
+        var groups = await _ctx.Groups
+            .Where(a => a.Accounts.Any(b => b.AccountId == userId))
+            .ToListAsync();
+            
+        if (groups.Count == 0)
+        {
+            return [];
+        }
+        
+        return groups;
+    }
+
     public async Task<Group> AddUserToGroupAsync(Guid groupId, Guid userId)
     {
         var group = await ReadGroupById(groupId);
@@ -58,5 +72,16 @@ public class GroupRepository : IGroupRepository
         group.Accounts.Add(user);
         await _ctx.SaveChangesAsync();
         return group;
+    }
+
+    public async Task DeleteUserFromGroup(Guid groupId, Guid userId)
+    {
+        var group = await ReadGroupById(groupId);
+        if (group is null)
+        {
+            throw new ArgumentNullException(nameof(group));
+        }
+        group.Accounts.Remove(group.Accounts.First(a => a.AccountId == userId));
+        await _ctx.SaveChangesAsync();
     }
 }

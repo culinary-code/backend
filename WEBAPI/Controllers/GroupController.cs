@@ -24,7 +24,7 @@ public class GroupController : ControllerBase
         _identityProviderService = identityProviderService;
     }
 
-    [HttpPost]
+    [HttpPost("createGroup")]
     public async Task<IActionResult> CreateGroup([FromQuery] string groupName)
     {
         try
@@ -56,6 +56,39 @@ public class GroupController : ControllerBase
         catch
         {
             _logger.LogError($"Could not add user to group {groupId}");
+            return BadRequest();
+        }
+    }
+
+    [HttpGet("getGroups")]
+    public async Task<IActionResult> GetGroups(Guid userId)
+    {
+        try
+        {
+            userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+            var groups = await _groupManager.GetAllGroupsByUserIdAsync(userId);
+            return Ok(groups);
+        }
+        catch
+        {
+            _logger.LogError($"Could not get groups for user {userId}");
+            return BadRequest();
+        }
+    }
+    
+    [HttpPost("{groupId}/removeUser")]
+    public async Task<IActionResult> RemoveUserFromGroup(Guid groupId)
+    {
+        try
+        {
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+
+            await _groupManager.RemoveUserFromGroup(groupId, userId);
+            return Ok(groupId);
+        }
+        catch
+        {
+            _logger.LogError($"Could not remove user from group {groupId}");
             return BadRequest();
         }
     }

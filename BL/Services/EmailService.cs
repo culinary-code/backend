@@ -3,7 +3,7 @@ using System.Net.Mail;
 
 namespace BL.Services;
 
-// Service voor het verzenden van emails met SMPT
+// Service voor het verzenden van emails met SMTP
 public class EmailService : IEmailService
 {
     // TODO: gebruik echte gegevens 
@@ -112,6 +112,7 @@ public class EmailService : IEmailService
                                     
                                     <!-- Button Section -->
                                     <a href='https://localhost:7098/api/Invitation/acceptInvitation/{token}' class='button'>Uitnodiging Accepteren</a>
+                                    <a href='com.culinarycode://accept-invitation/{token}' class='button'>Uitnodiging Accepteren</a>
                                     
                                     <!-- Footer Section -->
                                     <div class='footer'>
