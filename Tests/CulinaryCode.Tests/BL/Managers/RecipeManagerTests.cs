@@ -29,10 +29,9 @@ public class RecipeManagerTests
 
     public RecipeManagerTests()
     {
-        
         using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
         _logger = loggerFactory.CreateLogger<RecipeManager>();
-        
+
         _mockRepository = new Mock<IRecipeRepository>();
         _mockMapper = new Mock<IMapper>();
         _mockLlmService = new Mock<ILlmService>();
@@ -95,7 +94,7 @@ public class RecipeManagerTests
 
         var recipePreferences = new List<Preference>
         {
-            new Preference(){PreferenceName = "Veel wortels", StandardPreference = false}  
+            new Preference() { PreferenceName = "Veel wortels", StandardPreference = false }
         };
 
         var instructions = new List<InstructionStep>
@@ -225,7 +224,8 @@ public class RecipeManagerTests
         var ingredient2 = new IngredientDto { IngredientName = "ui", Measurement = MeasurementType.Piece };
         var ingredient3 = new IngredientDto { IngredientName = "wortel", Measurement = MeasurementType.Piece };
         var ingredient4 = new IngredientDto { IngredientName = "bier", Measurement = MeasurementType.Millilitre };
-        var ingredient5 = new IngredientDto { IngredientName = "rundvleesbouillon", Measurement = MeasurementType.Millilitre };
+        var ingredient5 = new IngredientDto
+            { IngredientName = "rundvleesbouillon", Measurement = MeasurementType.Millilitre };
         var ingredient6 = new IngredientDto { IngredientName = "laurierblad", Measurement = MeasurementType.Piece };
         var ingredient7 = new IngredientDto { IngredientName = "peper", Measurement = MeasurementType.Teaspoon };
         var ingredient8 = new IngredientDto { IngredientName = "zout", Measurement = MeasurementType.Teaspoon };
@@ -243,27 +243,39 @@ public class RecipeManagerTests
             new() { Ingredient = ingredient8, Quantity = 1, },
             new() { Ingredient = ingredient9, Quantity = 800, }
         };
-        
+
         var instructions = new List<InstructionStepDto>
         {
             new() { StepNumber = 1, Instruction = "Snijd het rundvlees in blokjes en kruid met zout en peper." },
             new() { StepNumber = 2, Instruction = "Verhit een pan met wat olie en bak het vlees rondom bruin." },
-            new() { StepNumber = 3, Instruction = "Voeg de gesneden ui en wortel toe en bak deze mee tot ze zacht zijn." },
-            new() { StepNumber = 4, Instruction = "Giet het bier en de rundvleesbouillon in de pan, voeg het laurierblad toe." },
-            new() { StepNumber = 5, Instruction = "Laat het geheel op een laag vuur ongeveer 2 tot 3 uur sudderen tot het vlees zacht is." },
+            new()
+            {
+                StepNumber = 3, Instruction = "Voeg de gesneden ui en wortel toe en bak deze mee tot ze zacht zijn."
+            },
+            new()
+            {
+                StepNumber = 4,
+                Instruction = "Giet het bier en de rundvleesbouillon in de pan, voeg het laurierblad toe."
+            },
+            new()
+            {
+                StepNumber = 5,
+                Instruction = "Laat het geheel op een laag vuur ongeveer 2 tot 3 uur sudderen tot het vlees zacht is."
+            },
             new() { StepNumber = 6, Instruction = "Bereid de frietjes volgens de instructies op de verpakking." },
             new() { StepNumber = 7, Instruction = "Serveer het stoofvlees met de frietjes en geniet van uw maaltijd." }
         };
-        
+
         var preferences = new List<PreferenceDto>
         {
             new() { PreferenceName = "None", StandardPreference = false }
         };
-        
+
         return new RecipeDto
         {
             RecipeName = "Stoofvlees met frietjes",
-            Description = "Een klassiek Vlaams gerecht van langzaam gegaard rundvlees in een rijke, donkere saus, geserveerd met knapperige frietjes.",
+            Description =
+                "Een klassiek Vlaams gerecht van langzaam gegaard rundvlees in een rijke, donkere saus, geserveerd met knapperige frietjes.",
             AmountOfPeople = 4,
             CookingTime = 180,
             Difficulty = Difficulty.Intermediate,
@@ -355,14 +367,16 @@ public class RecipeManagerTests
         var sampleRecipeDto = CreateSampleRecipeFromJsonDto();
         var sampleRecipeFilterDto = RecipeFilterDtoUtil.CreateRecipeFilterDto(recipeName: sampleRecipeDto.RecipeName);
         var samplePreferencesListDto = PreferenceListDtoUtil.CreatePreferenceListDto();
-        Uri imageUri = new Uri("https://culinarycodestorage.blob.core.windows.net/recipe-images/2024-11-14-08-22-46-585065.jpg");
+        Uri imageUri =
+            new Uri("https://culinarycodestorage.blob.core.windows.net/recipe-images/2024-11-14-08-22-46-585065.jpg");
 
         var prompt = LlmSettingsService.BuildPrompt(sampleRecipeFilterDto, samplePreferencesListDto);
         _mockLlmService
             .Setup(service => service.GenerateRecipe(prompt))
             .Returns(sampleRecipeJson);
         _mockLlmService
-            .Setup(service => service.GenerateRecipeImage($"{sampleRecipeDto.RecipeName} {sampleRecipeDto.Description}"))
+            .Setup(service =>
+                service.GenerateRecipeImage($"{sampleRecipeDto.RecipeName} {sampleRecipeDto.Description}"))
             .Returns(imageUri);
         _mockRepository
             .Setup(repo => repo.CreateRecipe(It.IsAny<Recipe>()))
@@ -386,21 +400,22 @@ public class RecipeManagerTests
         Assert.Equal(sampleRecipeDto.CookingTime, result.CookingTime);
         Assert.Equal(sampleRecipeDto.Difficulty, result.Difficulty);
         Assert.Equal(sampleRecipeDto.Preferences[0].PreferenceName, result.Preferences[0].PreferenceName);
-        
-        for(int i = 0; i < sampleRecipeDto.Ingredients.Count; i++)
+
+        for (int i = 0; i < sampleRecipeDto.Ingredients.Count; i++)
         {
-            Assert.Equal(sampleRecipeDto.Ingredients[i].Ingredient.IngredientName, result.Ingredients[i].Ingredient.IngredientName);
+            Assert.Equal(sampleRecipeDto.Ingredients[i].Ingredient.IngredientName,
+                result.Ingredients[i].Ingredient.IngredientName);
             Assert.Equal(sampleRecipeDto.Ingredients[i].Quantity, result.Ingredients[i].Quantity);
         }
-        
-        for(int i = 0; i < sampleRecipeDto.Instructions.Count; i++)
+
+        for (int i = 0; i < sampleRecipeDto.Instructions.Count; i++)
         {
             Assert.Equal(sampleRecipeDto.Instructions[i].Instruction, result.Instructions[i].Instruction);
             Assert.Equal(sampleRecipeDto.Instructions[i].StepNumber, result.Instructions[i].StepNumber);
         }
-        
+
         Assert.Equal(sampleRecipeDto.RecipeType, result.RecipeType);
-        
+
         _mockLlmService.Verify(service => service.GenerateRecipe(prompt), Times.Once);
         _mockRepository.Verify(repo => repo.CreateRecipe(It.IsAny<Recipe>()), Times.Once);
     }
@@ -411,13 +426,14 @@ public class RecipeManagerTests
         // Arrange
         var recipeDto = RecipeFilterDtoUtil.CreateRecipeFilterDto("Lekkere baksteensoep");
         var preferencesListDto = PreferenceListDtoUtil.CreatePreferenceListDto();
-        var prompt = LlmSettingsService.BuildPrompt(recipeDto,preferencesListDto);
+        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferencesListDto);
         _mockLlmService
             .Setup(service => service.GenerateRecipe(prompt))
             .Returns("\"NOT_POSSIBLE with this reason Baksteensoep is niet eetbaar");
-        
+
         // Act & Assert
-        await Assert.ThrowsAsync<RecipeNotAllowedException>(async () => await _recipeManager.CreateRecipe(recipeDto, preferencesListDto));
+        await Assert.ThrowsAsync<RecipeNotAllowedException>(async () =>
+            await _recipeManager.CreateRecipe(recipeDto, preferencesListDto));
     }
 
     [Fact]
@@ -425,17 +441,17 @@ public class RecipeManagerTests
     {
         // Arrange
         var invalidJson = "{ \"recipeName\": \"Stoofvlees met frietjes\" }";
-        
+
         var recipeDto = RecipeFilterDtoUtil.CreateRecipeFilterDto("Stoofvlees met frietjes");
         var preferencesListDto = PreferenceListDtoUtil.CreatePreferenceListDto();
         var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferencesListDto);
         _mockLlmService
             .Setup(service => service.GenerateRecipe(prompt))
             .Returns(invalidJson);
-        
+
         // Act
         var result = await _recipeManager.CreateRecipe(recipeDto, preferencesListDto);
-        
+
         // Assert
         Assert.Null(result);
     }
@@ -445,18 +461,60 @@ public class RecipeManagerTests
     {
         var brokenJson = "{ \"recipeName\": \"Stoofvlees met frietjes\""; // missing closing bracket
         var preferencesListDto = PreferenceListDtoUtil.CreatePreferenceListDto();
-        
+
         var recipeDto = RecipeFilterDtoUtil.CreateRecipeFilterDto("Stoofvlees met frietjes");
         var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferencesListDto);
         _mockLlmService
             .Setup(service => service.GenerateRecipe(prompt))
             .Returns(brokenJson);
-        
-        
+
+
         // Act
         var result = await _recipeManager.CreateRecipe(recipeDto, preferencesListDto);
-        
+
         // Assert
         Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task CreateRecipeSuggestions_returnsCollectionOfRecipeSuggestions()
+    {
+        // Arrange
+        var recipeDto = RecipeFilterDtoUtil.CreateRecipeFilterDto(recipeName: "Lekker gerecht");
+        var preferencesListDto = PreferenceListDtoUtil.CreatePreferenceListDto();
+        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferencesListDto);
+
+        _mockLlmService
+            .Setup(service => service.GenerateMultipleRecipeNamesAndDescriptions(prompt, 5))
+            .Returns([
+                "Lekker gerecht 1: beschrijving lekker gerecht 1", "Lekker gerecht 2: beschrijving lekker gerecht 2",
+                "Lekker gerecht 3: beschrijving lekker gerecht 3", "Lekker gerecht 4: beschrijving lekker gerecht 4",
+                "Lekker gerecht 5: beschrijving lekker gerecht 5"
+            ]);
+
+        // Act
+        var result = await _recipeManager.CreateRecipeSuggestions(recipeDto, preferencesListDto);
+
+        // Assert
+        Assert.Equal(5, result.Count);
+    }
+    
+    [Fact]
+    public async Task CreateRecipeSuggestions_returnsEmptyList_WhenNoSuggestions()
+    {
+        // Arrange
+        var recipeDto = RecipeFilterDtoUtil.CreateRecipeFilterDto(recipeName: "Lekker gerecht");
+        var preferencesListDto = PreferenceListDtoUtil.CreatePreferenceListDto();
+        var prompt = LlmSettingsService.BuildPrompt(recipeDto, preferencesListDto);
+
+        _mockLlmService
+            .Setup(service => service.GenerateMultipleRecipeNamesAndDescriptions(prompt, 5))
+            .Returns(["NOT_POSSIBLE"]);
+
+        // Act
+        var result = await _recipeManager.CreateRecipeSuggestions(recipeDto, preferencesListDto);
+
+        // Assert
+        Assert.Empty(result);
     }
 }

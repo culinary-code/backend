@@ -13,6 +13,7 @@ public interface IRecipeManager
         RecipeType recipeType, int cooktime, List<string> ingredients);
     Task<int> GetAmountOfRecipes();
     Task<RecipeDto?> CreateRecipe(RecipeFilterDto request, List<PreferenceDto> preferences);
+    Task<ICollection<RecipeSuggestionDto>> CreateRecipeSuggestions(RecipeFilterDto request, List<PreferenceDto> preferences, int amount = 5);
     Task<ICollection<RecipeDto>> CreateBatchRecipes(string input);
     Task CreateBatchRandomRecipes(int amount, List<PreferenceDto>? preferences);
     Task RemoveUnusedRecipes();

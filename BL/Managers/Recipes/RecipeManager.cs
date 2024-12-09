@@ -129,6 +129,31 @@ public class RecipeManager : IRecipeManager
         return null;
     }
 
+    public async Task<ICollection<RecipeSuggestionDto>> CreateRecipeSuggestions(RecipeFilterDto request, List<PreferenceDto> preferences, int amount = 5)
+    {
+        _logger.LogInformation("Creating recipe suggestions with prompt:\n name: {recipeName} \n difficulty: {Difficulty} \n mealtype: {MealType} \n cooktime: {CookTime}", request.RecipeName, request.Difficulty, request.MealType, request.CookTime);
+        
+        var prompt = LlmSettingsService.BuildPrompt(request, preferences);
+        var suggestions = _llmService.GenerateMultipleRecipeNamesAndDescriptions(prompt, amount);
+
+        if (suggestions[0].StartsWith("NOT_POSSIBLE"))
+        {
+            _logger.LogError("Recipe generation failed: {ErrorMessage}", suggestions[0]);
+            return new List<RecipeSuggestionDto>();
+        }
+        
+        var recipeSuggestions = suggestions
+            .Select(suggestion => suggestion.Split(":"))
+            .Select(splitSuggestion => new RecipeSuggestionDto
+            {
+                RecipeName = splitSuggestion[0].Trim(),
+                Description = splitSuggestion[1].Trim()
+            })
+            .ToList();
+
+        return recipeSuggestions;
+    }
+
     public async Task<ICollection<RecipeDto>> CreateBatchRecipes(string input)
     {
         var recipes = new List<RecipeDto>();

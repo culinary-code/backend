@@ -121,8 +121,6 @@ public class LlmSettingsService
         var promptBuilder = new StringBuilder();
 
         if (!string.IsNullOrWhiteSpace(request.RecipeName))
-            
-            
         {
             promptBuilder.AppendLine($"I want a recipe for {request.RecipeName}.");
         }
@@ -130,6 +128,8 @@ public class LlmSettingsService
         {
             promptBuilder.AppendLine($"I want a random recipe.");
         }
+        
+        if (!string.IsNullOrWhiteSpace(request.Description)) promptBuilder.AppendLine($"Here is a short description of what I have in mind: {request.Description}.");
 
         if (request.Ingredients.Any())
         {
@@ -139,8 +139,6 @@ public class LlmSettingsService
 
         if (!string.IsNullOrWhiteSpace(request.Difficulty))
         {
-            
-            
             Enum.TryParse<Difficulty>(request.Difficulty, out var difficultyEnum);
             if (difficultyEnum != Difficulty.NotAvailable)
             {
