@@ -9,6 +9,7 @@ using DOM.Exceptions;
 using DOM.Recipes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WEBAPI.ResultExtension;
 
 namespace WEBAPI.Controllers;
 
@@ -22,102 +23,67 @@ public class RecipeController : ControllerBase
     private readonly IIdentityProviderService _identityProviderService;
     private readonly IAccountManager _accountManager;
 
-    public RecipeController(ILogger<RecipeController> logger, IRecipeManager recipeManager, IIdentityProviderService identityProviderService, IAccountManager accountManager)
+    public RecipeController(ILogger<RecipeController> logger, IRecipeManager recipeManager,
+        IIdentityProviderService identityProviderService, IAccountManager accountManager)
     {
         _logger = logger;
         _recipeManager = recipeManager;
         _identityProviderService = identityProviderService;
         _accountManager = accountManager;
     }
-    
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetRecipeById(string id)
     {
-        try
-        {
-            var recipe = await _recipeManager.GetRecipeDtoById(id);
-            return Ok(recipe);
-        }
-        catch (RecipeNotFoundException e)
-        {
-            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
-            return NotFound(e.Message);
-        }
+        var recipeResult = await _recipeManager.GetRecipeDtoById(id);
+        return recipeResult.ToActionResult();
     }
 
     [HttpGet("ByName/{name}")]
     public async Task<IActionResult> GetRecipeByName(string name)
     {
-        try
-        {
-            var recipe = await _recipeManager.GetRecipeDtoByName(name);
-            return Ok(recipe);
-        }
-        catch (RecipeNotFoundException e)
-        {
-            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
-            return NotFound(e.Message);
-        }
+        var recipeResult = await _recipeManager.GetRecipeDtoByName(name);
+        return recipeResult.ToActionResult();
     }
 
     [HttpGet("Collection/ByName/{name}")]
     public async Task<IActionResult> GetRecipeCollectionByName(string name)
     {
-        try
-        {
-            var recipes = await _recipeManager.GetRecipesCollectionByName(name);
-            return Ok(recipes);
-        }
-        catch (RecipeNotFoundException e)
-        {
-            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
-            return NotFound(e.Message);
-        }
+        var recipesResult = await _recipeManager.GetRecipesCollectionByName(name);
+        return recipesResult.ToActionResult();
     }
-    
-    
+
+
     [HttpPost("Collection/Filtered")]
     public async Task<IActionResult> GetFilteredRecipeCollection([FromBody] RecipeFilterDto filter)
     {
-        try
-        {
-            Enum.TryParse<RecipeType>(filter.MealType, out var mealTypeEnum);
-            Enum.TryParse<Difficulty>(filter.Difficulty, out var difficultyEnum);
-            var recipes = await _recipeManager.GetFilteredRecipeCollection(filter.RecipeName, difficultyEnum, mealTypeEnum, filter.CookTime, filter.Ingredients );
-            return Ok(recipes);
-        }
-        catch (RecipeNotFoundException e)
-        {
-            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
-            return NotFound(e.Message);
-        }
+        Enum.TryParse<RecipeType>(filter.MealType, out var mealTypeEnum);
+        Enum.TryParse<Difficulty>(filter.Difficulty, out var difficultyEnum);
+        var recipesResult = await _recipeManager.GetFilteredRecipeCollection(filter.RecipeName, difficultyEnum,
+            mealTypeEnum, filter.CookTime, filter.Ingredients);
+        return recipesResult.ToActionResult();
     }
 
     [HttpPost("Create")]
     public async Task<IActionResult> CreateRecipe([FromBody] RecipeFilterDto request)
     {
-        try
+        string token = Request.Headers["Authorization"].ToString().Substring(7);
+        var userIdResult = _identityProviderService.GetGuidFromAccessToken(token);
+        if (!userIdResult.IsSuccess)
         {
-            string token = Request.Headers["Authorization"].ToString().Substring(7);
-            Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
-        
-            var preferences = await _accountManager.GetPreferencesByUserId(userId);
-            var recipe = await _recipeManager.CreateRecipe(request, preferences);
-
-            if (recipe is null)
-            {
-                _logger.LogError("An error occurred while creating recipe");
-                return BadRequest();
-            }
-
-            return Ok(recipe);
+            return userIdResult.ToActionResult();
         }
-        catch (RecipeNotAllowedException ex)
-        {
-            return BadRequest(ex.ReasonMessage);
-        }
+
+        var userId = userIdResult.Value;
+
+        var preferencesResult = await _accountManager.GetPreferencesByUserId(userId);
+        if (!preferencesResult.IsSuccess) return preferencesResult.ToActionResult();
+        var preferences = preferencesResult.Value!;
+        var recipeResult = await _recipeManager.CreateRecipe(request, preferences);
+
+        return recipeResult.ToActionResult();
     }
-    
+
     [HttpPost("BatchCreate")]
     [AllowAnonymous]
     public async Task<IActionResult> BatchCreateRecipes()
@@ -125,16 +91,16 @@ public class RecipeController : ControllerBase
         using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
         {
             string jsonString = await reader.ReadToEndAsync();
-            
+
             if (string.IsNullOrEmpty(jsonString))
             {
                 _logger.LogError("Received empty JSON string");
                 return BadRequest();
             }
-            
-            var recipes = await _recipeManager.CreateBatchRecipes(jsonString);
-            
-            return Ok(recipes);
+
+            var recipesResult = await _recipeManager.CreateBatchRecipes(jsonString);
+
+            return recipesResult.ToActionResult();
         }
     }
 }
