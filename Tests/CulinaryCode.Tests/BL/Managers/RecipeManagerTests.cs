@@ -486,7 +486,6 @@ public class RecipeManagerTests
 
         _mockLlmService
             .Setup(service => service.GenerateMultipleRecipeNamesAndDescriptions(prompt, 5))
-            // return   a string[] with 5 elements
             .Returns([
                 "Lekker gerecht 1: beschrijving lekker gerecht 1", "Lekker gerecht 2: beschrijving lekker gerecht 2",
                 "Lekker gerecht 3: beschrijving lekker gerecht 3", "Lekker gerecht 4: beschrijving lekker gerecht 4",
@@ -510,7 +509,6 @@ public class RecipeManagerTests
 
         _mockLlmService
             .Setup(service => service.GenerateMultipleRecipeNamesAndDescriptions(prompt, 5))
-            // return   a string[] with 5 elements
             .Returns(["NOT_POSSIBLE"]);
 
         // Act
