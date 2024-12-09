@@ -4,6 +4,7 @@ using BL.Services;
 using DOM.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WEBAPI.ResultExtension;
 
 namespace WEBAPI.Controllers;
 
@@ -16,82 +17,77 @@ public class KeyCloakController : ControllerBase, IIdentityProviderController
     private readonly ILogger<KeyCloakController> _logger;
 
 
-    public KeyCloakController(IIdentityProviderService identityProviderService, ILogger<KeyCloakController> logger, IAccountManager accountManager)
+    public KeyCloakController(IIdentityProviderService identityProviderService, ILogger<KeyCloakController> logger,
+        IAccountManager accountManager)
     {
         _identityProviderService = identityProviderService;
         _logger = logger;
         _accountManager = accountManager;
     }
-    
+
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] UserRegistrationRequestDto request)
     {
-        try
+        // Extract credentials and pass them to the service
+        var password = request.Password;
+        if (string.IsNullOrEmpty(password))
         {
-            // Extract credentials and pass them to the service
-            var password = request.Password;
-            if (string.IsNullOrEmpty(password))
-            {
-                _logger.LogWarning("RegisterUser input missing: Password is empty");
-                return BadRequest("Password is required.");
-            }
-
-            var email = request.Email;
-            if (email == null)
-            {
-                _logger.LogWarning("RegisterUser input missing: Email is empty");
-                return BadRequest("Email is required.");
-            }
-
-            var username = request.Username;
-            if (username == null)
-            {
-                _logger.LogWarning("RegisterUser input missing: Username is empty");
-                return BadRequest("Username is required.");
-            }
-
-            await _identityProviderService.RegisterUserAsync(
-                username,
-                email,
-                password
-            );
-
-            return Ok("User created successfully.");
+            _logger.LogWarning("RegisterUser input missing: Password is empty");
+            return BadRequest("Password is required.");
         }
-        // exceptions directly readable for end user
-        catch (Exception e) when (e is RegisterUserException)
+
+        var email = request.Email;
+        if (email == null)
         {
-            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
-            return BadRequest($"Error: {e.Message}");
+            _logger.LogWarning("RegisterUser input missing: Email is empty");
+            return BadRequest("Email is required.");
         }
-        // exceptions made for dev purposes, translate to readable string for end user
-        catch (Exception e) when (e is ArgumentNullException or LoginAdminException)
+
+        var username = request.Username;
+        if (username == null)
         {
-            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
-            return BadRequest($"Could not register new user. Try again later.");
+            _logger.LogWarning("RegisterUser input missing: Username is empty");
+            return BadRequest("Username is required.");
         }
+
+        var registerUserResult = await _identityProviderService.RegisterUserAsync(
+            username,
+            email,
+            password
+        );
+
+        return registerUserResult.ToActionResult();
     }
-    
+
     [HttpPost("login")]
     [Authorize]
     public async Task<IActionResult> CheckIfUserAccountExistsOrCreate()
     {
-        var token = Request.Headers["Authorization"].ToString().Substring(7);
-        Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
-        
-        // Check if user exists in our database
-        try
+        string token = Request.Headers["Authorization"].ToString().Substring(7);
+        var userIdResult = _identityProviderService.GetGuidFromAccessToken(token);
+        if (!userIdResult.IsSuccess)
         {
-            await _accountManager.GetAccountById(userId.ToString());
-            
-            return Ok("User account exists.");
-        } catch (AccountNotFoundException)
-        {
-            // If user does not exist, create a new account
-            var (username, email) = _identityProviderService.GetUsernameAndEmailFromAccessToken(token);
-            await _accountManager.CreateAccount(username, email, userId);
-            
-            return Created("", "User account created.");
+            return userIdResult.ToActionResult();
         }
+
+        var userId = userIdResult.Value;
+
+        // Check if user exists in our database
+        var accountResult = await _accountManager.GetAccountById(userId.ToString());
+        if (accountResult.IsSuccess)
+        {
+            return accountResult.ToActionResult();
+        }
+
+        var userNameAndEmailResult = _identityProviderService.GetUsernameAndEmailFromAccessToken(token);
+        if (!userNameAndEmailResult.IsSuccess)
+        {
+            return userNameAndEmailResult.ToActionResult();
+        }
+
+        var (username, email) = userNameAndEmailResult.Value;
+        var createAccountResult = await _accountManager.CreateAccount(username, email, userId);
+
+        return createAccountResult.ToActionResult();
     }
 }
