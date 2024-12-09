@@ -35,7 +35,7 @@ public class GroupRepository : IGroupRepository
 
         if (group == null)
         {
-            return null;
+            throw new ArgumentNullException(nameof(group));
         }
         
         return group;
@@ -58,10 +58,6 @@ public class GroupRepository : IGroupRepository
     public async Task<Group> AddUserToGroupAsync(Guid groupId, Guid userId)
     {
         var group = await ReadGroupById(groupId);
-        if (group is null)
-        {
-            throw new ArgumentNullException(nameof(group));
-        }
 
         var user = await _accountRepository.ReadAccount(userId);
         if (user is null)
@@ -77,10 +73,7 @@ public class GroupRepository : IGroupRepository
     public async Task DeleteUserFromGroup(Guid groupId, Guid userId)
     {
         var group = await ReadGroupById(groupId);
-        if (group is null)
-        {
-            throw new ArgumentNullException(nameof(group));
-        }
+
         group.Accounts.Remove(group.Accounts.First(a => a.AccountId == userId));
         if (!group.Accounts.Any())
         {

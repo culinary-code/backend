@@ -22,12 +22,6 @@ public class InvitationManager : IInvitationManager
 
     public async Task SendInvitationAsync(SendInvitationRequestDto request)
     {
-        var group = await _groupRepository.ReadGroupById(request.GroupId);
-        if (group == null)
-        {
-            throw new Exception("Group does not exist");
-        }
-        
         var invitation = new Invitation
         {
             GroupId = request.GroupId,
