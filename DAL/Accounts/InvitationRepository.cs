@@ -25,9 +25,9 @@ public class InvitationRepository : IInvitationRepository
             .FirstOrDefaultAsync(i => i.Token == token);
     }
 
-    public async Task UpdateInvitationAsync(Invitation invitation)
+    public async Task DeleteInvitationAsync(Invitation invitation)
     {
-        _ctx.Invitations.Update(invitation);
+        _ctx.Invitations.Remove(invitation);
         await _ctx.SaveChangesAsync();
     }
 }

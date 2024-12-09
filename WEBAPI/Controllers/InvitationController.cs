@@ -16,13 +16,15 @@ public class InvitationController : ControllerBase
     private readonly ILogger<InvitationController> _logger;
     private readonly IIdentityProviderService _identityProviderService;
     private readonly IGroupManager _groupManager;
+    private readonly IAccountManager _accountManager;
 
-    public InvitationController(IInvitationManager invitationManager, ILogger<InvitationController> logger, IIdentityProviderService identityProviderService, IGroupManager groupManager)
+    public InvitationController(IInvitationManager invitationManager, ILogger<InvitationController> logger, IIdentityProviderService identityProviderService, IGroupManager groupManager, IAccountManager accountManager)
     {
         _invitationManager = invitationManager;
         _logger = logger;
         _identityProviderService = identityProviderService;
         _groupManager = groupManager;
+        _accountManager = accountManager;
     }
 
     [HttpPost("sendInvitation")]
@@ -30,25 +32,23 @@ public class InvitationController : ControllerBase
     {
         try
         {
-            // TODO: kijk wanneer je frontend gaat doe, miss validatie ofzo toevoegen hier 
-            Guid userId =
-                _identityProviderService.GetGuidFromAccessToken(
-                    Request.Headers["Authorization"].ToString().Substring(7));
+            Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
             Guid groupId = request.GroupId;
+            
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-
-            Console.WriteLine(request.Email);
+            
             try
             {
-                var invitation = new SendInvitationRequestDto()
+                AccountDto inviter = await _accountManager.GetAccountById(userId.ToString());
+                var invitation = new SendInvitationRequestDto
                 {
                     GroupId = groupId,
                     InviterId = userId,
                     Email = request.Email, 
-                    InviterName = request.InviterName, 
+                    InviterName = inviter.Name, 
                     InvitedUserName = request.InvitedUserName
                 };
 

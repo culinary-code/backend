@@ -12,7 +12,6 @@ public class GroupManagerTests
     private readonly Mock<IGroupRepository> _groupRepositoryMock;
     private readonly Mock<IAccountManager> _accountManagerMock;
     private readonly Mock<IAccountRepository> _accountRepositoryMock;
-    private readonly Mock<IGroupManager> _groupManagerMock;
     private readonly GroupManager _groupManager;
 
     public GroupManagerTests(ITestOutputHelper testOutputHelper)
@@ -21,7 +20,6 @@ public class GroupManagerTests
         _groupRepositoryMock = new Mock<IGroupRepository>();
         _accountManagerMock = new Mock<IAccountManager>();
         _accountRepositoryMock = new Mock<IAccountRepository>();
-        _groupManagerMock = new Mock<IGroupManager>();
         _groupManager = new GroupManager(_groupRepositoryMock.Object, _accountManagerMock.Object, _accountRepositoryMock.Object);
     }
     
@@ -64,5 +62,34 @@ public class GroupManagerTests
 
         // Assert
         _groupRepositoryMock.Verify(repo => repo.AddUserToGroupAsync(groupId, userId), Times.Once);
+    }
+    
+    [Fact]
+    public async Task RemoveUserFromGroup_RemovesUser_WhenUserIsInGroup()
+    {
+        // Arrange
+        var groupId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var group = new Group { GroupId = groupId, GroupName = "Test Group" };
+        var user = new Account { AccountId = userId, Name = "Test User" };
+
+        group.Accounts.Add(user);
+        _groupRepositoryMock.Setup(repo => repo.ReadGroupById(groupId)).ReturnsAsync(group);
+        _groupRepositoryMock.Setup(repo => repo.DeleteUserFromGroup(groupId, userId)).Callback<Guid, Guid>((gId, uId) =>
+        {
+            var groupToModify = group;
+            var accountToRemove = groupToModify.Accounts.FirstOrDefault(a => a.AccountId == uId);
+            if (accountToRemove != null)
+            {
+                groupToModify.Accounts.Remove(accountToRemove);
+            }
+        }).Returns(Task.CompletedTask);
+
+        // Act
+        await _groupManager.RemoveUserFromGroup(groupId, userId);
+
+        // Assert
+        _groupRepositoryMock.Verify(repo => repo.DeleteUserFromGroup(groupId, userId), Times.Once);
+        Assert.DoesNotContain(user, group.Accounts);
     }
 }
