@@ -84,6 +84,26 @@ public class RecipeController : ControllerBase
         return recipeResult.ToActionResult();
     }
 
+
+    [HttpPost("GetSuggestions")]
+    public async Task<IActionResult> GetRecipeSuggestions([FromBody] RecipeFilterDto request)
+    {
+        string token = Request.Headers["Authorization"].ToString().Substring(7);
+        Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
+        
+        var preferences = await _accountManager.GetPreferencesByUserId(userId);
+        
+        var recipeSuggestions = await _recipeManager.CreateRecipeSuggestions(request, preferences);
+        
+        if (!recipeSuggestions.Any())
+        {
+            _logger.LogError("An error occurred while creating recipe suggestions");
+            return BadRequest("Recipe suggestions could not be generated");
+        }
+        
+        return Ok(recipeSuggestions);
+    }
+    
     [HttpPost("BatchCreate")]
     [AllowAnonymous]
     public async Task<IActionResult> BatchCreateRecipes()

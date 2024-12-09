@@ -128,6 +128,8 @@ public class LlmSettingsService
         {
             promptBuilder.AppendLine($"I want a random recipe.");
         }
+        
+        if (!string.IsNullOrWhiteSpace(request.Description)) promptBuilder.AppendLine($"Here is a short description of what I have in mind: {request.Description}.");
 
         if (request.Ingredients.Any())
         {

@@ -17,4 +17,5 @@ public interface IRecipeManager
     Task<Result<ICollection<RecipeDto>>> CreateBatchRecipes(string input);
     Task<Result<Unit>> CreateBatchRandomRecipes(int amount, List<PreferenceDto>? preferences);
     Task<Result<Unit>> RemoveUnusedRecipes();
+    Task<ICollection<RecipeSuggestionDto>> CreateRecipeSuggestions(RecipeFilterDto request, List<PreferenceDto> preferences, int amount = 5);
 }
