@@ -64,7 +64,11 @@ public class AccountController : ControllerBase
 
                     var updatedUsername = updatedUsernameResult.Value!;
                     var result = await _identityProviderService.UpdateUsername(updatedUsername, accountDto.Name);
-                    return result.ToActionResult();
+                    if (result.IsSuccess)
+                    {
+                        return updatedUsernameResult.ToActionResult();
+                    }
+                    return BadRequest(result.ErrorMessage);
 
                 case "updatefamilysize":
                     var updatedFamilySize = await _accountManager.UpdateFamilySize(accountDto);

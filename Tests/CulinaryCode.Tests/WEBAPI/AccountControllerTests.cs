@@ -12,17 +12,17 @@ namespace CulinaryCode.Tests.WEBAPI;
 
 public class AccountControllerTests
 {
-    private readonly Mock<IAccountManager> _accountControllerMock;
+    private readonly Mock<IAccountManager> _accountManagerMock;
     private readonly Mock<ILogger<AccountController>> _loggerMock;
     private readonly AccountController _controller;
     private readonly Mock<IIdentityProviderService> _identityProviderServiceMock;
 
     public AccountControllerTests()
     {
-        _accountControllerMock = new Mock<IAccountManager>();
+        _accountManagerMock = new Mock<IAccountManager>();
         _loggerMock = new Mock<ILogger<AccountController>>();
         _identityProviderServiceMock = new Mock<IIdentityProviderService>();
-        _controller = new AccountController(_accountControllerMock.Object, _loggerMock.Object, _identityProviderServiceMock.Object);
+        _controller = new AccountController(_accountManagerMock.Object, _loggerMock.Object, _identityProviderServiceMock.Object);
     }
     
     [Fact]
@@ -32,7 +32,7 @@ public class AccountControllerTests
         var userId = Guid.NewGuid();
         var userIdString = userId.ToString();
         var expectedUser = new AccountDto() { AccountId = userId, Name = "JohnDoe" };
-        _accountControllerMock.Setup(manager => manager.GetAccountById(userIdString)).ReturnsAsync(expectedUser);
+        _accountManagerMock.Setup(manager => manager.GetAccountById(userIdString)).ReturnsAsync(Result<AccountDto>.Success(expectedUser));
 
         // Act
         var result = await _controller.GetUserById(userIdString);
@@ -49,8 +49,8 @@ public class AccountControllerTests
         const string userId = "2";
         const string expectedErrorMessage = $"User with ID {userId} not found.";
     
-        _accountControllerMock.Setup(manager => manager.GetAccountById(userId))
-            .Throws(new AccountNotFoundException(expectedErrorMessage));
+        _accountManagerMock.Setup(manager => manager.GetAccountById(userId))
+            .ReturnsAsync(Result<AccountDto>.Failure(expectedErrorMessage, ResultFailureType.NotFound));
 
         // Act
         var result = await _controller.GetUserById(userId);
@@ -58,17 +58,6 @@ public class AccountControllerTests
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
         Assert.Equal(expectedErrorMessage, notFoundResult.Value);
-
-        _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Error, // Specify the log level
-                It.IsAny<EventId>(), // Ignore the event ID
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"User with ID {userId} not found.")), // Match the message content
-                It.IsAny<Exception>(), // Ignore any exception passed
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()! // Ignore the formatter
-            ),
-            Times.Once
-        );
     }
     
     [Fact]
@@ -82,15 +71,15 @@ public class AccountControllerTests
         // Mock identity provider to return the userId from the token
         _identityProviderServiceMock
             .Setup(s => s.GetGuidFromAccessToken(It.IsAny<string>()))
-            .Returns(userId);
+            .Returns(Result<Guid>.Success(userId));
 
         // Mock the account manager update method
-        _accountControllerMock.Setup(manager => manager.UpdateAccount(accountDto)).ReturnsAsync(updatedAccount);
+        _accountManagerMock.Setup(manager => manager.UpdateAccount(updatedAccount)).ReturnsAsync(Result<AccountDto>.Success(updatedAccount));
 
         // Mock the identity provider update
         _identityProviderServiceMock
-            .Setup(s => s.UpdateUsername(updatedAccount, accountDto.Name))
-            .Returns(Task.CompletedTask);
+            .Setup(s => s.UpdateUsername(It.IsAny<AccountDto>(), It.IsAny<string>()))
+            .ReturnsAsync(Result<Unit>.Success(new Unit()));
 
         // Mock the HttpContext and Authorization header
         var mockHttpContext = new Mock<HttpContext>();
@@ -109,11 +98,15 @@ public class AccountControllerTests
         };
 
         // Act
-        var result = await _controller.UpdateAccount(accountDto, "updateusername");
+        var result = await _controller.UpdateAccount(updatedAccount, "updateusername");
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
-        Assert.Equal(updatedAccount, okResult.Value);
+        var accountResult = Assert.IsType<AccountDto>(okResult.Value);
+        Assert.Equal(updatedAccount.AccountId, accountResult.AccountId);
+        Assert.Equal(updatedAccount.Email, accountResult.Email);
+        Assert.Equal(updatedAccount.FamilySize, accountResult.FamilySize);
+        Assert.Equal(updatedAccount.Name, accountResult.Name);
     }
     
     [Fact]
@@ -126,10 +119,10 @@ public class AccountControllerTests
 
         _identityProviderServiceMock
             .Setup(s => s.GetGuidFromAccessToken(It.IsAny<string>()))
-            .Returns(userId);
+            .Returns(Result<Guid>.Success(userId));
 
         // Mock the account manager to throw an exception
-        _accountControllerMock
+        _accountManagerMock
             .Setup(manager => manager.UpdateAccount(accountDto))
             .Throws(new Exception(expectedErrorMessage));
 
