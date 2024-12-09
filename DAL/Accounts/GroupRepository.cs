@@ -82,6 +82,10 @@ public class GroupRepository : IGroupRepository
             throw new ArgumentNullException(nameof(group));
         }
         group.Accounts.Remove(group.Accounts.First(a => a.AccountId == userId));
+        if (!group.Accounts.Any())
+        {
+            _ctx.Groups.Remove(group);
+        }
         await _ctx.SaveChangesAsync();
     }
 }
