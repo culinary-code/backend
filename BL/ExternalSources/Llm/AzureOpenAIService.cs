@@ -5,8 +5,10 @@ using Azure;
 using Azure.AI.OpenAI;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Configuration.Options;
 using DOM.Exceptions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OpenAI.Chat;
 using OpenAI.Images;
 
@@ -25,24 +27,15 @@ public class AzureOpenAIService : ILlmService
 
     private readonly ILogger<AzureOpenAIService> _logger;
 
-    public AzureOpenAIService(ILogger<AzureOpenAIService> logger)
+    public AzureOpenAIService(ILogger<AzureOpenAIService> logger, IOptions<AzureOpenAIOptions> azureOpenAiOptions, IOptions<AzureStorageOptions> azureStorageOptions)
     {
-        DotNetEnv.Env.Load("../.env");
-
-        _apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY") ??
-                  throw new EnvironmentVariableNotAvailableException(
-                      "AZURE_OPENAI_API_KEY environment variable is not set.");
-        _endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ??
-                    throw new EnvironmentVariableNotAvailableException(
-                        "AZURE_OPENAI_ENDPOINT environment variable is not set.");
-        _blobConnectionString =
-            Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING") ??
-            throw new EnvironmentVariableNotAvailableException(
-                "AZURE_STORAGE_CONNECTION_STRING environment variable is not set.");
-        _blobContainerName = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONTAINER_NAME") ??
-                             throw new EnvironmentVariableNotAvailableException(
-                                 "AZURE_STORAGE_CONTAINER_NAME environment variable is not set.");
-
+        var azureOpenAiOptionsValue = azureOpenAiOptions.Value;
+        var azureStorageOptionsValue = azureStorageOptions.Value;
+        
+        _apiKey = azureOpenAiOptionsValue.ApiKey;
+        _endpoint = azureOpenAiOptionsValue.Endpoint;
+        _blobConnectionString = azureStorageOptionsValue.ConnectionString;
+        _blobContainerName = azureStorageOptionsValue.ContainerName;
 
         _logger = logger;
         _azureClient = new AzureOpenAIClient(
@@ -63,13 +56,15 @@ public class AzureOpenAIService : ILlmService
         
         ChatCompletion completion = _chatClient.CompleteChat(
         [
-            new SystemChatMessage($"Based on the input, generate {amount} different recipe names along with a short description. Place each recipe on its own line, no new line between them. Do not add order numbers, name and description should be on the same line. Output no other information. Always respond in the Dutch language."),
+            new SystemChatMessage($"Based on the input, generate {amount} different recipe names along with a short description. Base yourself on everything in the input, may it be a recipe name, or if it doesn't have one, the ingredients or preferences, take everything into consideration. If a difficulty is specified, give recipes that match that difficulty level. If only one or a few ingredients are given, make recipes that have those ingredients in them, give recipes that contain those ingredients, but also may contain other non-specified ingredients. If no ingredients at all are specified, then give random recipes that fit the available specifications. If a cooking time is specified, give recipes that fall near that cooking time. If anything in the input is inedible or dangerous to eat, skip any recipe generation and return \"NOT_POSSIBLE REASON\", fill in REASON with your reason. Do not add order numbers, name and description should be on the same line, add a colon : between the name and description like so: recipeName: Description. Output no other information. Place each recipe on its own line, no new line between them. Always respond in the Dutch language."),
 
             new UserChatMessage(message),
         ], completionOptions);
 
         var response = completion.Content[0].Text;
         
+        // remove any double new lines
+        response = response.Replace("\n\n", "\n");
         var recipePrompts = response.Split("\n");
         return recipePrompts;
     }
@@ -116,6 +111,7 @@ public class AzureOpenAIService : ILlmService
         _logger.LogInformation("Received chat completion response from Azure OpenAI API");
         _logger.LogInformation(response);
 
+        
         return response;
     }
 

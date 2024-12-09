@@ -16,6 +16,7 @@ public class IngredientRepository : IIngredientRepository
         _ctx = ctx;
     }
 
+    // used to create new planned meal, needs to be tracked
     public async Task<Ingredient> ReadIngredientById(Guid id)
     {
         Ingredient? ingredient = await _ctx.Ingredients.FindAsync(id);
@@ -25,7 +26,8 @@ public class IngredientRepository : IIngredientRepository
         }
         return ingredient;
     }
-
+    
+    // used to update grocery list, needs to be tracked
     public async Task<IngredientQuantity> ReadIngredientQuantityById(Guid id)
     {
         IngredientQuantity? ingredientQuantity = await _ctx.IngredientQuantities.FindAsync(id);
@@ -35,23 +37,15 @@ public class IngredientRepository : IIngredientRepository
         }
         return ingredientQuantity;
     }
-
-    public async Task<Ingredient> ReadIngredientByName(string name)
-    {
-        Ingredient? ingredient = await _ctx.Ingredients.FirstOrDefaultAsync(i => i.IngredientName == name);
-        if (ingredient is null)
-        {
-            throw new IngredientNotFoundException($"No ingredient found with name {name}");
-        }
-        return ingredient;
-    }
-
+    
+    // used to add item to grocery list, needs to be tracked
     public async Task<Ingredient?> ReadPossibleIngredientByNameAndMeasurement(string name, MeasurementType measurementType)
     {
         return await _ctx.Ingredients.FirstOrDefaultAsync(i => i.IngredientName == name && i.Measurement == measurementType);
 
     }
 
+    // used to create new recipes, needs to be tracked
     public async Task<Ingredient> ReadIngredientByNameAndMeasurementType(string name, MeasurementType measurementType)
     {
         Ingredient? ingredient = await _ctx.Ingredients.FirstOrDefaultAsync(i =>

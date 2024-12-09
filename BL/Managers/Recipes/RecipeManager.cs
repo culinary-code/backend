@@ -40,19 +40,19 @@ public class RecipeManager : IRecipeManager
     public async Task<RecipeDto> GetRecipeDtoById(string id)
     {
         Guid parsedGuid = Guid.Parse(id);
-        var recipe = await _recipeRepository.ReadRecipeById(parsedGuid);
+        var recipe = await _recipeRepository.ReadRecipeWithRelatedInformationByIdNoTracking(parsedGuid);
         return _mapper.Map<RecipeDto>(recipe);
     }
 
     public async Task<RecipeDto> GetRecipeDtoByName(string name)
     {
-        var recipe = await _recipeRepository.ReadRecipeByName(name);
+        var recipe = await _recipeRepository.ReadRecipeByNameNoTracking(name);
         return _mapper.Map<RecipeDto>(recipe);
     }
 
     public async Task<ICollection<RecipeDto>> GetRecipesCollectionByName(string name)
     {
-        var recipes = await _recipeRepository.ReadRecipesCollectionByName(name);
+        var recipes = await _recipeRepository.ReadRecipesCollectionByNameNoTracking(name);
         return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 
@@ -60,7 +60,7 @@ public class RecipeManager : IRecipeManager
         RecipeType recipeType, int cooktime, List<string> ingredients)
     {
         var recipes =
-            await _recipeRepository.GetFilteredRecipes(recipeName, difficulty, recipeType, cooktime, ingredients);
+            await _recipeRepository.GetFilteredRecipesNoTracking(recipeName, difficulty, recipeType, cooktime, ingredients);
         return _mapper.Map<ICollection<RecipeDto>>(recipes);
     }
 
@@ -94,6 +94,7 @@ public class RecipeManager : IRecipeManager
                     return _mapper.Map<RecipeDto>(recipe);
                 }
 
+                
                 var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
                 if (imageUri is not null)
                 {
@@ -126,6 +127,31 @@ public class RecipeManager : IRecipeManager
 
         _logger.LogError("Failed to create recipe after 3 attempts");
         return null;
+    }
+
+    public async Task<ICollection<RecipeSuggestionDto>> CreateRecipeSuggestions(RecipeFilterDto request, List<PreferenceDto> preferences, int amount = 5)
+    {
+        _logger.LogInformation("Creating recipe suggestions with prompt:\n name: {recipeName} \n difficulty: {Difficulty} \n mealtype: {MealType} \n cooktime: {CookTime}", request.RecipeName, request.Difficulty, request.MealType, request.CookTime);
+        
+        var prompt = LlmSettingsService.BuildPrompt(request, preferences);
+        var suggestions = _llmService.GenerateMultipleRecipeNamesAndDescriptions(prompt, amount);
+
+        if (suggestions[0].StartsWith("NOT_POSSIBLE"))
+        {
+            _logger.LogError("Recipe generation failed: {ErrorMessage}", suggestions[0]);
+            return new List<RecipeSuggestionDto>();
+        }
+        
+        var recipeSuggestions = suggestions
+            .Select(suggestion => suggestion.Split(":"))
+            .Select(splitSuggestion => new RecipeSuggestionDto
+            {
+                RecipeName = splitSuggestion[0].Trim(),
+                Description = splitSuggestion[1].Trim()
+            })
+            .ToList();
+
+        return recipeSuggestions;
     }
 
     public async Task<ICollection<RecipeDto>> CreateBatchRecipes(string input)
@@ -244,14 +270,13 @@ public class RecipeManager : IRecipeManager
             RecipeName = recipeName!.ToString(),
             Description = description!.ToString(),
             RecipeType = recipeTypeEnum,
-            Preferences = new List<Preference>() { dietPreference },
+            Preferences = new List<Preference>() {dietPreference},
             CookingTime = int.Parse(cookingTime!.ToString()),
             Difficulty = difficultyEnum,
             CreatedAt = DateTime.UtcNow,
             LastUsedAt = DateTime.UtcNow,
             AmountOfPeople = int.Parse(amountOfPeople!.ToString()),
             ImagePath = imagePath?.ToString() ?? string.Empty,
-
             Ingredients = ingredientQuantities,
             Instructions = instructionSteps
         };

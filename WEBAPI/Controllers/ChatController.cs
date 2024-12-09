@@ -1,7 +1,9 @@
+using BL.DTOs.Accounts;
 using BL.DTOs.Llm;
 using BL.DTOs.Recipes;
 using BL.ExternalSources.Llm;
 using BL.Managers.Accounts;
+using BL.Managers.Recipes;
 using BL.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +20,7 @@ public class ChatController : ControllerBase
     private readonly ILlmService _llmService;
     private readonly IIdentityProviderService _identityProviderService;
     private readonly IAccountManager _accountManager;
+    
 
     public ChatController(ILogger<ChatController> logger, ILlmService llmService, IIdentityProviderService identityProviderService, IAccountManager accountManager)
     {
@@ -30,11 +33,7 @@ public class ChatController : ControllerBase
     [HttpPost("getchat")]
     public async Task<IActionResult> GetChat([FromBody] RecipeFilterDto request)
     {
-        string token = Request.Headers["Authorization"].ToString().Substring(7);
-        Guid userId = _identityProviderService.GetGuidFromAccessToken(token);
-        
-        var preferences = await _accountManager.GetPreferencesByUserId(userId);
-        var prompt = LlmSettingsService.BuildPrompt(request, preferences);
+        var prompt = LlmSettingsService.BuildPrompt(request, null);
         var message = _llmService.GenerateRecipe(prompt);
         return Ok(message);
     }
@@ -53,10 +52,10 @@ public class ChatController : ControllerBase
         return Ok(imageUri?.ToString() ?? "Something went wrong");
     }
     
-    /*[HttpPost("getlocalchat")]
-    public string GetLocalChat([FromBody] ChatRequestDto request)
+    [HttpGet("getSuggestions")]
+    public IActionResult GetSuggestions()
     {
-        var message = _localLlmService.GenerateRecipe(request.Prompt);
-        return message;
-    }*/
+        var suggestions = _llmService.GenerateMultipleRecipeNamesAndDescriptions("Ik wil graag een recept voor een lekker gerecht", 5);
+        return Ok(suggestions);
+    }
 }

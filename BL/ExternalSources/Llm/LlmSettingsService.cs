@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
 using BL.DTOs.Accounts;
 using BL.DTOs.Recipes;
 using DOM.Recipes;
@@ -13,9 +14,7 @@ public class LlmSettingsService
 
     static LlmSettingsService()
     {
-        RecipeJsonSchema = """
-                           {"type":"object","properties":{"recipeName":{"type":"string"},"description":{"type":"string"},"diet":{"type":"string"},"recipeType":{"type":"string","enum":["Breakfast","Lunch","Dinner","Dessert","Snack"]},"cookingTime":{"type":"integer"},"difficulty":{"type":"string","enum":["NotAvailable","Easy","Intermediate","Difficult"]},"amount_of_people":{"type":"number"},"ingredients":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"},"amount":{"type":"number"},"measurementType":{"type":"string","enum":["Kilogram","Litre","Pound","Ounce","Teaspoon","Tablespoon","Piece","Millilitre","Gram","Pinch","ToTaste","Clove"]}},"required":["name","amount","measurementType"]}},"recipeSteps":{"type":"array","items":{"type":"object","properties":{"stepNumber":{"type":"number"},"instruction":{"type":"string"}},"required":["stepNumber","instruction"]}}},"required":["recipeName","description","ingredients","diet","recipeType","cookingTime","difficulty","recipeSteps","amount_of_people"]}
-                           """;
+        RecipeJsonSchema = LoadAndMinifyJsonSchema("ExternalSources/Llm/Resources/RecipeJsonSchema.json");
 
         SystemPrompt = """
                        You are a star chef providing detailed and precise recipes in a structured JSON format based on the JSON schema below. Your role is to respond only with the JSON recipe data adhering to the JSON schema, without any additional text.
@@ -110,14 +109,18 @@ public class LlmSettingsService
 
                        """ + RecipeJsonSchema + "ALWAYS ADHERE TO THE JSON SCHEMA FORMAT, AND ENSURE YOUR RESPONSE IS IN A VALID JSON FORMAT. Do not change any field names or the structure of the schema. Do not add any extra characters like underscores in the keys.";
     }
-    
-    public static string BuildPrompt(RecipeFilterDto request, List<PreferenceDto> preferences)
+    private static string LoadAndMinifyJsonSchema(string filePath)
+    {
+        var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        filePath = Path.Combine(baseDirectory, filePath);
+        var jsonSchema = File.ReadAllText(filePath);
+        return Regex.Replace(jsonSchema, @"\s+", string.Empty);
+    }
+    public static string BuildPrompt(RecipeFilterDto request, List<PreferenceDto>? preferences)
     {
         var promptBuilder = new StringBuilder();
 
         if (!string.IsNullOrWhiteSpace(request.RecipeName))
-            
-            
         {
             promptBuilder.AppendLine($"I want a recipe for {request.RecipeName}.");
         }
@@ -125,6 +128,8 @@ public class LlmSettingsService
         {
             promptBuilder.AppendLine($"I want a random recipe.");
         }
+        
+        if (!string.IsNullOrWhiteSpace(request.Description)) promptBuilder.AppendLine($"Here is a short description of what I have in mind: {request.Description}.");
 
         if (request.Ingredients.Any())
         {
@@ -134,8 +139,6 @@ public class LlmSettingsService
 
         if (!string.IsNullOrWhiteSpace(request.Difficulty))
         {
-            
-            
             Enum.TryParse<Difficulty>(request.Difficulty, out var difficultyEnum);
             if (difficultyEnum != Difficulty.NotAvailable)
             {

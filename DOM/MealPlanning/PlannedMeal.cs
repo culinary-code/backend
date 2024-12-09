@@ -6,7 +6,7 @@ namespace DOM.MealPlanning;
 
 public class PlannedMeal
 {
-    [Key] public Guid PlannedMealId { get; set; }
+    public Guid PlannedMealId { get; set; }
     public int AmountOfPeople { get; set; }
     public ICollection<IngredientQuantity> Ingredients { get; set; } = new List<IngredientQuantity>();
     public Recipe? Recipe { get; set; }
@@ -16,4 +16,9 @@ public class PlannedMeal
     // navigation properties
     public MealPlanner? NextWeekMealPlanner { get; set; }
     public MealPlanner? HistoryMealPlanner { get; set; }
+    
+    // Foreign keys
+    public Guid? RecipeId { get; set; }
+    public Guid? NextWeekMealPlannerId { get; set; }
+    public Guid? HistoryMealPlannerId { get; set; }
 }

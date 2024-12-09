@@ -6,35 +6,69 @@ using BL.Managers.MealPlanning;
 using BL.Managers.Groceries;
 using BL.Scheduled;
 using BL.Services;
+using Configuration.Options;
 using DAL.Accounts;
 using DAL.EF;
 using DAL.Groceries;
 using DAL.MealPlanning;
 using DAL.Recipes;
-using DOM.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
-using Quartz.Impl;
-using Quartz.Simpl;
-using Quartz.Spi;
-
-// load environment variables
-DotNetEnv.Env.Load("../.env");
 
 var builder = WebApplication.CreateBuilder(args);
 
-// set DbContext
-//builder.Services.AddDbContext<CulinaryCodeDbContext>(optionsBuilder => 
-//    optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+builder.Configuration.AddEnvironmentVariables();
 
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? throw new EnvironmentVariableNotAvailableException("DATABASE_CONNECTION_STRING environment variable is not set.");
-Console.WriteLine("Connection string: " + connectionString);
-builder.Services.AddDbContext<CulinaryCodeDbContext>(optionsBuilder => 
+// load environment variables
+IConfiguration configuration = builder.Configuration;
+
+builder.Services.AddOptions<AzureOpenAIOptions>()
+    .Bind(configuration.GetSection("AzureOpenAI"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddOptions<AzureStorageOptions>()
+    .Bind(configuration.GetSection("AzureStorage"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddOptions<KeycloakOptions>()
+    .Bind(configuration.GetSection("Keycloak"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddOptions<JobSettingsOptions>()
+    .Bind(configuration.GetSection("RecipeJob"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddOptions<LocalLlmServerOptions>()
+    .Bind(configuration.GetSection("LocalLLMServer"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddOptions<DatabaseOptions>()
+    .Bind(configuration.GetSection("Database"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+
+var databaseOptions = builder.Configuration.GetSection("Database").Get<DatabaseOptions>();
+var connectionString = databaseOptions!.ConnectionString;
+builder.Services.AddDbContext<CulinaryCodeDbContext>(optionsBuilder =>
     optionsBuilder.UseNpgsql(connectionString));
 
-
+// Add a named HttpClient to be used for Keycloak
+builder.Services.AddHttpClient("Keycloak", httpClient =>
+    {
+        var keycloakOptions = builder.Configuration.GetSection("Keycloak").Get<KeycloakOptions>();
+        var baseUrl = keycloakOptions!.BaseUrl;
+        httpClient.BaseAddress = new Uri(baseUrl);
+    }
+);
 
 // Add services to the container.
 
@@ -80,11 +114,7 @@ builder.Services.AddLogging();
 
 // External services
 builder.Services.AddSingleton<LlmSettingsService>();
-
-// swap comment to switch between local and azure service
-builder.Services.AddSingleton<ILlmService, AzureOpenAIService>(); 
-//builder.Services.AddSingleton<ILlmService, LocalLlmService>();
-
+builder.Services.AddSingleton<ILlmService, AzureOpenAIService>();
 
 // Authorization / Authentication
 builder.Services.AddCors(options =>
@@ -98,29 +128,33 @@ builder.Services.AddCors(options =>
         });
     options.AddPolicy("localWebOrigin",
         corsBuilder =>
-    {
-        corsBuilder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
-            .AllowAnyMethod()
-            .AllowAnyHeader();
-    });
+        {
+            corsBuilder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
 });
 
-var baseUrl = Environment.GetEnvironmentVariable("KEYCLOAK_BASE_URL") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_BASE_URL environment variable is not set.");
-var frontendUrl = Environment.GetEnvironmentVariable("KEYCLOAK_FRONTEND_URL") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_FRONTEND_URL environment variable is not set.");
-var clientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_CLIENT_ID environment variable is not set.");
-var realm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? throw new EnvironmentVariableNotAvailableException("KEYCLOAK_REALM environment variable is not set.");
+var keycloakOptions = builder.Configuration.GetSection("Keycloak").Get<KeycloakOptions>();
+var baseUrl = keycloakOptions!.BaseUrl;
+var frontendUrl = keycloakOptions!.FrontendUrl;
+var clientId = keycloakOptions!.ClientId;
+var realm = keycloakOptions!.Realm;
 
 var authority = baseUrl + "/realms/" + realm;
 var issuer = frontendUrl + "/realms/" + realm;
+
+var isDevelopment = builder.Environment.IsDevelopment();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.Authority = issuer;
         options.Audience = "account";
-        
-        options.RequireHttpsMetadata = false;
-        
+
+        // For development, allow HTTP
+        options.RequireHttpsMetadata = !isDevelopment;
+
         // Optionally configure token validation parameters
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -138,8 +172,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
             {
                 // Keycloak's JWKS endpoint to retrieve public signing keys
-                var httpClient = new HttpClient();
-                var jwks = httpClient.GetStringAsync($"{authority}/protocol/openid-connect/certs").Result;
+                var httpClient = builder.Services.BuildServiceProvider().GetRequiredService<IHttpClientFactory>().CreateClient("Keycloak");
+                var jwks = httpClient.GetStringAsync($"/realms/{realm}/protocol/openid-connect/certs").Result;
                 var keys = new JsonWebKeySet(jwks);
                 return keys.GetSigningKeys();
             }
@@ -147,8 +181,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 // Scheduled jobs
-
-var cronSchedule = Environment.GetEnvironmentVariable("RECIPE_JOB_CRON_SCHEDULE") ?? throw new EnvironmentVariableNotAvailableException("RECIPE_JOB_CRON_SCHEDULE environment variable is not set.");
+var jobSettingsOptions = builder.Configuration.GetSection("RecipeJob").Get<JobSettingsOptions>();
+var cronSchedule = jobSettingsOptions!.CronSchedule;
 
 builder.Services.AddQuartz(q =>
 {
@@ -167,7 +201,6 @@ builder.Services.AddQuartzHostedService(options =>
 });
 
 
-
 var app = builder.Build();
 
 // TODO: remove the fragment below
@@ -184,9 +217,11 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    // app.UseCors("localWebOrigin");
-    app.UseCors("AllowAllOrigins");
-    // TODO: when deploying to a real backend instead of a docker container, check if it works with mobile.
+    
+    // Not needed for production, as the frontend will be a mobile application, which does not handle CORS
+    // when developing locally and using the device preview on web, allow origins on localhost
+    // swap out to AllowAllOrigins if your frontend is not running on localhost 
+    app.UseCors("localWebOrigin");
 }
 else
 {

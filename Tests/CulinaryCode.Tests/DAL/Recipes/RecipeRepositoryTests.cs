@@ -35,19 +35,6 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         return Task.CompletedTask;
     }
 
-    private static Recipe CreateRecipe(string recipeName = "Test Recipe")
-    {
-        return new Recipe
-        {
-            RecipeId = Guid.NewGuid(),
-            RecipeName = recipeName,
-            Ingredients = new List<IngredientQuantity>(),
-            Instructions = new List<InstructionStep>(),
-            Reviews = new List<Review>(),
-            Preferences = new List<Preference>()
-        };
-    }
-
     [Fact]
     public async Task ReadRecipeById_RecipeExists_ReturnsRecipe()
     {
@@ -57,7 +44,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.ReadRecipeById(recipe.RecipeId);
+        var result = await _recipeRepository.ReadRecipeWithRelatedInformationByIdNoTracking(recipe.RecipeId);
 
         // Assert
         Assert.NotNull(result);
@@ -72,7 +59,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         var recipeId = Guid.NewGuid();
 
         // Act & Assert
-        await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _recipeRepository.ReadRecipeById(recipeId));
+        await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _recipeRepository.ReadRecipeWithRelatedInformationByIdNoTracking(recipeId));
     }
 
     [Fact]
@@ -84,7 +71,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.ReadRecipeByName(recipe.RecipeName);
+        var result = await _recipeRepository.ReadRecipeByNameNoTracking(recipe.RecipeName);
 
         // Assert
         Assert.NotNull(result);
@@ -99,7 +86,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         var recipeName = "Test Recipe";
 
         // Act & Assert
-        await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _recipeRepository.ReadRecipeByName(recipeName));
+        await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _recipeRepository.ReadRecipeByNameNoTracking(recipeName));
     }
 
     [Fact]
@@ -113,7 +100,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.ReadRecipesCollectionByName("Test Recipe");
+        var result = await _recipeRepository.ReadRecipesCollectionByNameNoTracking("Test Recipe");
 
         // Assert
         Assert.NotNull(result);
@@ -127,7 +114,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         var recipeName = "Test Recipe";
 
         // Act & Assert
-        await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _recipeRepository.ReadRecipesCollectionByName(recipeName));
+        await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _recipeRepository.ReadRecipesCollectionByNameNoTracking(recipeName));
     }
 
     [Fact]
@@ -177,7 +164,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipes("Spaghetti", Difficulty.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipesNoTracking("Spaghetti", Difficulty.NotAvailable,
             RecipeType.NotAvailable, 0, new List<string>());
 
         // Assert
@@ -201,7 +188,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.Easy, RecipeType.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipesNoTracking("", Difficulty.Easy, RecipeType.NotAvailable,
             0, new List<string>());
 
         // Assert
@@ -224,7 +211,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.NotAvailable, RecipeType.Dinner,
+        var result = await _recipeRepository.GetFilteredRecipesNoTracking("", Difficulty.NotAvailable, RecipeType.Dinner,
             0, new List<string>());
 
         // Assert
@@ -246,7 +233,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipesNoTracking("", Difficulty.NotAvailable,
             RecipeType.NotAvailable, 30, new List<string>());
 
         // Assert
@@ -282,7 +269,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         _dbContext.ChangeTracker.Clear();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipesNoTracking("", Difficulty.NotAvailable,
             RecipeType.NotAvailable, 0, new List<string> { "Tomato", "Basil" });
 
         // Assert
@@ -299,7 +286,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         // No recipes added to the database.
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipesNoTracking("", Difficulty.NotAvailable,
             RecipeType.NotAvailable, 0, new List<string>());
 
         // Assert
@@ -332,7 +319,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         _dbContext.ChangeTracker.Clear();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipes("Tomato", Difficulty.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipesNoTracking("Tomato", Difficulty.NotAvailable,
             RecipeType.NotAvailable, 30, new List<string>());
 
         // Assert
@@ -368,7 +355,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         _dbContext.ChangeTracker.Clear();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.Intermediate,
+        var result = await _recipeRepository.GetFilteredRecipesNoTracking("", Difficulty.Intermediate,
             RecipeType.NotAvailable, 0, new List<string> { "Chicken", "Garlic" });
 
         // Assert
@@ -393,7 +380,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         _dbContext.ChangeTracker.Clear();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipes("", Difficulty.NotAvailable,
+        var result = await _recipeRepository.GetFilteredRecipesNoTracking("", Difficulty.NotAvailable,
             RecipeType.Dinner, 25, new List<string>());
 
         // Assert
@@ -431,7 +418,7 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         _dbContext.ChangeTracker.Clear();
 
         // Act
-        var result = await _recipeRepository.GetFilteredRecipes("Chicken", Difficulty.Easy,
+        var result = await _recipeRepository.GetFilteredRecipesNoTracking("Chicken", Difficulty.Easy,
             RecipeType.Dinner, 25, new List<string> { "Rice", "Chicken" });
 
         // Assert

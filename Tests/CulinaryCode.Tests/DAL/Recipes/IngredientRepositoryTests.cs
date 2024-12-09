@@ -60,33 +60,6 @@ public class IngredientRepositoryTests
     }
     
     [Fact]
-    public async Task ReadIngredientByName_IngredientExists_ReturnsIngredient()
-    {
-        // Arrange
-        var ingredient = CreateIngredient();
-        _dbContext.Ingredients.Add(ingredient);
-        await _dbContext.SaveChangesAsync();
-        
-        // Act
-        var result = await _ingredientRepository.ReadIngredientByName(ingredient.IngredientName);
-        
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(ingredient.IngredientId, result.IngredientId);
-        Assert.Equal(ingredient.IngredientName, result.IngredientName);
-    }
-    
-    [Fact]
-    public async Task ReadIngredientByName_IngredientDoesNotExist_ThrowsIngredientNotFoundException()
-    {
-        // Arrange
-        var ingredientName = "Test Ingredient";
-        
-        // Act & Assert
-        await Assert.ThrowsAsync<IngredientNotFoundException>(async () => await _ingredientRepository.ReadIngredientByName(ingredientName));
-    }
-    
-    [Fact]
     public async Task ReadIngredientByNameAndMeasurementType_IngredientExists_ReturnsIngredient()
     {
         // Arrange
