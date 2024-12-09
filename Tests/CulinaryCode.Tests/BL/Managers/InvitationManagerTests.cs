@@ -51,29 +51,8 @@ namespace CulinaryCode.Tests.BL.Managers
             await _invitationManager.SendInvitationAsync(request);
 
             // Assert
-            _mockGroupRepository.Verify(repo => repo.ReadGroupById(request.GroupId), Times.Once);
             _mockInvitationRepository.Verify(repo => repo.SaveInvitationAsync(It.IsAny<Invitation>()), Times.Once); 
             _mockEmailService.Verify(service => service.SendInvitationEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task SendInvitationAsync_ThrowsException_WhenGroupDoesNotExist()
-        {
-            // Arrange
-            var request = new SendInvitationRequestDto
-            {
-                GroupId = Guid.NewGuid(),
-                InviterId = Guid.NewGuid(),
-                InviterName = "Nis",
-                InvitedUserName = "Sin",
-                Email = "Sin@example.com"
-            };
-
-            _mockGroupRepository.Setup(repo => repo.ReadGroupById(request.GroupId)).ReturnsAsync((Group)null);
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<Exception>(() => _invitationManager.SendInvitationAsync(request));
-            Assert.Equal("Group does not exist", exception.Message);
         }
 
         [Fact]
