@@ -10,6 +10,8 @@ public static class ResponseExtensions
         if (result.IsSuccess)
             return new OkObjectResult(result.Value);
 
+        if (result.FailureType == ResultFailureType.NotFound) return new NotFoundResult();
+        
         return new BadRequestObjectResult(new { ErrorMessage = result.ErrorMessage });
     }
 }
