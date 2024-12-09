@@ -101,7 +101,7 @@ public class KeyCloakService : IIdentityProviderService
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync();
-            throw new RegisterUserException($"Failed to create user: {errorContent}");
+            return Result<Unit>.Failure($"Failed to create user: {errorContent}", ResultFailureType.None);
         }
 
         accessTokenResult = await LoginAsync(username, password);
@@ -169,7 +169,7 @@ public class KeyCloakService : IIdentityProviderService
             return Result<(string, string)>.Success((usernameClaim, emailClaim));
         }
 
-        throw new JwtTokenException("Failed to get username and email from account token");
+        return Result<(string, string)>.Failure("Failed to get username and email from account token", ResultFailureType.Error);
     }
 
     public async Task<Result<Unit>> UpdateUsername(AccountDto account, string newUsername)

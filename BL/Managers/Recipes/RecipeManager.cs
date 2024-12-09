@@ -154,10 +154,11 @@ public class RecipeManager : IRecipeManager
     private async Task<Result<Recipe>> TryGenerateRecipe(string prompt)
     {
         var generatedRecipeJson = _llmService.GenerateRecipe(prompt);
-
-        if (!RecipeValidation(generatedRecipeJson))
+        
+        var validationResult = RecipeValidation(generatedRecipeJson);
+        if (!validationResult.IsSuccess)
         {
-            return Result<Recipe>.Failure("Recipe validation failed", ResultFailureType.Error);
+            return Result<Recipe>.Failure(validationResult.ErrorMessage!, validationResult.FailureType);
         }
 
         var recipeResult = await ConvertGeneratedRecipe(generatedRecipeJson);
@@ -251,21 +252,21 @@ public class RecipeManager : IRecipeManager
         return await _recipeRepository.DeleteUnusedRecipes();
     }
 
-    private bool RecipeValidation(string recipeJson)
+    private Result<Unit> RecipeValidation(string recipeJson)
     {
         if (recipeJson.StartsWith("\"NOT_POSSIBLE"))
         {
             var errorMessage = recipeJson.Substring(31).Trim('"');
             _logger.LogError("Recipe generation failed: {ErrorMessage}", errorMessage);
-            throw new RecipeNotAllowedException(reasonMessage: errorMessage);
+            return Result<Unit>.Failure(errorMessage, ResultFailureType.Error);
         }
 
         var jsonSchema = LlmSettingsService.RecipeJsonSchema;
         JSchema schema = JSchema.Parse(jsonSchema);
         JObject recipe = JObject.Parse(recipeJson);
 
-        if (recipe.IsValid(schema, out IList<String> validationErrors))
-            return true;
+        if (recipe.IsValid(schema, out IList<string> validationErrors))
+            return Result<Unit>.Success(new Unit());
 
         _logger.LogError("Recipe validation failed");
         foreach (var error in validationErrors)
@@ -273,7 +274,7 @@ public class RecipeManager : IRecipeManager
             _logger.LogError("Recipe validation error: {Error}", error);
         }
 
-        return false;
+        return Result<Unit>.Failure("Recipe validation failed", ResultFailureType.Error);
     }
 
     private async Task<Result<Recipe>> ConvertGeneratedRecipe(string generatedRecipe)
