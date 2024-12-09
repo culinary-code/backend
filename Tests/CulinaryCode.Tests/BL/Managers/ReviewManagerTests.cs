@@ -39,14 +39,15 @@ public class ReviewManagerTests
         // Arrange
         var review = new Review();
         var reviewDto = new ReviewDto() { ReviewerUsername = "JohnDoe" };
-        _reviewRepository.Setup(x => x.ReadReviewWithAccountByReviewIdNoTracking(It.IsAny<Guid>())).ReturnsAsync(review);
+        _reviewRepository.Setup(x => x.ReadReviewWithAccountByReviewIdNoTracking(It.IsAny<Guid>())).ReturnsAsync(Result<Review>.Success(review));
         _mapper.Setup(x => x.Map<ReviewDto>(review)).Returns(reviewDto);
 
         // Act
         var result = await _reviewManager.GetReviewDtoById(Guid.NewGuid());
 
         // Assert
-        Assert.Equal(reviewDto, result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(reviewDto, result.Value!);
     }
 
     [Fact]
@@ -56,14 +57,15 @@ public class ReviewManagerTests
         var reviews = new List<Review> { new Review(), new Review() };
         var reviewDtos = new List<ReviewDto>
             { new() { ReviewerUsername = "JohnDoe" }, new() { ReviewerUsername = "JaneDoe" } };
-        _reviewRepository.Setup(x => x.ReadReviewsWithAccountByRecipeIdNoTracking(It.IsAny<Guid>())).ReturnsAsync(reviews);
+        _reviewRepository.Setup(x => x.ReadReviewsWithAccountByRecipeIdNoTracking(It.IsAny<Guid>())).ReturnsAsync(Result<ICollection<Review>>.Success(reviews));
         _mapper.Setup(x => x.Map<ICollection<ReviewDto>>(reviews)).Returns(reviewDtos);
 
         // Act
         var result = await _reviewManager.GetReviewDtosByRecipeId(Guid.NewGuid());
 
         // Assert
-        Assert.Equal(reviewDtos, result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(reviewDtos, result.Value!);
     }
     
     [Fact]
@@ -75,15 +77,17 @@ public class ReviewManagerTests
         var account = new Account();
         var recipe = new Recipe();
         var existingReview = new List<Review> { new Review { Account = new Account { AccountId = accountId } } };
-        _accountRepository.Setup(x => x.ReadAccount(accountId)).ReturnsAsync(account);
-        _recipeRepository.Setup(x => x.ReadRecipeWithRelatedInformationByIdNoTracking(recipeId)).ReturnsAsync(recipe);
-        _reviewRepository.Setup(x => x.ReviewExistsForAccountAndRecipe(accountId, recipeId)).ReturnsAsync(true);
+        _accountRepository.Setup(x => x.ReadAccount(accountId)).ReturnsAsync(Result<Account>.Success(account));
+        _recipeRepository.Setup(x => x.ReadRecipeWithReviewsById(recipeId)).ReturnsAsync(Result<Recipe>.Success(recipe));
+        _reviewRepository.Setup(x => x.ReviewExistsForAccountAndRecipe(accountId, recipeId)).ReturnsAsync(Result<bool>.Success(true));
 
         // Act
-        async Task Act() => await _reviewManager.CreateReview(accountId, recipeId, "description", 5);
+        var result = await _reviewManager.CreateReview(accountId, recipeId, "description", 5);
 
         // Assert
-        await Assert.ThrowsAsync<ReviewAlreadyExistsException>(Act);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.Error, result.FailureType);
+        
     }
     
     [Fact]
@@ -95,9 +99,12 @@ public class ReviewManagerTests
         var account = new Account();
         var recipe = new Recipe();
         var existingReview = new List<Review>();
-        _accountRepository.Setup(x => x.ReadAccount(accountId)).ReturnsAsync(account);
-        _recipeRepository.Setup(x => x.ReadRecipeWithReviewsById(recipeId)).ReturnsAsync(recipe);
-        _reviewRepository.Setup(x => x.ReadReviewsWithAccountByRecipeIdNoTracking(recipeId)).ReturnsAsync(existingReview);
+        _accountRepository.Setup(x => x.ReadAccount(accountId)).ReturnsAsync(Result<Account>.Success(account));
+        _recipeRepository.Setup(x => x.ReadRecipeWithReviewsById(recipeId)).ReturnsAsync(Result<Recipe>.Success(recipe));
+        _recipeRepository.Setup(x => x.UpdateRecipe(recipe)).ReturnsAsync(Result<Unit>.Success(new Unit()));
+        _reviewRepository.Setup(x => x.ReadReviewsWithAccountByRecipeIdNoTracking(recipeId)).ReturnsAsync(Result<ICollection<Review>>.Success(existingReview));
+        _reviewRepository.Setup(x => x.ReviewExistsForAccountAndRecipe(accountId, recipeId)).ReturnsAsync(Result<bool>.Success(false));
+        _reviewRepository.Setup(x => x.CreateReview(It.IsAny<Review>())).ReturnsAsync(Result<Unit>.Success(new Unit()));
 
         // Act
         await _reviewManager.CreateReview(accountId, recipeId, "description", 5);
