@@ -128,7 +128,7 @@ public class AccountRepository : IAccountRepository
 
     public async Task<Result<Unit>> DeleteFavoriteRecipeByUserId(Guid accountId, Guid recipeId)
     { 
-        var favoriteRecipeToRemove = _ctx.FavoriteRecipes.FirstOrDefault(r => r.Recipe.RecipeId == recipeId && r.Account.AccountId == accountId); 
+        var favoriteRecipeToRemove = await _ctx.FavoriteRecipes.FirstOrDefaultAsync(r => r.Recipe.RecipeId == recipeId && r.Account.AccountId == accountId); 
         
         if (favoriteRecipeToRemove == null)
         {

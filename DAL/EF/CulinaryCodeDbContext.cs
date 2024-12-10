@@ -23,6 +23,8 @@ public class CulinaryCodeDbContext : DbContext
     public DbSet<InstructionStep> InstructionSteps { get; set; }
     public DbSet<IngredientQuantity> IngredientQuantities { get; set; }
     public DbSet<ItemQuantity> ItemQuantities { get; set; }
+    public DbSet<Group> Groups { get; set; }
+    public DbSet<Invitation> Invitations { get; set; }
 
     public CulinaryCodeDbContext(DbContextOptions options) : base(options)
     {
@@ -34,8 +36,9 @@ public class CulinaryCodeDbContext : DbContext
     {
         // configure logging: write to debug output window
         optionsBuilder.LogTo(message => Debug.WriteLine(message), LogLevel.Information);
+        
     }
-
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Recipe Entity Configuration
@@ -115,6 +118,62 @@ public class CulinaryCodeDbContext : DbContext
                 .WithOne(f => f.Account)
                 .HasForeignKey(f => f.AccountId);
 
+        modelBuilder.Entity<Account>()
+            .HasOne(a => a.Planner)
+            .WithOne(m => m.Account)
+            .HasForeignKey<Account>(a => a.PlannerId);
+        
+        modelBuilder.Entity<Account>()
+            .HasOne(a => a.GroceryList)
+            .WithOne(g => g.Account)
+            .HasForeignKey<Account>(a => a.GroceryListId);
+        
+        modelBuilder.Entity<Account>()
+            .HasMany(a => a.Groups)
+            .WithMany(g => g.Accounts);
+        
+        modelBuilder.Entity<GroceryList>()
+            .HasMany(g => g.Ingredients)
+            .WithOne(i => i.GroceryList);
+        
+        modelBuilder.Entity<GroceryList>()
+            .HasMany(g => g.Items)
+            .WithOne(i => i.GroceryList);
+        
+        modelBuilder.Entity<IngredientQuantity>()
+            .HasOne(i => i.Ingredient)
+            .WithMany(i => i.IngredientQuantities);
+        
+        modelBuilder.Entity<ItemQuantity>()
+            .HasOne(i => i.GroceryItem)
+            .WithMany(i => i.ItemQuantities);
+        
+        modelBuilder.Entity<FavoriteRecipe>()
+            .HasOne(f => f.Recipe)
+            .WithMany(r => r.FavoriteRecipes)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<Group>()
+            .HasOne(g => g.GroceryList)
+            .WithOne(g => g.Group)
+            .HasForeignKey<Group>(g => g.GroceryListId);
+
+        modelBuilder.Entity<Group>()
+            .HasOne(g => g.MealPlanner)
+            .WithOne(m => m.Group)
+            .HasForeignKey<Group>(g => g.PlannerId);
+        
+        modelBuilder.Entity<Invitation>()
+            .HasOne(i => i.Inviter)
+            .WithMany()
+            .HasForeignKey(i => i.InviterId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Invitation>()
+            .HasOne(i => i.Group)
+            .WithMany()
+            .HasForeignKey(i => i.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(a => a.Planner)
                 .WithOne(m => m.Account)
                 .HasForeignKey<MealPlanner>(m => m.AccountId);
