@@ -55,6 +55,11 @@ builder.Services.AddOptions<DatabaseOptions>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+builder.Services.AddOptions<EmailServiceOptions>()
+    .Bind(configuration.GetSection("EmailService"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
 
 var databaseOptions = builder.Configuration.GetSection("Database").Get<DatabaseOptions>();
 var connectionString = databaseOptions!.ConnectionString;
@@ -81,6 +86,8 @@ builder.Services.AddScoped<IMealPlannerRepository, MealPlannerRepository>();
 builder.Services.AddScoped<IGroceryRepository, GroceryRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IPreferenceRepository, PreferenceRepository>();
+builder.Services.AddScoped<IGroupRepository, GroupRepository>();
+builder.Services.AddScoped<IInvitationRepository, InvitationRepository>();
 
 
 // Managers
@@ -90,10 +97,13 @@ builder.Services.AddScoped<IMealPlannerManager, MealPlannerManager>();
 builder.Services.AddScoped<IGroceryManager, GroceryManager>();
 builder.Services.AddScoped<IReviewManager, ReviewManager>();
 builder.Services.AddScoped<IPreferenceManager, PreferenceManager>();
+builder.Services.AddScoped<IGroupManager, GroupManager>();
+builder.Services.AddScoped<IInvitationManager, InvitationManager>();
 
 // Services
 builder.Services.AddHttpClient<IIdentityProviderService, KeyCloakService>();
 builder.Services.AddScoped<IIdentityProviderService, KeyCloakService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Automapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));

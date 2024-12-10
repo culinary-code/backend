@@ -13,6 +13,7 @@ public class MealPlanner
     
     // navigation properties
     public Account? Account { get; set; }
+    public Group? Group { get; set; }
     
     // Foreign keys
     public Guid? AccountId { get; set; }
