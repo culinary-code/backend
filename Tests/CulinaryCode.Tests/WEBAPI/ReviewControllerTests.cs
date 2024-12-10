@@ -1,7 +1,7 @@
 ﻿using BL.DTOs.Accounts;
 using BL.Managers.Recipes;
 using BL.Services;
-using DOM.Exceptions;
+using DOM.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -42,7 +42,7 @@ public class ReviewControllerTests
         var expectedReview = new ReviewDto { ReviewId = reviewId, ReviewerUsername = "JohnDoe" };
         _reviewManagerMock
             .Setup(manager => manager.GetReviewDtoById(reviewId))
-            .ReturnsAsync(expectedReview);
+            .ReturnsAsync(Result<ReviewDto>.Success(expectedReview));
         
         // Act
         var result = await _controller.GetReviewById(reviewIdString);
@@ -59,7 +59,7 @@ public class ReviewControllerTests
         var reviewId = Guid.NewGuid();
         _reviewManagerMock
             .Setup(manager => manager.GetReviewDtoById(reviewId))
-            .Throws(new ReviewNotFoundException($"Review with ID {reviewId} not found."));
+            .ReturnsAsync(Result<ReviewDto>.Failure($"Review with ID {reviewId} not found.", ResultFailureType.NotFound));
         
         // Act
         var result = await _controller.GetReviewById(reviewId.ToString());
@@ -67,16 +67,6 @@ public class ReviewControllerTests
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
         Assert.Equal($"Review with ID {reviewId} not found.", notFoundResult.Value);
-        
-        _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Error, // Specify the log level
-                It.IsAny<EventId>(), // Ignore the event ID
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Review with ID {reviewId} not found.")), // Match the message content
-                It.IsAny<Exception>(), // Ignore the exception
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()! // Ignore the formatter/ Check the log message
-            )
-        );
     }
     
     [Fact]
@@ -92,7 +82,7 @@ public class ReviewControllerTests
         };
         _reviewManagerMock
             .Setup(manager => manager.GetReviewDtosByRecipeId(recipeId))
-            .ReturnsAsync(expectedReviews);
+            .ReturnsAsync(Result<ICollection<ReviewDto>>.Success(expectedReviews));
         
         // Act
         var result = await _controller.GetReviewsByRecipeId(recipeIdString);
@@ -109,7 +99,7 @@ public class ReviewControllerTests
         var recipeId = Guid.NewGuid();
         _reviewManagerMock
             .Setup(manager => manager.GetReviewDtosByRecipeId(recipeId))
-            .Throws(new ReviewNotFoundException($"Reviews for recipe with ID {recipeId} not found."));
+            .ReturnsAsync(Result<ICollection<ReviewDto>>.Failure($"Reviews for recipe with ID {recipeId} not found.", ResultFailureType.NotFound));
         
         // Act
         var result = await _controller.GetReviewsByRecipeId(recipeId.ToString());
@@ -117,16 +107,6 @@ public class ReviewControllerTests
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
         Assert.Equal($"Reviews for recipe with ID {recipeId} not found.", notFoundResult.Value);
-        
-        _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Error, // Specify the log level
-                It.IsAny<EventId>(), // Ignore the event ID
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Reviews for recipe with ID {recipeId} not found.")), // Match the message content
-                It.IsAny<Exception>(), // Ignore the exception
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()! // Ignore the formatter/ Check the log message
-            )
-        );
     }
     
     [Fact]
@@ -143,10 +123,10 @@ public class ReviewControllerTests
         var review = new ReviewDto { ReviewId = Guid.NewGuid(), ReviewerUsername = "JohnDoe" };
         _identityProviderService
             .Setup(x => x.GetGuidFromAccessToken(It.IsAny<string>()))
-            .Returns(userId);
+            .Returns(Result<Guid>.Success(userId));
         _reviewManagerMock
             .Setup(manager => manager.CreateReview(userId, createReviewDto.RecipeId, createReviewDto.Description, createReviewDto.AmountOfStars))
-            .ReturnsAsync(review);
+            .ReturnsAsync(Result<ReviewDto>.Success(review));
         
         // Act
         var result = await _controller.CreateReview(createReviewDto);
@@ -162,6 +142,8 @@ public class ReviewControllerTests
         // Arrange
         var createReviewDto = new CreateReviewDto();
         _controller.ModelState.AddModelError("Description", "The Description field is required.");
+        _identityProviderService.Setup(manager => manager.GetGuidFromAccessToken(It.IsAny<string>()))
+            .Returns(Result<Guid>.Success(Guid.NewGuid()));
         
         // Act
         var result = await _controller.CreateReview(createReviewDto);
@@ -186,29 +168,17 @@ public class ReviewControllerTests
         // Mock the identity provider service to return the user ID
         _identityProviderService
             .Setup(x => x.GetGuidFromAccessToken(It.IsAny<string>()))
-            .Returns(userId);
+            .Returns(Result<Guid>.Success(userId));
 
         // Mock the review manager to throw the ReviewAlreadyExistsException
         _reviewManagerMock
             .Setup(manager => manager.CreateReview(userId, createReviewDto.RecipeId, createReviewDto.Description, createReviewDto.AmountOfStars))
-            .ThrowsAsync(new ReviewAlreadyExistsException(exceptionMessage));
+            .ReturnsAsync(Result<ReviewDto>.Failure(exceptionMessage, ResultFailureType.Error));
 
         // Act
         var result = await _controller.CreateReview(createReviewDto);
 
         // Assert
-        var conflictResult = Assert.IsType<ConflictObjectResult>(result);
-        Assert.Equal(exceptionMessage, conflictResult.Value);
-
-        // Optionally verify the logger was called with the correct message
-        _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Error, // Specify the log level
-                It.IsAny<EventId>(), // Ignore the event ID
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(exceptionMessage)), // Match the exception message in the log
-                It.IsAny<Exception>(), // Ignore the exception object
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()! // Ignore the log formatter
-            ), Times.Once // Ensure the log was called once
-        );
+        Assert.IsType<BadRequestObjectResult>(result);
     }
 }

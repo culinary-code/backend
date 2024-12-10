@@ -1,20 +1,21 @@
 ﻿using BL.DTOs.Accounts;
 using BL.DTOs.Recipes;
 using DOM.Recipes;
+using DOM.Results;
 
 namespace BL.Managers.Recipes;
 
 public interface IRecipeManager
 {
-    Task<RecipeDto> GetRecipeDtoById(string id);
-    Task<RecipeDto> GetRecipeDtoByName(string name);
-    Task<ICollection<RecipeDto>> GetRecipesCollectionByName(string name);
-    Task<ICollection<RecipeDto>> GetFilteredRecipeCollection(string recipeName, Difficulty difficulty,
+    Task<Result<RecipeDto>> GetRecipeDtoById(string id);
+    Task<Result<RecipeDto>> GetRecipeDtoByName(string name);
+    Task<Result<ICollection<RecipeDto>>> GetRecipesCollectionByName(string name);
+    Task<Result<ICollection<RecipeDto>>> GetFilteredRecipeCollection(string recipeName, Difficulty difficulty,
         RecipeType recipeType, int cooktime, List<string> ingredients);
-    Task<int> GetAmountOfRecipes();
-    Task<RecipeDto?> CreateRecipe(RecipeFilterDto request, List<PreferenceDto> preferences);
-    Task<ICollection<RecipeSuggestionDto>> CreateRecipeSuggestions(RecipeFilterDto request, List<PreferenceDto> preferences, int amount = 5);
-    Task<ICollection<RecipeDto>> CreateBatchRecipes(string input);
-    Task CreateBatchRandomRecipes(int amount, List<PreferenceDto>? preferences);
-    Task RemoveUnusedRecipes();
+    Task<Result<int>> GetAmountOfRecipes();
+    Task<Result<RecipeDto?>> CreateRecipe(RecipeFilterDto request, List<PreferenceDto> preferences);
+    Task<Result<ICollection<RecipeDto>>> CreateBatchRecipes(string input);
+    Task<Result<Unit>> CreateBatchRandomRecipes(int amount, List<PreferenceDto>? preferences);
+    Task<Result<Unit>> RemoveUnusedRecipes();
+    Task<Result<ICollection<RecipeSuggestionDto>>> CreateRecipeSuggestions(RecipeFilterDto request, List<PreferenceDto> preferences, int amount = 5);
 }

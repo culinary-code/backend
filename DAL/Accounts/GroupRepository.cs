@@ -1,6 +1,6 @@
 ﻿using DAL.EF;
 using DOM.Accounts;
-using DOM.Exceptions;
+using DOM.Results;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Accounts;
@@ -16,18 +16,14 @@ public class GroupRepository : IGroupRepository
         _accountRepository = accountRepository;
     }
 
-    public async Task CreateGroupAsync(Group group)
+    public async Task<Result<Unit>> CreateGroupAsync(Group group)
     {
-        if (group is null)
-        {
-            throw new ArgumentNullException(nameof(group));
-        }
-        
         await _ctx.Groups.AddAsync(group);
         await _ctx.SaveChangesAsync();
+        return Result<Unit>.Success(new Unit());
     }
 
-    public async Task<Group> ReadGroupById(Guid groupId)
+    public async Task<Result<Group>> ReadGroupById(Guid groupId)
     {
         var group = await _ctx.Groups
             .Include(g => g.Accounts)
@@ -35,50 +31,58 @@ public class GroupRepository : IGroupRepository
 
         if (group == null)
         {
-            throw new ArgumentNullException(nameof(group));
+            return Result<Group>.Failure("Group not found", ResultFailureType.NotFound);
         }
         
-        return group;
+        return Result<Group>.Success(group);
     }
 
-    public async Task<List<Group>> ReadGroupsByUserId(Guid userId)
+    public async Task<Result<List<Group>>> ReadGroupsByUserId(Guid userId)
     {
         var groups = await _ctx.Groups
             .Where(a => a.Accounts.Any(b => b.AccountId == userId))
             .ToListAsync();
-            
-        if (groups.Count == 0)
-        {
-            return [];
-        }
         
-        return groups;
+        return Result<List<Group>>.Success(groups);
     }
 
-    public async Task<Group> AddUserToGroupAsync(Guid groupId, Guid userId)
+    public async Task<Result<Group>> AddUserToGroupAsync(Guid groupId, Guid userId)
     {
-        var group = await ReadGroupById(groupId);
+        var groupResult = await ReadGroupById(groupId);
 
-        var user = await _accountRepository.ReadAccount(userId);
-        if (user is null)
+        if (!groupResult.IsSuccess)
         {
-            throw new AccountNotFoundException(nameof(user));
+            return groupResult;
         }
-        
+
+        var userResult = await _accountRepository.ReadAccount(userId);
+        if (!userResult.IsSuccess)
+        {
+            return Result<Group>.Failure(userResult.ErrorMessage!, userResult.FailureType);
+        }
+        var group = groupResult.Value!;
+        var user  = userResult.Value!;
         group.Accounts.Add(user);
         await _ctx.SaveChangesAsync();
-        return group;
+        return Result<Group>.Success(group);
     }
 
-    public async Task DeleteUserFromGroup(Guid groupId, Guid userId)
+    public async Task<Result<Unit>> DeleteUserFromGroup(Guid groupId, Guid userId)
     {
-        var group = await ReadGroupById(groupId);
+        var groupResult = await ReadGroupById(groupId);
+
+        if (!groupResult.IsSuccess)
+        {
+            return Result<Unit>.Failure(groupResult.ErrorMessage!, groupResult.FailureType);
+        }
+        var group = groupResult.Value!;
 
         group.Accounts.Remove(group.Accounts.First(a => a.AccountId == userId));
-        if (!group.Accounts.Any())
+        if (group.Accounts.Count == 0)
         {
             _ctx.Groups.Remove(group);
         }
         await _ctx.SaveChangesAsync();
+        return Result<Unit>.Success(new Unit());
     }
 }

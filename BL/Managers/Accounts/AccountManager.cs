@@ -4,8 +4,8 @@ using BL.DTOs.Recipes;
 using DAL.Accounts;
 using DAL.Recipes;
 using DOM.Accounts;
-using DOM.Exceptions;
 using DOM.Recipes;
+using DOM.Results;
 using Microsoft.Extensions.Logging;
 
 namespace BL.Managers.Accounts;
@@ -28,104 +28,156 @@ public class AccountManager : IAccountManager
         _recipeRepository = recipeRepository;
     }
 
-    public async Task<AccountDto> GetAccountById(string id)
+    public async Task<Result<AccountDto>> GetAccountById(string id)
     {
         Guid parsedGuid = Guid.Parse(id);
-        var account = await _accountRepository.ReadAccount(parsedGuid);
-        return _mapper.Map<AccountDto>(account);
-    }
-
-    public async Task<List<PreferenceDto>> GetPreferencesByUserId(Guid userId)
-    {
-        var account = await _accountRepository.ReadAccountWithPreferencesByAccountId(userId);
-        var preferences = account.Preferences ?? new List<Preference>();
-        return _mapper.Map<List<PreferenceDto>>(preferences);
-    }
-
-    public async Task<List<RecipeDto>> GetFavoriteRecipesByUserId(Guid userId)
-    {
-        var favoriteRecipes = await _accountRepository.ReadFavoriteRecipesByUserIdNoTracking(userId);
-        return _mapper.Map<List<RecipeDto>>(favoriteRecipes);
-    }
-
-    public async Task<AccountDto> UpdateAccount(AccountDto updatedAccount)
-    {
-        var account = await _accountRepository.ReadAccount(updatedAccount.AccountId);
-        if (account == null)
+        var accountResult = await _accountRepository.ReadAccount(parsedGuid);
+        if (!accountResult.IsSuccess)
         {
-            _logger.LogError("Account not found");
-            throw new AccountNotFoundException("Account not found");
+            return Result<AccountDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
         }
+        var account = accountResult.Value;
+        
+        return Result<AccountDto>.Success(_mapper.Map<AccountDto>(account));
+    }
 
-        account.Name = updatedAccount.Name;
+    public async Task<Result<List<PreferenceDto>>> GetPreferencesByUserId(Guid userId)
+    {
+        var accountResult = await _accountRepository.ReadAccountWithPreferencesByAccountId(userId);
+        if (!accountResult.IsSuccess)
+        {
+            return Result<List<PreferenceDto>>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
+        }
+        var account = accountResult.Value;
+        
+        var preferences = account!.Preferences;
+        return Result<List<PreferenceDto>>.Success(_mapper.Map<List<PreferenceDto>>(preferences));
+    }
+
+    public async Task<Result<List<RecipeDto>>> GetFavoriteRecipesByUserId(Guid userId)
+    {
+        var favoriteRecipesResult = await _accountRepository.ReadFavoriteRecipesByUserIdNoTracking(userId);
+        if (!favoriteRecipesResult.IsSuccess)
+        {
+            return Result<List<RecipeDto>>.Failure(favoriteRecipesResult.ErrorMessage!, favoriteRecipesResult.FailureType);
+        }
+        var favoriteRecipes = favoriteRecipesResult.Value;
+        
+        return Result<List<RecipeDto>>.Success(_mapper.Map<List<RecipeDto>>(favoriteRecipes));
+    }
+
+    public async Task<Result<AccountDto>> UpdateAccount(AccountDto updatedAccount)
+    {
+        var accountResult = await _accountRepository.ReadAccount(updatedAccount.AccountId);
+        if (!accountResult.IsSuccess)
+        {
+            return Result<AccountDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
+        }
+        var account = accountResult.Value;
+
+        account!.Name = updatedAccount.Name;
 
         await _accountRepository.UpdateAccount(account);
         _logger.LogInformation($"Updating user: {updatedAccount.AccountId}, new username: {updatedAccount.Name}");
 
-        return _mapper.Map<AccountDto>(account);
+        return Result<AccountDto>.Success(_mapper.Map<AccountDto>(account));
     }
 
-    public async Task<AccountDto> UpdateFamilySize(AccountDto updatedAccount)
+    public async Task<Result<AccountDto>> UpdateFamilySize(AccountDto updatedAccount)
     {
-        var account = await _accountRepository.ReadAccount(updatedAccount.AccountId);
-        account.FamilySize = updatedAccount.FamilySize;
-        await _accountRepository.UpdateAccount(account);
+        var accountResult = await _accountRepository.ReadAccount(updatedAccount.AccountId);
+        if (!accountResult.IsSuccess)
+        {
+            return Result<AccountDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
+        }
+        var account = accountResult.Value;
+        
+        var updateResult = await _accountRepository.UpdateAccount(account!);
+        if (!updateResult.IsSuccess)
+        {
+            return Result<AccountDto>.Failure(updateResult.ErrorMessage!, updateResult.FailureType);
+        }
         _logger.LogInformation(
             $"Updating user: {updatedAccount.AccountId}, new familySize: {updatedAccount.FamilySize}");
 
-        return _mapper.Map<AccountDto>(account);
+        return Result<AccountDto>.Success(_mapper.Map<AccountDto>(account));
     }
     
-    public async Task CreateAccount(string username, string email, Guid userId)
+    public async Task<Result<Unit>> CreateAccount(string username, string email, Guid userId)
     {
-        await _accountRepository.CreateAccount(new Account()
+        var createResult = await _accountRepository.CreateAccount(new Account()
             {
                 AccountId = userId,
                 Name = username,
                 Email = email,
             }
         );
+        return createResult;
     }
 
-    public async Task<AccountDto> AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto)
+    public async Task<Result<AccountDto>> AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto)
     {
-        var account = await _accountRepository.ReadAccountWithPreferencesByAccountId(accountId);
+        var accountResult = await _accountRepository.ReadAccountWithPreferencesByAccountId(accountId);
+        if (!accountResult.IsSuccess)
+        {
+            return Result<AccountDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
+        }
+        var account = accountResult.Value;
 
-        if (account.Preferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
+        if (account!.Preferences.Any(p => p.PreferenceName.ToLower() == preferenceDto.PreferenceName.ToLower()))
         {
             _logger.LogError("Account already has this preference");
-            return _mapper.Map<AccountDto>(account);
+            return Result<AccountDto>.Failure("Account already has this preference", ResultFailureType.Error);
         }
 
-        var preference = await _preferenceRepository.ReadPreferenceByNameNoTracking(preferenceDto.PreferenceName);
-
+        var preferenceResult = await _preferenceRepository.ReadPreferenceByNameNoTracking(preferenceDto.PreferenceName);
+        
         Preference newPreference;
 
-        if (preference == null)
+        if (!preferenceResult.IsSuccess)
         {
-            newPreference = await _preferenceRepository.CreatePreference(new Preference()
+            var newPreferenceResult = await _preferenceRepository.CreatePreference(new Preference()
             {
                 PreferenceName = preferenceDto.PreferenceName,
                 StandardPreference = false
             });
+            if (!newPreferenceResult.IsSuccess)
+            {
+                return Result<AccountDto>.Failure(newPreferenceResult.ErrorMessage!, newPreferenceResult.FailureType);
+            }
+            newPreference = newPreferenceResult.Value!;
         }
         else
         {
-            newPreference = preference;
+            newPreference = preferenceResult.Value!;
         }
 
         account.Preferences.Add(newPreference);
-        await _accountRepository.UpdateAccount(account);
+        var updateResult = await _accountRepository.UpdateAccount(account);
+        if (!updateResult.IsSuccess)
+        {
+            return Result<AccountDto>.Failure(updateResult.ErrorMessage!, updateResult.FailureType);
+        }
         _logger.LogInformation($"Added custom preference '{newPreference.PreferenceName}' to account {accountId}");
 
-        return _mapper.Map<AccountDto>(account);
+        return Result<AccountDto>.Success(_mapper.Map<AccountDto>(account));
     }
 
-    public async Task<AccountDto> AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId)
+    public async Task<Result<AccountDto>> AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId)
     {
-        var account = await _accountRepository.ReadAccount(accountId);
+        var accountResult = await _accountRepository.ReadAccount(accountId);
+        if (!accountResult.IsSuccess)
+        {
+            return Result<AccountDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
+        }
+        var account = accountResult.Value;
 
-        var recipe = await _recipeRepository.ReadRecipeById(recipeId);
+        var recipeResult = await _recipeRepository.ReadRecipeById(recipeId);
+        if (!recipeResult.IsSuccess)
+        {
+            return Result<AccountDto>.Failure(recipeResult.ErrorMessage!, recipeResult.FailureType);
+        }
+        var recipe = recipeResult.Value;
 
         var favoriteRecipe = new FavoriteRecipe()
         {
@@ -134,24 +186,34 @@ public class AccountManager : IAccountManager
             CreatedAt = DateTime.UtcNow
         };
 
-        account.FavoriteRecipes.Add(favoriteRecipe);
-        await _accountRepository.UpdateAccount(account);
-
-        recipe.LastUsedAt = DateTime.UtcNow;
-        await _recipeRepository.UpdateRecipe(recipe);
+        account!.FavoriteRecipes.Add(favoriteRecipe);
+        var updateAccountResult = await _accountRepository.UpdateAccount(account);
+        if (!updateAccountResult.IsSuccess)
+        {
+            return Result<AccountDto>.Failure(updateAccountResult.ErrorMessage!, updateAccountResult.FailureType);
+        }
+        
+        recipe!.LastUsedAt = DateTime.UtcNow;
+        var updateRecipeResult = await _recipeRepository.UpdateRecipe(recipe);
+        if (!updateRecipeResult.IsSuccess)
+        {
+            return Result<AccountDto>.Failure(updateRecipeResult.ErrorMessage!, updateRecipeResult.FailureType);
+        }
 
         _logger.LogInformation($"Added new favorite recipe '{recipe.RecipeName}' to account {accountId}");
-        return _mapper.Map<AccountDto>(account);
+        return Result<AccountDto>.Success(_mapper.Map<AccountDto>(account));
     }
 
-    public async Task RemovePreferenceFromAccount(Guid accountId, Guid preferenceId)
+    public async Task<Result<Unit>> RemovePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
         await _accountRepository.DeletePreferenceFromAccount(accountId, preferenceId);
         _logger.LogInformation($"Removed preference with ID {preferenceId} from account {accountId}");
+        return Result<Unit>.Success(new Unit());
     }
-    public async Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid recipeId)
+    public async Task<Result<Unit>> RemoveFavoriteRecipeFromAccount(Guid accountId, Guid recipeId)
     {
         await _accountRepository.DeleteFavoriteRecipeByUserId(accountId, recipeId);
         _logger.LogInformation($"Removed favorite recipe with ID {recipeId} from account {accountId}");
+        return Result<Unit>.Success(new Unit());
     }
 }

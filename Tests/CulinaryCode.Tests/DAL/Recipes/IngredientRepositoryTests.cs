@@ -1,7 +1,7 @@
 ﻿using DAL.EF;
 using DAL.Recipes;
-using DOM.Exceptions;
 using DOM.Recipes.Ingredients;
+using DOM.Results;
 using Microsoft.EntityFrameworkCore;
 
 namespace CulinaryCode.Tests.DAL.Recipes;
@@ -44,9 +44,9 @@ public class IngredientRepositoryTests
         var result = await _ingredientRepository.ReadIngredientById(ingredient.IngredientId);
         
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(ingredient.IngredientId, result.IngredientId);
-        Assert.Equal(ingredient.IngredientName, result.IngredientName);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(ingredient.IngredientId, result.Value!.IngredientId);
+        Assert.Equal(ingredient.IngredientName, result.Value.IngredientName);
     }
     
     [Fact]
@@ -55,8 +55,12 @@ public class IngredientRepositoryTests
         // Arrange
         var ingredientId = Guid.NewGuid();
         
-        // Act & Assert
-        await Assert.ThrowsAsync<IngredientNotFoundException>(async () => await _ingredientRepository.ReadIngredientById(ingredientId));
+        // Act
+        var result = await _ingredientRepository.ReadIngredientById(ingredientId);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
     
     [Fact]
@@ -71,10 +75,10 @@ public class IngredientRepositoryTests
         var result = await _ingredientRepository.ReadIngredientByNameAndMeasurementType(ingredient.IngredientName, ingredient.Measurement);
         
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(ingredient.IngredientId, result.IngredientId);
-        Assert.Equal(ingredient.IngredientName, result.IngredientName);
-        Assert.Equal(ingredient.Measurement, result.Measurement);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(ingredient.IngredientId, result.Value!.IngredientId);
+        Assert.Equal(ingredient.IngredientName, result.Value.IngredientName);
+        Assert.Equal(ingredient.Measurement, result.Value.Measurement);
     }
     
     [Fact]
@@ -84,8 +88,12 @@ public class IngredientRepositoryTests
         var ingredientName = "Test Ingredient";
         var measurementType = MeasurementType.Gram;
         
-        // Act & Assert
-        await Assert.ThrowsAsync<IngredientNotFoundException>(async () => await _ingredientRepository.ReadIngredientByNameAndMeasurementType(ingredientName, measurementType));
+        // Act 
+        var result = await _ingredientRepository.ReadIngredientByNameAndMeasurementType(ingredientName, measurementType);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
     
     [Fact]

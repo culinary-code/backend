@@ -1,6 +1,7 @@
 ﻿using BL.Managers.Accounts;
 using DAL.Accounts;
 using DOM.Accounts;
+using DOM.Results;
 using Moq;
 using Xunit.Abstractions;
 
@@ -27,7 +28,7 @@ public class GroupManagerTests
         var ownerId = Guid.NewGuid();
         var ownerAccount = new Account { AccountId = ownerId, Name = "Owner" };
 
-        _accountRepositoryMock.Setup(repo => repo.ReadAccount(ownerId)).ReturnsAsync(ownerAccount);
+        _accountRepositoryMock.Setup(repo => repo.ReadAccount(ownerId)).ReturnsAsync(Result<Account>.Success(ownerAccount));
         
         // Act
         await _groupManager.CreateGroupAsync(groupName, ownerId);
@@ -45,8 +46,8 @@ public class GroupManagerTests
         var group = new Group { GroupId = groupId, GroupName = "Test Group" };
         var user = new Account { AccountId = userId, Name = "Test User" };
 
-        _groupRepositoryMock.Setup(repo => repo.ReadGroupById(groupId)).ReturnsAsync(group);
-        _groupRepositoryMock.Setup(repo => repo.AddUserToGroupAsync(groupId, userId));
+        _groupRepositoryMock.Setup(repo => repo.ReadGroupById(groupId)).ReturnsAsync(Result<Group>.Success(group));
+        _groupRepositoryMock.Setup(repo => repo.AddUserToGroupAsync(groupId, userId)).ReturnsAsync(Result<Group>.Success(group));
 
         // Act
         await _groupManager.AddUserToGroupAsync(groupId, userId);
@@ -65,7 +66,7 @@ public class GroupManagerTests
         var user = new Account { AccountId = userId, Name = "Test User" };
 
         group.Accounts.Add(user);
-        _groupRepositoryMock.Setup(repo => repo.ReadGroupById(groupId)).ReturnsAsync(group);
+        _groupRepositoryMock.Setup(repo => repo.ReadGroupById(groupId)).ReturnsAsync(Result<Group>.Success(group));
         _groupRepositoryMock.Setup(repo => repo.DeleteUserFromGroup(groupId, userId)).Callback<Guid, Guid>((gId, uId) =>
         {
             var groupToModify = group;
@@ -74,7 +75,7 @@ public class GroupManagerTests
             {
                 groupToModify.Accounts.Remove(accountToRemove);
             }
-        }).Returns(Task.CompletedTask);
+        }).ReturnsAsync(Result<Unit>.Success(new Unit()));
 
         // Act
         await _groupManager.RemoveUserFromGroup(groupId, userId);

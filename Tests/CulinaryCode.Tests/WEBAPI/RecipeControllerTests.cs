@@ -6,7 +6,7 @@ using BL.Managers.Recipes;
 using BL.Services;
 using CulinaryCode.Tests.Util;
 using DOM.Accounts;
-using DOM.Exceptions;
+using DOM.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -39,7 +39,7 @@ public class RecipeControllerTests
         var recipeId = Guid.NewGuid();
         var recipeIdString = recipeId.ToString();
         var expectedRecipe = new RecipeDto { RecipeId = recipeId, RecipeName = "Spaghetti Bolognese" };
-        _recipeManagerMock.Setup(manager => manager.GetRecipeDtoById(recipeIdString)).ReturnsAsync(expectedRecipe);
+        _recipeManagerMock.Setup(manager => manager.GetRecipeDtoById(recipeIdString)).ReturnsAsync(Result<RecipeDto>.Success(expectedRecipe));
 
         // Act
         var result = await _controller.GetRecipeById(recipeIdString);
@@ -55,7 +55,7 @@ public class RecipeControllerTests
         // Arrange
         const string recipeId = "2";
         _recipeManagerMock.Setup(manager => manager.GetRecipeDtoById(recipeId))
-            .Throws(new RecipeNotFoundException($"Recipe with ID {recipeId} not found."));
+            .ReturnsAsync(Result<RecipeDto>.Failure($"Recipe with ID {recipeId} not found.", ResultFailureType.NotFound));
 
         // Act
         var result = await _controller.GetRecipeById(recipeId);
@@ -63,17 +63,6 @@ public class RecipeControllerTests
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
         Assert.Equal($"Recipe with ID {recipeId} not found.", notFoundResult.Value);
-        
-        _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Error, // Specify the log level
-                It.IsAny<EventId>(), // Ignore the event ID
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Recipe with ID {recipeId} not found.")), // Match the message content
-                It.IsAny<Exception>(), // Ignore any exception passed
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()! // Ignore the formatter
-            ),
-            Times.Once
-        );
     }
     
     [Fact]
@@ -82,7 +71,7 @@ public class RecipeControllerTests
         // Arrange
         const string recipeName = "Spaghetti Bolognese";
         var expectedRecipe = new RecipeDto { RecipeId = Guid.NewGuid(), RecipeName = recipeName };
-        _recipeManagerMock.Setup(manager => manager.GetRecipeDtoByName(recipeName)).ReturnsAsync(expectedRecipe);
+        _recipeManagerMock.Setup(manager => manager.GetRecipeDtoByName(recipeName)).ReturnsAsync(Result<RecipeDto>.Success(expectedRecipe));
 
         // Act
         var result = await _controller.GetRecipeByName(recipeName);
@@ -98,7 +87,7 @@ public class RecipeControllerTests
         // Arrange
         const string recipeName = "Spaghetti Bolognese";
         _recipeManagerMock.Setup(manager => manager.GetRecipeDtoByName(recipeName))
-            .Throws(new RecipeNotFoundException($"Recipe with name {recipeName} not found."));
+            .ReturnsAsync(Result<RecipeDto>.Failure($"Recipe with name {recipeName} not found.", ResultFailureType.NotFound));
 
         // Act
         var result = await _controller.GetRecipeByName(recipeName);
@@ -106,17 +95,6 @@ public class RecipeControllerTests
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
         Assert.Equal($"Recipe with name {recipeName} not found.", notFoundResult.Value);
-        
-        _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Error, // Specify the log level
-                It.IsAny<EventId>(), // Ignore the event ID
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Recipe with name {recipeName} not found.")), // Match the message content
-                It.IsAny<Exception>(), // Ignore any exception passed
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()! // Ignore the formatter
-            ),
-            Times.Once
-        );
     }
     
     [Fact]
@@ -126,7 +104,7 @@ public class RecipeControllerTests
         const string recipeName = "Spaghetti Bolognese";
         var expectedRecipe = new RecipeDto { RecipeId = Guid.NewGuid(), RecipeName = recipeName };
         var expectedRecipes = new List<RecipeDto> { expectedRecipe };
-        _recipeManagerMock.Setup(manager => manager.GetRecipesCollectionByName(recipeName)).ReturnsAsync(expectedRecipes);
+        _recipeManagerMock.Setup(manager => manager.GetRecipesCollectionByName(recipeName)).ReturnsAsync(Result<ICollection<RecipeDto>>.Success(expectedRecipes));
 
         // Act
         var result = await _controller.GetRecipeCollectionByName(recipeName);
@@ -142,7 +120,7 @@ public class RecipeControllerTests
         // Arrange
         const string recipeName = "Spaghetti Bolognese";
         _recipeManagerMock.Setup(manager => manager.GetRecipesCollectionByName(recipeName))
-            .Throws(new RecipeNotFoundException($"Recipes with name {recipeName} not found."));
+            .ReturnsAsync(Result<ICollection<RecipeDto>>.Failure($"Recipes with name {recipeName} not found.", ResultFailureType.NotFound));
 
         // Act
         var result = await _controller.GetRecipeCollectionByName(recipeName);
@@ -151,16 +129,6 @@ public class RecipeControllerTests
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
         Assert.Equal($"Recipes with name {recipeName} not found.", notFoundResult.Value);
         
-        _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Error, // Specify the log level
-                It.IsAny<EventId>(), // Ignore the event ID
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Recipes with name {recipeName} not found.")), // Match the message content
-                It.IsAny<Exception>(), // Ignore any exception passed
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()! // Ignore the formatter
-            ),
-            Times.Once
-        );
     }
     
     [Fact]
@@ -184,11 +152,11 @@ public class RecipeControllerTests
         
         _identityProviderService
             .Setup(x => x.GetGuidFromAccessToken(It.IsAny<string>()))
-            .Returns(userid);
+            .Returns(Result<Guid>.Success(userid));
         _accountManagerMock
             .Setup(service => service.GetPreferencesByUserId(It.Is<Guid>(id => id == userid)))
-            .ReturnsAsync(preferences);
-        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto, preferences)).ReturnsAsync(recipeDto);
+            .ReturnsAsync(Result<List<PreferenceDto>>.Success(preferences));
+        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto, preferences)).ReturnsAsync(Result<RecipeDto?>.Success(recipeDto));
 
 
         // Act
@@ -208,7 +176,11 @@ public class RecipeControllerTests
         var recipeName = "Spaghetti Bolognese";
         var recipeFilterDto = RecipeFilterDtoUtil.CreateRecipeFilterDto(recipeName: recipeName);
         var preferences = PreferenceListDtoUtil.CreatePreferenceListDto();
-        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto, preferences)).ReturnsAsync(null as RecipeDto);
+        _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto, preferences)).ReturnsAsync(Result<RecipeDto?>.Failure("", ResultFailureType.Error));
+        _identityProviderService.Setup(manager => manager.GetGuidFromAccessToken(It.IsAny<string>()))
+            .Returns(Result<Guid>.Success(Guid.NewGuid()));
+        _accountManagerMock.Setup(manager => manager.GetPreferencesByUserId(It.IsAny<Guid>()))
+            .ReturnsAsync(Result<List<PreferenceDto>>.Success(preferences));
         
         // Set up the controller context to simulate HTTP request and Authorization header
         _controller.ControllerContext = new ControllerContext
@@ -221,7 +193,7 @@ public class RecipeControllerTests
         var result = await _controller.CreateRecipe(recipeFilterDto);
         
         // Assert
-        Assert.IsType<BadRequestResult>(result);
+        Assert.IsType<BadRequestObjectResult>(result);
     }
 
     [Fact]
@@ -235,7 +207,11 @@ public class RecipeControllerTests
         var preferences = PreferenceListDtoUtil.CreatePreferenceListDto();
 
         _recipeManagerMock.Setup(manager => manager.CreateRecipe(recipeFilterDto, preferences))
-            .Throws(new RecipeNotAllowedException($"Recipe with name {recipeName} is not allowed."));
+            .ReturnsAsync(Result<RecipeDto?>.Failure($"Recipe with name {recipeName} is not allowed.", ResultFailureType.Error));
+        _identityProviderService.Setup(manager => manager.GetGuidFromAccessToken(It.IsAny<string>()))
+            .Returns(Result<Guid>.Success(Guid.NewGuid()));
+        _accountManagerMock.Setup(manager => manager.GetPreferencesByUserId(It.IsAny<Guid>()))
+            .ReturnsAsync(Result<List<PreferenceDto>>.Success(preferences));
                 
         // Set up the controller context to simulate HTTP request and Authorization header
         _controller.ControllerContext = new ControllerContext
@@ -248,6 +224,6 @@ public class RecipeControllerTests
         var result = await _controller.CreateRecipe(recipeFilterDto);
         
         // Assert
-        Assert.IsType<BadRequestResult>(result);
+        Assert.IsType<BadRequestObjectResult>(result);
     }
 }

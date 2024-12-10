@@ -1,19 +1,20 @@
 ﻿using BL.DTOs.Accounts;
 using BL.DTOs.Recipes;
 using DOM.Recipes;
+using DOM.Results;
 
 namespace BL.Managers.Accounts;
 
 public interface IAccountManager
 {
-    Task<AccountDto> GetAccountById(string id);
-    Task<List<PreferenceDto>> GetPreferencesByUserId(Guid userId);
-    Task<List<RecipeDto>> GetFavoriteRecipesByUserId(Guid userId);
-    Task<AccountDto> UpdateAccount(AccountDto account);
-    Task<AccountDto> UpdateFamilySize(AccountDto updatedAccount);
-    Task CreateAccount(string username, string email, Guid userId);
-    Task<AccountDto> AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto);
-    Task<AccountDto> AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId);
-    Task RemovePreferenceFromAccount(Guid accountId, Guid preferenceId);
-    Task RemoveFavoriteRecipeFromAccount(Guid accountId, Guid recipeId);
+    Task<Result<AccountDto>> GetAccountById(string id);
+    Task<Result<List<PreferenceDto>>> GetPreferencesByUserId(Guid userId);
+    Task<Result<List<RecipeDto>>> GetFavoriteRecipesByUserId(Guid userId);
+    Task<Result<AccountDto>> UpdateAccount(AccountDto account);
+    Task<Result<AccountDto>> UpdateFamilySize(AccountDto updatedAccount);
+    Task<Result<Unit>> CreateAccount(string username, string email, Guid userId);
+    Task<Result<AccountDto>> AddPreferenceToAccount(Guid accountId, PreferenceDto preferenceDto);
+    Task<Result<AccountDto>> AddFavoriteRecipeToAccount(Guid accountId, Guid recipeId);
+    Task<Result<Unit>> RemovePreferenceFromAccount(Guid accountId, Guid preferenceId);
+    Task<Result<Unit>> RemoveFavoriteRecipeFromAccount(Guid accountId, Guid recipeId);
 }

@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Collections;
+using AutoMapper;
 using BL.DTOs.Accounts;
 using BL.DTOs.Recipes;
 using BL.ExternalSources.Llm;
@@ -6,9 +7,9 @@ using BL.Managers.Accounts;
 using DAL.Accounts;
 using DAL.Recipes;
 using DOM.Accounts;
-using DOM.Exceptions;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
+using DOM.Results;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -37,99 +38,192 @@ public class RecipeManager : IRecipeManager
         _logger = logger;
     }
 
-    public async Task<RecipeDto> GetRecipeDtoById(string id)
+    public async Task<Result<RecipeDto>> GetRecipeDtoById(string id)
     {
         Guid parsedGuid = Guid.Parse(id);
-        var recipe = await _recipeRepository.ReadRecipeWithRelatedInformationByIdNoTracking(parsedGuid);
-        return _mapper.Map<RecipeDto>(recipe);
+        var recipeResult = await _recipeRepository.ReadRecipeWithRelatedInformationByIdNoTracking(parsedGuid);
+        if (!recipeResult.IsSuccess)
+        {
+            return Result<RecipeDto>.Failure(recipeResult.ErrorMessage!, recipeResult.FailureType);
+        }
+
+        var recipe = recipeResult.Value!;
+        return Result<RecipeDto>.Success(_mapper.Map<RecipeDto>(recipe));
     }
 
-    public async Task<RecipeDto> GetRecipeDtoByName(string name)
+    public async Task<Result<RecipeDto>> GetRecipeDtoByName(string name)
     {
-        var recipe = await _recipeRepository.ReadRecipeByNameNoTracking(name);
-        return _mapper.Map<RecipeDto>(recipe);
+        var recipeResult = await _recipeRepository.ReadRecipeByNameNoTracking(name);
+        if (!recipeResult.IsSuccess)
+        {
+            return Result<RecipeDto>.Failure(recipeResult.ErrorMessage!, recipeResult.FailureType);
+        }
+
+        var recipe = recipeResult.Value!;
+        return Result<RecipeDto>.Success(_mapper.Map<RecipeDto>(recipe));
     }
 
-    public async Task<ICollection<RecipeDto>> GetRecipesCollectionByName(string name)
+    public async Task<Result<ICollection<RecipeDto>>> GetRecipesCollectionByName(string name)
     {
-        var recipes = await _recipeRepository.ReadRecipesCollectionByNameNoTracking(name);
-        return _mapper.Map<ICollection<RecipeDto>>(recipes);
+        var recipesResult = await _recipeRepository.ReadRecipesCollectionByNameNoTracking(name);
+        if (!recipesResult.IsSuccess)
+        {
+            return Result<ICollection<RecipeDto>>.Failure(recipesResult.ErrorMessage!, recipesResult.FailureType);
+        }
+
+        var recipes = recipesResult.Value!;
+
+        return Result<ICollection<RecipeDto>>.Success(_mapper.Map<ICollection<RecipeDto>>(recipes));
     }
 
-    public async Task<ICollection<RecipeDto>> GetFilteredRecipeCollection(string recipeName, Difficulty difficulty,
+    public async Task<Result<ICollection<RecipeDto>>> GetFilteredRecipeCollection(string recipeName,
+        Difficulty difficulty,
         RecipeType recipeType, int cooktime, List<string> ingredients)
     {
-        var recipes =
-            await _recipeRepository.GetFilteredRecipesNoTracking(recipeName, difficulty, recipeType, cooktime, ingredients);
-        return _mapper.Map<ICollection<RecipeDto>>(recipes);
+        var recipesResult =
+            await _recipeRepository.GetFilteredRecipesNoTracking(recipeName, difficulty, recipeType, cooktime,
+                ingredients);
+
+        if (!recipesResult.IsSuccess)
+        {
+            return Result<ICollection<RecipeDto>>.Failure(recipesResult.ErrorMessage!, recipesResult.FailureType);
+        }
+
+        var recipes = recipesResult.Value!;
+
+        return Result<ICollection<RecipeDto>>.Success(_mapper.Map<ICollection<RecipeDto>>(recipes));
     }
 
-    public async Task<int> GetAmountOfRecipes()
+    public async Task<Result<int>> GetAmountOfRecipes()
     {
         return await _recipeRepository.GetRecipeCount();
     }
 
-    public async Task<RecipeDto?> CreateRecipe(RecipeFilterDto request, List<PreferenceDto> preferences)
+    public async Task<Result<RecipeDto?>> CreateRecipe(RecipeFilterDto request, List<PreferenceDto> preferences)
     {
         byte attempts = 0;
         var prompt = LlmSettingsService.BuildPrompt(request, preferences);
+
         while (attempts < 3)
         {
-            try
+            _logger.LogInformation("Attempting to create recipe (Attempt: {Attempts})", attempts + 1);
+
+            // Generate the recipe
+            var generatedRecipeResult = await TryGenerateRecipe(prompt);
+
+            if (!generatedRecipeResult.IsSuccess)
             {
-                var generatedRecipeJson = _llmService.GenerateRecipe(prompt);
-
-                if (!RecipeValidation(generatedRecipeJson))
+                _logger.LogWarning("Recipe generation failed: {ErrorMessage}", generatedRecipeResult.ErrorMessage);
+                if (generatedRecipeResult.FailureType == ResultFailureType.Error)
                 {
-                    _logger.LogError("Recipe validation failed");
-                    throw new RecipeValidationFailException("Recipe validation failed");
+                    _logger.LogInformation("Retrying to create recipe...");
+                    attempts++;
+                    continue;
                 }
 
-                var recipe = await ConvertGeneratedRecipe(generatedRecipeJson);
+                return Result<RecipeDto?>.Failure(generatedRecipeResult.ErrorMessage!,
+                    generatedRecipeResult.FailureType);
+            }
 
-                await _recipeRepository.CreateRecipe(recipe);
+            var recipe = generatedRecipeResult.Value!;
 
-                if (!string.IsNullOrEmpty(recipe.ImagePath))
+            // Save the recipe to the repository
+            var saveResult = await _recipeRepository.CreateRecipe(recipe);
+            if (!saveResult.IsSuccess)
+            {
+                return Result<RecipeDto?>.Failure(saveResult.ErrorMessage!, saveResult.FailureType);
+            }
+
+            // Optionally generate and save the image
+            if (string.IsNullOrEmpty(recipe.ImagePath))
+            {
+                var imageResult = TryGenerateAndSaveImage(recipe);
+                if (imageResult.IsSuccess)
                 {
-                    return _mapper.Map<RecipeDto>(recipe);
-                }
-
-                
-                var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
-                if (imageUri is not null)
-                {
-                    recipe.ImagePath = imageUri!.ToString();
+                    recipe.ImagePath = imageResult.Value!;
                     await _recipeRepository.UpdateRecipe(recipe);
                 }
+            }
 
-                return _mapper.Map<RecipeDto>(recipe);
-            }
-            catch (JsonReaderException ex)
-            {
-                _logger.LogError("Failed to parse JSON: {ErrorMessage}", ex.Message);
-                _logger.LogInformation("Attempt: {Attempts}", attempts);
-                _logger.LogInformation("Retrying to create recipe");
-                attempts++;
-            }
-            catch (RecipeNotAllowedException ex)
-            {
-                _logger.LogError("Recipe not allowed: {ErrorMessage}", ex.ReasonMessage);
-                throw new RecipeNotAllowedException(reasonMessage: ex.ReasonMessage);
-            }
-            catch (RecipeValidationFailException ex)
-            {
-                _logger.LogError("Failed to create recipe: {ErrorMessage}", ex.Message);
-                _logger.LogInformation("Attempt: {Attempts}", attempts);
-                _logger.LogInformation("Retrying to create recipe");
-                attempts++;
-            }
+            return Result<RecipeDto?>.Success(_mapper.Map<RecipeDto>(recipe));
         }
 
-        _logger.LogError("Failed to create recipe after 3 attempts");
-        return null;
+        _logger.LogError("Failed to create recipe after {Attempts} attempts", attempts);
+        return Result<RecipeDto?>.Failure("Failed to create recipe after multiple attempts", ResultFailureType.Error);
     }
 
-    public async Task<ICollection<RecipeSuggestionDto>> CreateRecipeSuggestions(RecipeFilterDto request, List<PreferenceDto> preferences, int amount = 5)
+    private async Task<Result<Recipe>> TryGenerateRecipe(string prompt)
+    {
+        var generatedRecipeJson = _llmService.GenerateRecipe(prompt);
+        
+        var validationResult = RecipeValidation(generatedRecipeJson);
+        if (!validationResult.IsSuccess)
+        {
+            return Result<Recipe>.Failure(validationResult.ErrorMessage!, validationResult.FailureType);
+        }
+
+        var recipeResult = await ConvertGeneratedRecipe(generatedRecipeJson);
+        if (!recipeResult.IsSuccess)
+        {
+            return Result<Recipe>.Failure(recipeResult.ErrorMessage!, recipeResult.FailureType);
+        }
+
+        return Result<Recipe>.Success(recipeResult.Value!);
+    }
+
+    private Result<string?> TryGenerateAndSaveImage(Recipe recipe)
+    {
+        try
+        {
+            var imageUri = _llmService.GenerateRecipeImage($"{recipe.RecipeName} {recipe.Description}");
+            return Result<string?>.Success(imageUri?.ToString());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("Failed to generate image for recipe {RecipeName}: {ErrorMessage}", recipe.RecipeName,
+                ex.Message);
+            return Result<string?>.Failure("Image generation failed", ResultFailureType.Error);
+        }
+    }
+
+
+    public async Task<Result<ICollection<RecipeDto>>> CreateBatchRecipes(string input)
+    {
+        var recipes = new List<RecipeDto>();
+        JObject recipeJson;
+        try
+        {
+            recipeJson = JObject.Parse(input);
+        }catch (JsonReaderException ex)
+        {
+            _logger.LogError("Failed to parse JSON: {ErrorMessage}", ex.Message);
+            return Result<ICollection<RecipeDto>>.Failure("Failed to parse JSON", ResultFailureType.Error);
+        }
+        
+        var recipeArray = recipeJson["recipes"];
+
+        foreach (var recipe in recipeArray)
+        {
+            var recipeString = recipe.ToString();
+
+            var createdRecipeResult = await ConvertGeneratedRecipe(recipeString);
+            if (!createdRecipeResult.IsSuccess)
+            {
+                return Result<ICollection<RecipeDto>>.Failure(createdRecipeResult.ErrorMessage!,
+                    createdRecipeResult.FailureType);
+            }
+
+            var createdRecipe = createdRecipeResult.Value!;
+
+            await _recipeRepository.CreateRecipe(createdRecipe);
+
+            recipes.Add(_mapper.Map<RecipeDto>(createdRecipe));
+        }
+
+        return Result<ICollection<RecipeDto>>.Success(recipes);
+    }
+    
+    public async Task<Result<ICollection<RecipeSuggestionDto>>> CreateRecipeSuggestions(RecipeFilterDto request, List<PreferenceDto> preferences, int amount = 5)
     {
         _logger.LogInformation("Creating recipe suggestions with prompt:\n name: {recipeName} \n difficulty: {Difficulty} \n mealtype: {MealType} \n cooktime: {CookTime}", request.RecipeName, request.Difficulty, request.MealType, request.CookTime);
         
@@ -139,7 +233,7 @@ public class RecipeManager : IRecipeManager
         if (suggestions[0].StartsWith("NOT_POSSIBLE"))
         {
             _logger.LogError("Recipe generation failed: {ErrorMessage}", suggestions[0]);
-            return new List<RecipeSuggestionDto>();
+            return Result<ICollection<RecipeSuggestionDto>>.Failure("Recipe generation failed", ResultFailureType.Error);
         }
         
         var recipeSuggestions = suggestions
@@ -151,38 +245,20 @@ public class RecipeManager : IRecipeManager
             })
             .ToList();
 
-        return recipeSuggestions;
+        return Result<ICollection<RecipeSuggestionDto>>.Success(recipeSuggestions);
     }
 
-    public async Task<ICollection<RecipeDto>> CreateBatchRecipes(string input)
-    {
-        var recipes = new List<RecipeDto>();
-        var recipeJson = JObject.Parse(input);
-        var recipeArray = recipeJson["recipes"];
-
-        foreach (var recipe in recipeArray)
-        {
-            var recipeString = recipe.ToString();
-
-            var createdRecipe = await ConvertGeneratedRecipe(recipeString);
-
-            await _recipeRepository.CreateRecipe(createdRecipe);
-
-            recipes.Add(_mapper.Map<RecipeDto>(createdRecipe));
-        }
-
-        return recipes;
-    }
-    
-    public async Task CreateBatchRandomRecipes(int amount, List<PreferenceDto>? preferences)
+    public async Task<Result<Unit>> CreateBatchRandomRecipes(int amount, List<PreferenceDto>? preferences)
     {
         if (preferences == null)
         {
             preferences = new List<PreferenceDto>();
         }
-        if (amount <=0) return;  
+
+        if (amount <= 0)
+            return Result<Unit>.Failure("Amount of recipes must be greater than 0", ResultFailureType.Error);
         var recipeNames = _llmService.GenerateMultipleRecipeNamesAndDescriptions("random", amount);
-        
+
         // List to hold all the tasks for concurrent execution
         var tasks = new List<Task>();
 
@@ -196,36 +272,46 @@ public class RecipeManager : IRecipeManager
             {
                 RecipeName = recipeName
             };
-            
-            // Add the task to the list
 
+            // Add the task to the list
             tasks.Add(CreateRecipe(request, preferences));
         }
 
         // Await all tasks to complete
         await Task.WhenAll(tasks);
+        return Result<Unit>.Success(new Unit());
     }
 
-    public async Task RemoveUnusedRecipes()
+    public async Task<Result<Unit>> RemoveUnusedRecipes()
     {
-        await _recipeRepository.DeleteUnusedRecipes();
+        return await _recipeRepository.DeleteUnusedRecipes();
     }
 
-    private bool RecipeValidation(string recipeJson)
+    private Result<Unit> RecipeValidation(string recipeJson)
     {
         if (recipeJson.StartsWith("\"NOT_POSSIBLE"))
         {
             var errorMessage = recipeJson.Substring(31).Trim('"');
             _logger.LogError("Recipe generation failed: {ErrorMessage}", errorMessage);
-            throw new RecipeNotAllowedException(reasonMessage: errorMessage);
+            return Result<Unit>.Failure(errorMessage, ResultFailureType.Error);
         }
 
         var jsonSchema = LlmSettingsService.RecipeJsonSchema;
-        JSchema schema = JSchema.Parse(jsonSchema);
-        JObject recipe = JObject.Parse(recipeJson);
+        JSchema schema;
+        JObject recipe;
+        try
+        {
+            schema = JSchema.Parse(jsonSchema);
+            recipe = JObject.Parse(recipeJson);
+        }catch (JsonReaderException ex)
+        {
+            _logger.LogError("Failed to parse JSON: {ErrorMessage}", ex.Message);
+            return Result<Unit>.Failure("Failed to parse JSON", ResultFailureType.Error);
+        }
+        
 
-        if (recipe.IsValid(schema, out IList<String> validationErrors))
-            return true;
+        if (recipe.IsValid(schema, out IList<string> validationErrors))
+            return Result<Unit>.Success(new Unit());
 
         _logger.LogError("Recipe validation failed");
         foreach (var error in validationErrors)
@@ -233,14 +319,22 @@ public class RecipeManager : IRecipeManager
             _logger.LogError("Recipe validation error: {Error}", error);
         }
 
-        return false;
+        return Result<Unit>.Failure("Recipe validation failed", ResultFailureType.Error);
     }
 
-    private async Task<Recipe> ConvertGeneratedRecipe(string generatedRecipe)
+    private async Task<Result<Recipe>> ConvertGeneratedRecipe(string generatedRecipe)
     {
         _logger.LogInformation("Converting generated recipe JSON object to Recipe object");
-
-        var generatedRecipeJson = JObject.Parse(generatedRecipe);
+        JObject generatedRecipeJson;
+        try
+        {
+             generatedRecipeJson = JObject.Parse(generatedRecipe);
+        }
+        catch (JsonReaderException ex)
+        {
+            _logger.LogError("Failed to parse JSON: {ErrorMessage}", ex.Message);
+            return Result<Recipe>.Failure("Failed to parse JSON", ResultFailureType.Error);
+        }
 
         generatedRecipeJson.TryGetValue("recipeName", out var recipeName);
         generatedRecipeJson.TryGetValue("description", out var description);
@@ -259,18 +353,37 @@ public class RecipeManager : IRecipeManager
         Enum.TryParse<RecipeType>(recipeType!.ToString(), out var recipeTypeEnum);
         Enum.TryParse<Difficulty>(difficulty!.ToString(), out var difficultyEnum);
 
-        var dietPreference = await ConvertDietPreference(diet);
+        var dietPreferenceResult = await ConvertDietPreference(diet);
+        if (!dietPreferenceResult.IsSuccess)
+        {
+            return Result<Recipe>.Failure(dietPreferenceResult.ErrorMessage!, dietPreferenceResult.FailureType);
+        }
 
-        var ingredientQuantities = await ConvertIngredientQuantities(ingredients);
+        var dietPreference = dietPreferenceResult.Value!;
 
-        var instructionSteps = ConvertInstructionSteps(instructions);
+        var ingredientQuantitiesResult = await ConvertIngredientQuantities(ingredients);
+        if (!ingredientQuantitiesResult.IsSuccess)
+        {
+            return Result<Recipe>.Failure(ingredientQuantitiesResult.ErrorMessage!,
+                ingredientQuantitiesResult.FailureType);
+        }
+
+        var ingredientQuantities = ingredientQuantitiesResult.Value!;
+
+        var instructionStepsResult = ConvertInstructionSteps(instructions);
+        if (!instructionStepsResult.IsSuccess)
+        {
+            return Result<Recipe>.Failure(instructionStepsResult.ErrorMessage!, instructionStepsResult.FailureType);
+        }
+
+        var instructionSteps = instructionStepsResult.Value!;
 
         Recipe recipe = new Recipe()
         {
             RecipeName = recipeName!.ToString(),
             Description = description!.ToString(),
             RecipeType = recipeTypeEnum,
-            Preferences = new List<Preference>() {dietPreference},
+            Preferences = new List<Preference>() { dietPreference },
             CookingTime = int.Parse(cookingTime!.ToString()),
             Difficulty = difficultyEnum,
             CreatedAt = DateTime.UtcNow,
@@ -281,13 +394,21 @@ public class RecipeManager : IRecipeManager
             Instructions = instructionSteps
         };
 
-        return recipe;
+        return Result<Recipe>.Success(recipe);
     }
 
-    private async Task<Preference> ConvertDietPreference(JToken? diet)
+    private async Task<Result<Preference>> ConvertDietPreference(JToken? diet)
     {
         Preference dietPreference = null;
-        ICollection<Preference> standardPreferences = await _preferenceRepository.ReadStandardPreferences();
+        var standardPreferencesResult = await _preferenceRepository.ReadStandardPreferences();
+        if (!standardPreferencesResult.IsSuccess)
+        {
+            return Result<Preference>.Failure(standardPreferencesResult.ErrorMessage!,
+                standardPreferencesResult.FailureType);
+        }
+
+        var standardPreferences = standardPreferencesResult.Value!;
+
         string dietString = diet?.ToString()!;
         if (diet is not null)
         {
@@ -308,13 +429,13 @@ public class RecipeManager : IRecipeManager
                 PreferenceName = dietString,
                 StandardPreference = false
             };
-            await _preferenceRepository.CreatePreference(dietPreference);
+            return await _preferenceRepository.CreatePreference(dietPreference);
         }
 
-        return dietPreference;
+        return Result<Preference>.Success(dietPreference);
     }
 
-    private static ICollection<InstructionStep> ConvertInstructionSteps(JToken? instructions)
+    private static Result<ICollection<InstructionStep>> ConvertInstructionSteps(JToken? instructions)
     {
         ICollection<InstructionStep> instructionSteps = new List<InstructionStep>();
         foreach (var instruction in instructions)
@@ -330,10 +451,10 @@ public class RecipeManager : IRecipeManager
             instructionSteps.Add(instructionStep);
         }
 
-        return instructionSteps;
+        return Result<ICollection<InstructionStep>>.Success(instructionSteps);
     }
 
-    private async Task<ICollection<IngredientQuantity>> ConvertIngredientQuantities(JToken? ingredients)
+    private async Task<Result<ICollection<IngredientQuantity>>> ConvertIngredientQuantities(JToken? ingredients)
     {
         ICollection<IngredientQuantity> ingredientQuantities = new List<IngredientQuantity>();
         foreach (var ingredient in ingredients!)
@@ -346,13 +467,11 @@ public class RecipeManager : IRecipeManager
 
             _logger.LogInformation("Converting ingredient: {IngredientName}", ingredientName);
             Ingredient newIngredient;
-            try
-            {
-                newIngredient = await 
-                    _ingredientRepository.ReadIngredientByNameAndMeasurementType(ingredientName,
-                        ingredientMeasurementType);
-            }
-            catch (IngredientNotFoundException ex)
+
+            var newIngredientResult = await
+                _ingredientRepository.ReadIngredientByNameAndMeasurementType(ingredientName,
+                    ingredientMeasurementType);
+            if (!newIngredientResult.IsSuccess)
             {
                 _logger.LogInformation("Ingredient not found: {IngredientName}", ingredientName);
                 _logger.LogInformation("Creating new ingredient: {IngredientName}", ingredientName);
@@ -361,8 +480,16 @@ public class RecipeManager : IRecipeManager
                     IngredientName = ingredientName,
                     Measurement = ingredientMeasurementType
                 };
-                await _ingredientRepository.CreateIngredient(newIngredient);
+                var createIngredientResult = await _ingredientRepository.CreateIngredient(newIngredient);
+                if (!createIngredientResult.IsSuccess)
+                {
+                    return Result<ICollection<IngredientQuantity>>.Failure(createIngredientResult.ErrorMessage!, createIngredientResult.FailureType);
+                }
                 _logger.LogInformation("Created new ingredient: {IngredientName}", ingredientName);
+            }
+            else
+            {
+                newIngredient = newIngredientResult.Value!;
             }
 
             _logger.LogInformation("Adding ingredient to recipe: {IngredientName}", ingredientName);
@@ -374,6 +501,6 @@ public class RecipeManager : IRecipeManager
             ingredientQuantities.Add(ingredientQuantity);
         }
 
-        return ingredientQuantities;
+        return Result<ICollection<IngredientQuantity>>.Success(ingredientQuantities);
     }
 }

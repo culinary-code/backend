@@ -1,7 +1,7 @@
 ﻿using DAL.Accounts;
 using DAL.EF;
 using DOM.Accounts;
-using DOM.Exceptions;
+using DOM.Results;
 using Microsoft.EntityFrameworkCore;
 
 namespace CulinaryCode.Tests.DAL.Accounts;
@@ -34,16 +34,16 @@ public class AccountRepositoryTests
         };
 
         _dbContext.Accounts.Add(account);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Act
         var result = await _accountRepository.ReadAccount(account.AccountId);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(account.AccountId, result.AccountId);
-        Assert.Equal(account.Name, result.Name);
-        Assert.Equal(account.Email, result.Email);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(account.AccountId, result.Value!.AccountId);
+        Assert.Equal(account.Name, result.Value.Name);
+        Assert.Equal(account.Email, result.Value.Email);
     }
     
     [Fact]
@@ -52,8 +52,12 @@ public class AccountRepositoryTests
         // Arrange
         var accountId = Guid.NewGuid();
         
-        // Act & Assert
-        await Assert.ThrowsAsync<AccountNotFoundException>(async () => await _accountRepository.ReadAccount(accountId));
+        // Act
+        var result = await _accountRepository.ReadAccount(accountId);
+        
+        //Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
 
     [Fact]
@@ -78,6 +82,7 @@ public class AccountRepositoryTests
         var result = await _dbContext.Accounts.FindAsync(account.AccountId);
         Assert.NotNull(result);
         Assert.Equal(account.AccountId, result.AccountId);
+        Assert.Equal("Updated Account", result.Name);
     }
 
     [Fact]

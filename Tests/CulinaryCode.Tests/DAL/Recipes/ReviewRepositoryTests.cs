@@ -2,8 +2,8 @@
 using DAL.EF;
 using DAL.Recipes;
 using DOM.Accounts;
-using DOM.Exceptions;
 using DOM.Recipes;
+using DOM.Results;
 
 namespace CulinaryCode.Tests.DAL.Recipes;
 
@@ -35,9 +35,9 @@ public class ReviewRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         var result = await _recipeRepository.ReadReviewWithAccountByReviewIdNoTracking(review.ReviewId);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(review.ReviewId, result.ReviewId);
-        Assert.Equal(review.Account.AccountId, result.Account.AccountId);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(review.ReviewId, result.Value!.ReviewId);
+        Assert.Equal(review.Account.AccountId, result.Value.Account.AccountId);
     }
 
     [Fact]
@@ -47,10 +47,11 @@ public class ReviewRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         var reviewId = Guid.NewGuid();
 
         // Act
-        async Task Act() => await _recipeRepository.ReadReviewWithAccountByReviewIdNoTracking(reviewId);
+        var result = await _recipeRepository.ReadReviewWithAccountByReviewIdNoTracking(reviewId);
 
         // Assert
-        await Assert.ThrowsAsync<ReviewNotFoundException>(Act);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
     
     [Fact]
@@ -78,10 +79,10 @@ public class ReviewRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         var result = await _recipeRepository.ReadReviewsWithAccountByRecipeIdNoTracking(recipe.RecipeId);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(2, result.Count);
-        Assert.Contains(result, r => r.ReviewId == review1.ReviewId);
-        Assert.Contains(result, r => r.ReviewId == review2.ReviewId);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, result.Value!.Count);
+        Assert.Contains(result.Value, r => r.ReviewId == review1.ReviewId);
+        Assert.Contains(result.Value, r => r.ReviewId == review2.ReviewId);
     }
     
     [Fact]
@@ -94,8 +95,8 @@ public class ReviewRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         var result = await _recipeRepository.ReadReviewsWithAccountByRecipeIdNoTracking(recipeId);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Empty(result);
+        Assert.True(result.IsSuccess);
+        Assert.Empty(result.Value!);
     }
     
     [Fact]

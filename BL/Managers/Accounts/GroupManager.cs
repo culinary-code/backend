@@ -1,5 +1,6 @@
 ﻿using DAL.Accounts;
 using DOM.Accounts;
+using DOM.Results;
 
 namespace BL.Managers.Accounts;
 
@@ -14,31 +15,42 @@ public class GroupManager : IGroupManager
         _accountRepository = accountRepository;
     }
 
-    public async Task CreateGroupAsync(string groupName, Guid ownerId)
+    public async Task<Result<Unit>> CreateGroupAsync(string groupName, Guid ownerId)
     {
         var group = new Group
         {
             GroupName = groupName,
         };
         
-        var owner = await _accountRepository.ReadAccount(ownerId);
+        var ownerResult = await _accountRepository.ReadAccount(ownerId);
+        if (!ownerResult.IsSuccess)
+        {
+            return Result<Unit>.Failure(ownerResult.ErrorMessage!, ownerResult.FailureType);
+        }
+        var owner = ownerResult.Value!;
         
         group.Accounts.Add(owner);
         await _groupRepository.CreateGroupAsync(group);
+        return Result<Unit>.Success(new Unit());
     }
 
-    public async Task AddUserToGroupAsync(Guid groupId, Guid userId)
+    public async Task<Result<Unit>> AddUserToGroupAsync(Guid groupId, Guid userId)
     {
-        await _groupRepository.AddUserToGroupAsync(groupId, userId);
+        var groupResult = await _groupRepository.AddUserToGroupAsync(groupId, userId);
+        if (!groupResult.IsSuccess)
+        {
+            return Result<Unit>.Failure(groupResult.ErrorMessage!, groupResult.FailureType);
+        }
+        return Result<Unit>.Success(new Unit());
     }
 
-    public async Task<List<Group>> GetAllGroupsByUserIdAsync(Guid userId)
+    public async Task<Result<List<Group>>> GetAllGroupsByUserIdAsync(Guid userId)
     {
         return await _groupRepository.ReadGroupsByUserId(userId);
     }
 
-    public async Task RemoveUserFromGroup(Guid groupId, Guid userId)
+    public async Task<Result<Unit>> RemoveUserFromGroup(Guid groupId, Guid userId)
     {
-        await _groupRepository.DeleteUserFromGroup(groupId, userId);
+        return await _groupRepository.DeleteUserFromGroup(groupId, userId);
     }
 }

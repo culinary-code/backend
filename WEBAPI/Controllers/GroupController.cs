@@ -3,6 +3,7 @@ using BL.Services;
 using DAL.Accounts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WEBAPI.ResultExtension;
 
 namespace WEBAPI.Controllers;
 
@@ -16,7 +17,8 @@ public class GroupController : ControllerBase
     private readonly IAccountManager _accountManager;
     private readonly IIdentityProviderService _identityProviderService;
 
-    public GroupController(ILogger<GroupController> logger, IGroupManager groupManager, IAccountManager accountManager, IIdentityProviderService identityProviderService)
+    public GroupController(ILogger<GroupController> logger, IGroupManager groupManager, IAccountManager accountManager,
+        IIdentityProviderService identityProviderService)
     {
         _logger = logger;
         _groupManager = groupManager;
@@ -27,69 +29,66 @@ public class GroupController : ControllerBase
     [HttpPost("createGroup")]
     public async Task<IActionResult> CreateGroup([FromQuery] string groupName)
     {
-        try
+        var userIdResult =
+            _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+        if (!userIdResult.IsSuccess)
         {
-            Guid ownerId =
-                _identityProviderService.GetGuidFromAccessToken(
-                    Request.Headers["Authorization"].ToString().Substring(7));
+            return BadRequest(userIdResult.ErrorMessage);
+        }
 
-            await _groupManager.CreateGroupAsync(groupName, ownerId);
-            return Ok(groupName);
-        }
-        catch
-        {
-            _logger.LogError($"Group {groupName} not created");
-            return BadRequest();
-        }
+        var ownerId = userIdResult.Value;
+
+        var result = await _groupManager.CreateGroupAsync(groupName, ownerId);
+        return result.ToActionResult();
     }
 
     [HttpPost("{groupId}/addUserToGroup")]
     public async Task<IActionResult> AddUserToGroup(Guid groupId)
     {
-        try
+        var userIdResult =
+            _identityProviderService.GetGuidFromAccessToken(
+                Request.Headers["Authorization"].ToString().Substring(7));
+        if (!userIdResult.IsSuccess)
         {
-            Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+            return BadRequest(userIdResult.ErrorMessage);
+        }
 
-            await _groupManager.AddUserToGroupAsync(groupId, userId);
-            return Ok(groupId);
-        }
-        catch
-        {
-            _logger.LogError($"Could not add user to group {groupId}");
-            return BadRequest();
-        }
+        var userId = userIdResult.Value;
+
+        var result = await _groupManager.AddUserToGroupAsync(groupId, userId);
+        return result.ToActionResult();
     }
 
     [HttpGet("getGroups")]
-    public async Task<IActionResult> GetGroups(Guid userId)
+    public async Task<IActionResult> GetGroups()
     {
-        try
+        var userIdResult =
+            _identityProviderService.GetGuidFromAccessToken(
+                Request.Headers["Authorization"].ToString().Substring(7));
+        if (!userIdResult.IsSuccess)
         {
-            userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
-            var groups = await _groupManager.GetAllGroupsByUserIdAsync(userId);
-            return Ok(groups);
+            return BadRequest(userIdResult.ErrorMessage);
         }
-        catch
-        {
-            _logger.LogError($"Could not get groups for user {userId}");
-            return BadRequest();
-        }
+
+        var userId = userIdResult.Value;
+        var groups = await _groupManager.GetAllGroupsByUserIdAsync(userId);
+        return groups.ToActionResult();
     }
-    
+
     [HttpPost("{groupId}/removeUser")]
     public async Task<IActionResult> RemoveUserFromGroup(Guid groupId)
     {
-        try
+        var userIdResult =
+            _identityProviderService.GetGuidFromAccessToken(
+                Request.Headers["Authorization"].ToString().Substring(7));
+        if (!userIdResult.IsSuccess)
         {
-            Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+            return BadRequest(userIdResult.ErrorMessage);
+        }
 
-            await _groupManager.RemoveUserFromGroup(groupId, userId);
-            return Ok(groupId);
-        }
-        catch
-        {
-            _logger.LogError($"Could not remove user from group {groupId}");
-            return BadRequest();
-        }
+        var userId = userIdResult.Value;
+
+        var result = await _groupManager.RemoveUserFromGroup(groupId, userId);
+        return result.ToActionResult();
     }
 }

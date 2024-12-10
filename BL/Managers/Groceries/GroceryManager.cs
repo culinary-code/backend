@@ -4,9 +4,9 @@ using BL.DTOs.Recipes.Ingredients;
 using DAL.Accounts;
 using DAL.Groceries;
 using DAL.Recipes;
-using DOM.Exceptions;
 using DOM.MealPlanning;
 using DOM.Recipes.Ingredients;
+using DOM.Results;
 using Microsoft.Extensions.Logging;
 
 namespace BL.Managers.Groceries;
@@ -29,92 +29,104 @@ public class GroceryManager : IGroceryManager
         _ingredientRepository = ingredientRepository;
     }
 
-    public async Task CreateNewGroceryList(GroceryList groceryList)
+    public async Task<Result<GroceryListDto>> GetGroceryListWithNextWeek(Guid accountId)
     {
-        await _groceryRepository.CreateGroceryList(groceryList);
-    }
+        var accountResult = await _accountRepository.ReadAccountWithMealPlannerNextWeekAndWithGroceryListNoTracking(accountId);
+        if (!accountResult.IsSuccess)
+        {
+            return Result<GroceryListDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
+        }
+        var account = accountResult.Value;
+        
+        var completeGroceryList = account!.GroceryList;
 
-    public async Task<GroceryListDto> GetGroceryListWithNextWeek(Guid accountId)
-    {
-        var account = await _accountRepository.ReadAccountWithMealPlannerNextWeekAndWithGroceryListNoTracking(accountId);
-        var completeGroceryList = account.GroceryList;
-
-        foreach (var plannedMeal in account.Planner.NextWeek)
+        foreach (var plannedMeal in account.Planner!.NextWeek)
         {
             foreach (var ingredient in plannedMeal.Ingredients)
             {
-                completeGroceryList.Ingredients.Add(ingredient);
+                completeGroceryList!.Ingredients.Add(ingredient);
             }
         }
         
-        
-        return _mapper.Map<GroceryListDto>(completeGroceryList);
+        return  Result<GroceryListDto>.Success(_mapper.Map<GroceryListDto>(completeGroceryList));
     }
 
-    public async Task<GroceryListDto> GetGroceryList(string id)
-    {
-        Guid groceryId = Guid.Parse(id);
-        var groceryList = await _groceryRepository.ReadGroceryListByIdNoTracking(groceryId);
-        return _mapper.Map<GroceryListDto>(groceryList);
-    }
-
-    public async Task<GroceryListDto> GetGroceryListByAccountId(string accountId)
+    public async Task<Result<GroceryListDto>> GetGroceryListByAccountId(string accountId)
     {
         Guid id = Guid.Parse(accountId);
-        var groceryList = await _groceryRepository.ReadGroceryListByAccountId(id);
-        return _mapper.Map<GroceryListDto>(groceryList);
+        var groceryListResult = await _groceryRepository.ReadGroceryListByAccountId(id);
+        if (!groceryListResult.IsSuccess)
+        {
+            return Result<GroceryListDto>.Failure(groceryListResult.ErrorMessage!, groceryListResult.FailureType);
+        }
+        var groceryList = groceryListResult.Value!;
+        
+        return Result<GroceryListDto>.Success(_mapper.Map<GroceryListDto>(groceryList));
     }
 
-    public async Task AddItemToGroceryList(Guid userId, ItemQuantityDto newListItem)
+    public async Task<Result<Unit>> AddItemToGroceryList(Guid userId, ItemQuantityDto newListItem)
     {
-        if (newListItem == null)
+        var groceryListResult = await _groceryRepository.ReadGroceryListByAccountId(userId);
+        if (!groceryListResult.IsSuccess)
         {
-            throw new GroceryListItemNotFoundException("No itemquantityDto provided" );
+            return Result<Unit>.Failure(groceryListResult.ErrorMessage!, groceryListResult.FailureType);
         }
-        
-        var groceryList = await _groceryRepository.ReadGroceryListByAccountId(userId);
+        var groceryList = groceryListResult.Value!;
         
         // if newListItem has quantityId: add item to gl, else update existing row
         // when a new item is passed into the endpoint, it will not have an existing ItemQuantity, thus its Guid will be 00000000-0000-0000-0000-000000000000
         if (newListItem.ItemQuantityId == Guid.Parse("00000000-0000-0000-0000-000000000000"))
         {
+            // a new item to be added cannot be empty
             if (newListItem.GroceryItem == null)
             {
-                throw new GroceryListItemNotFoundException("Item does not exist.");
+                return Result<Unit>.Failure("Item does not exist.", ResultFailureType.Error);
             }
             var name = newListItem.GroceryItem.GroceryItemName;
-            await CreateNewItemInGroceryList(groceryList, name, newListItem);
+            var createNewItemResult = await CreateNewItemInGroceryList(groceryList, name, newListItem);
+            if (!createNewItemResult.IsSuccess)
+            {
+                return Result<Unit>.Failure(createNewItemResult.ErrorMessage!, createNewItemResult.FailureType);
+            }
         }
         else
         {
-            await UpdateExistingGroceryListItem(newListItem);
+            var updateExistingGroceryListItemResult = await UpdateExistingGroceryListItem(newListItem);
+            if (!updateExistingGroceryListItemResult.IsSuccess)
+            {
+                return Result<Unit>.Failure(updateExistingGroceryListItemResult.ErrorMessage!, updateExistingGroceryListItemResult.FailureType);
+            }
         }
-        await _groceryRepository.UpdateGroceryList(groceryList);
+        var updateGroceryListResult = await _groceryRepository.UpdateGroceryList(groceryList);
+        if (!updateGroceryListResult.IsSuccess)
+        {
+            return Result<Unit>.Failure(updateGroceryListResult.ErrorMessage!, updateGroceryListResult.FailureType);
+        }
+        
+        return Result<Unit>.Success(new Unit());
     }
     
-    public async Task RemoveItemFromGroceryList(Guid userId, ItemQuantityDto removeItem)
+    public async Task<Result<Unit>> RemoveItemFromGroceryList(Guid userId, ItemQuantityDto removeItem)
     {
         if (removeItem.IsIngredient)
         {
-            await _ingredientRepository.DeleteIngredientQuantity(userId, removeItem.ItemQuantityId);
+            return await _ingredientRepository.DeleteIngredientQuantity(userId, removeItem.ItemQuantityId);
         }
-        else
-        {
-            await _groceryRepository.DeleteItemQuantity(userId, removeItem.ItemQuantityId);
-        }
+
+        return await _groceryRepository.DeleteItemQuantity(userId, removeItem.ItemQuantityId);
     }
 
-    private async Task CreateNewItemInGroceryList(GroceryList groceryList, string name, ItemQuantityDto newListItem)
+    private async Task<Result<Unit>> CreateNewItemInGroceryList(GroceryList groceryList, string name, ItemQuantityDto newListItem)
     {
         MeasurementType measurementType = newListItem.GroceryItem.Measurement;
-        Ingredient? ingredient = await _ingredientRepository.ReadPossibleIngredientByNameAndMeasurement(name, measurementType);
+        var ingredientResult = await _ingredientRepository.ReadIngredientByNameAndMeasurementType(name, measurementType);
 
         // if no ingredient is found with that id, it is an item
-        if (ingredient == null)
+        if (!ingredientResult.IsSuccess && ingredientResult.FailureType == ResultFailureType.NotFound)
         {
-            GroceryItem? groceryItem = await _groceryRepository.ReadPossibleGroceryItemByNameAndMeasurement(name, measurementType);
+            var groceryItemResult = await _groceryRepository.ReadGroceryItemByNameAndMeasurement(name, measurementType);
             ItemQuantity newItemQuantity;
-            if (groceryItem == null)
+            if (!groceryItemResult.IsSuccess && groceryItemResult.FailureType == ResultFailureType.NotFound)
             {
                 var newGroceryItem = new GroceryItem
                 {
@@ -129,6 +141,7 @@ public class GroceryManager : IGroceryManager
             }
             else
             {
+                var groceryItem = groceryItemResult.Value!;
                 newItemQuantity = new ItemQuantity()
                 {
                     GroceryItem = groceryItem,
@@ -139,26 +152,38 @@ public class GroceryManager : IGroceryManager
         }
         else
         {
+            var ingredient = ingredientResult.Value!;
             groceryList.Ingredients.Add(new IngredientQuantity()
             {
                 Ingredient = ingredient,
                 Quantity = newListItem.Quantity,
             });
         }
+        return Result<Unit>.Success(new Unit());
     }
 
-    private async Task UpdateExistingGroceryListItem(ItemQuantityDto newListItem)
+    private async Task<Result<Unit>> UpdateExistingGroceryListItem(ItemQuantityDto newListItem)
     {
         if (newListItem.IsIngredient)
         {
-            IngredientQuantity ingredientQuantity = await _ingredientRepository.ReadIngredientQuantityById(newListItem.ItemQuantityId);
+            var ingredientQuantityResult = await _ingredientRepository.ReadIngredientQuantityById(newListItem.ItemQuantityId);
+            if (!ingredientQuantityResult.IsSuccess)
+            {
+                return Result<Unit>.Failure(ingredientQuantityResult.ErrorMessage!, ingredientQuantityResult.FailureType);
+            }
+            var ingredientQuantity = ingredientQuantityResult.Value!;
             ingredientQuantity.Quantity = newListItem.Quantity;
         }
         else
         {
-            ItemQuantity itemQuantity = await _groceryRepository.ReadItemQuantityById(newListItem.ItemQuantityId);
+            var itemQuantityResult = await _groceryRepository.ReadItemQuantityById(newListItem.ItemQuantityId);
+            if (!itemQuantityResult.IsSuccess)
+            {
+                return Result<Unit>.Failure(itemQuantityResult.ErrorMessage!, itemQuantityResult.FailureType);
+            }
+            var itemQuantity = itemQuantityResult.Value!;
             itemQuantity.Quantity = newListItem.Quantity;
         }
-        
+        return Result<Unit>.Success(new Unit());
     }
 }

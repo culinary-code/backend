@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BL.Managers.Accounts;
+using Microsoft.AspNetCore.Mvc;
+using WEBAPI.ResultExtension;
 
 namespace WEBAPI.Controllers;
 
@@ -18,14 +20,7 @@ public class PreferenceController : ControllerBase
     [HttpGet("getStandardPreference")]
     public async Task<IActionResult> GetStandardPreference()
     {
-        try
-        {
-            var standardPreferences = await _preferenceManager.GetStandardPreferences();
-            return Ok(standardPreferences);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        var standardPreferencesResult = await _preferenceManager.GetStandardPreferences();
+        return standardPreferencesResult.ToActionResult();
     }
 }

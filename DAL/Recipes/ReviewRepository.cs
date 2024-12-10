@@ -1,6 +1,6 @@
 ﻿using DAL.EF;
 using DOM.Accounts;
-using DOM.Exceptions;
+using DOM.Results;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Recipes;
@@ -15,7 +15,7 @@ public class ReviewRepository : IReviewRepository
     }
 
     // used to return a dto, doesn't need to be tracked
-    public async Task<Review> ReadReviewWithAccountByReviewIdNoTracking(Guid id)
+    public async Task<Result<Review>> ReadReviewWithAccountByReviewIdNoTracking(Guid id)
     {
         var review = await _ctx.Reviews
             .Include(r => r.Account)
@@ -23,14 +23,14 @@ public class ReviewRepository : IReviewRepository
             .FirstOrDefaultAsync(r => r.ReviewId == id);
         if (review is null)
         {
-            throw new ReviewNotFoundException($"No review found with id {id}");
+            return Result<Review>.Failure($"No review found with id {id}", ResultFailureType.NotFound);
         }
 
-        return review;
+        return Result<Review>.Success(review);
     }
 
     // used to return a dto, doesn't need to be tracked
-    public async Task<ICollection<Review>> ReadReviewsWithAccountByRecipeIdNoTracking(Guid recipeId)
+    public async Task<Result<ICollection<Review>>> ReadReviewsWithAccountByRecipeIdNoTracking(Guid recipeId)
     {
         var reviews = await _ctx.Reviews
             .Where(r => r.Recipe != null && r.Recipe.RecipeId == recipeId)
@@ -38,19 +38,22 @@ public class ReviewRepository : IReviewRepository
             .AsNoTrackingWithIdentityResolution()
             .ToListAsync();
 
-        return reviews;
+        return Result<ICollection<Review>>.Success(reviews);
     }
 
-    public async Task CreateReview(Review review)
+    public async Task<Result<Unit>> CreateReview(Review review)
     {
         _ctx.Reviews.Add(review);
         await _ctx.SaveChangesAsync();
+        return Result<Unit>.Success(new Unit());
     }
     
-    public async Task<bool> ReviewExistsForAccountAndRecipe(Guid accountId, Guid recipeId)
+    public async Task<Result<bool>> ReviewExistsForAccountAndRecipe(Guid accountId, Guid recipeId)
     {
-        return await _ctx.Reviews
+        var reviewExists = await _ctx.Reviews
             .AsNoTrackingWithIdentityResolution()
             .AnyAsync(r => r.Account!.AccountId == accountId && r.Recipe!.RecipeId == recipeId);
+        
+        return Result<bool>.Success(reviewExists);
     }
 }

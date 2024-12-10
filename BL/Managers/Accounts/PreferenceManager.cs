@@ -2,6 +2,7 @@
 using BL.DTOs.Accounts;
 using DAL.Recipes;
 using DOM.Accounts;
+using DOM.Results;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -20,9 +21,14 @@ public class PreferenceManager : IPreferenceManager
         _mapper = mapper;
     }
 
-    public async Task<List<PreferenceDto>> GetStandardPreferences()
+    public async Task<Result<List<PreferenceDto>>> GetStandardPreferences()
     {
-        var preferences = await _preferenceRepository.ReadStandardPreferences();
-        return _mapper.Map<List<PreferenceDto>>(preferences);
+        var preferencesResult = await _preferenceRepository.ReadStandardPreferences();
+        if (!preferencesResult.IsSuccess)
+        {
+            return Result<List<PreferenceDto>>.Failure(preferencesResult.ErrorMessage!, preferencesResult.FailureType);
+        }
+        var preferences = preferencesResult.Value;
+        return Result<List<PreferenceDto>>.Success(_mapper.Map<List<PreferenceDto>>(preferences));
     }
 }

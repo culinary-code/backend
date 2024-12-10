@@ -1,13 +1,12 @@
 ﻿using BL.DTOs.MealPlanning;
 using BL.Managers.MealPlanning;
 using BL.Services;
-using DOM.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using WEBAPI.ResultExtension;
 
 namespace WEBAPI.Controllers;
-
 
 [Route("api/[controller]")]
 [ApiController]
@@ -18,7 +17,8 @@ public class MealPlannerController : ControllerBase
     private readonly IIdentityProviderService _identityProviderService;
     private readonly IMealPlannerManager _mealPlannerManager;
 
-    public MealPlannerController(ILogger<AccountController> logger, IIdentityProviderService identityProviderService, IMealPlannerManager mealPlannerManager)
+    public MealPlannerController(ILogger<AccountController> logger, IIdentityProviderService identityProviderService,
+        IMealPlannerManager mealPlannerManager)
     {
         _logger = logger;
         _identityProviderService = identityProviderService;
@@ -28,51 +28,49 @@ public class MealPlannerController : ControllerBase
     [HttpPost("PlannedMeal/Create")]
     public async Task<IActionResult> CreateNewPlannedMeal([FromBody] PlannedMealDto plannedMealDto)
     {
-        
-        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers.Authorization.ToString().Substring(7));
-        
-        try
+        string token = Request.Headers["Authorization"].ToString().Substring(7);
+        var userIdResult = _identityProviderService.GetGuidFromAccessToken(token);
+        if (!userIdResult.IsSuccess)
         {
-            await _mealPlannerManager.CreateNewPlannedMeal(userId, plannedMealDto);
+            return userIdResult.ToActionResult();
+        }
 
-            return Ok();
-        }
-        catch (MealPlannerNotFoundException e)
-        {
-            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
-            return BadRequest(e.Message);
-        }
+        var userId = userIdResult.Value;
+
+        var createPlannedMealResult = await _mealPlannerManager.CreateNewPlannedMeal(userId, plannedMealDto);
+
+        return createPlannedMealResult.ToActionResult();
     }
-    
+
     [HttpGet("{dateTime}")]
     public async Task<IActionResult> GetRecipeCollectionByName(DateTime dateTime)
     {
-        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers.Authorization.ToString().Substring(7));
-        try
+        string token = Request.Headers["Authorization"].ToString().Substring(7);
+        var userIdResult = _identityProviderService.GetGuidFromAccessToken(token);
+        if (!userIdResult.IsSuccess)
         {
-            var plannedMeals = await _mealPlannerManager.GetPlannedMealsFromUserAfterDate(dateTime, userId);
-            return Ok(plannedMeals);
+            return userIdResult.ToActionResult();
         }
-        catch (MealPlannerNotFoundException e)
-        {
-            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
-            return NotFound(e.Message);
-        }
+
+        var userId = userIdResult.Value;
+
+        var plannedMealsResult = await _mealPlannerManager.GetPlannedMealsFromUserAfterDate(dateTime, userId);
+        return plannedMealsResult.ToActionResult();
     }
-    
+
     [HttpGet("NextWeekIngredients")]
     public async Task<IActionResult> GetNextWeekIngredients()
     {
-        Guid userId = _identityProviderService.GetGuidFromAccessToken(Request.Headers.Authorization.ToString().Substring(7));
-        try
+        string token = Request.Headers["Authorization"].ToString().Substring(7);
+        var userIdResult = _identityProviderService.GetGuidFromAccessToken(token);
+        if (!userIdResult.IsSuccess)
         {
-            var ingredients = await _mealPlannerManager.GetNextWeekIngredients(userId);
-            return Ok(ingredients);
+            return userIdResult.ToActionResult();
         }
-        catch (MealPlannerNotFoundException e)
-        {
-            _logger.LogError("An error occurred: {ErrorMessage}", e.Message);
-            return NotFound(e.Message);
-        }
+
+        var userId = userIdResult.Value;
+
+        var ingredientsResult = await _mealPlannerManager.GetNextWeekIngredients(userId);
+        return ingredientsResult.ToActionResult();
     }
 }

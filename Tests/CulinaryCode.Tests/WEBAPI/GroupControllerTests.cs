@@ -1,5 +1,6 @@
 ﻿using BL.Managers.Accounts;
 using BL.Services;
+using DOM.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -34,7 +35,8 @@ public class GroupControllerTests
 
         _identityProviderServiceMock
             .Setup(s => s.GetGuidFromAccessToken(It.IsAny<string>()))
-            .Returns(ownerId);
+            .Returns(Result<Guid>.Success(ownerId));
+        _groupManagerMock.Setup(g=> g.CreateGroupAsync(groupName, ownerId)).ReturnsAsync(Result<Unit>.Success(new Unit()));
 
         // Mock the HttpContext and Authorization header
         var mockHttpContext = new Mock<HttpContext>();
@@ -57,7 +59,6 @@ public class GroupControllerTests
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
-        Assert.Equal(groupName, okResult.Value);
         _groupManagerMock.Verify(manager => manager.CreateGroupAsync(groupName, ownerId), Times.Once);
     }
 } 

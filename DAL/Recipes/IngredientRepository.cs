@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using DAL.EF;
-using DOM.Exceptions;
 using DOM.Recipes.Ingredients;
+using DOM.Results;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Recipes;
@@ -17,54 +17,49 @@ public class IngredientRepository : IIngredientRepository
     }
 
     // used to create new planned meal, needs to be tracked
-    public async Task<Ingredient> ReadIngredientById(Guid id)
+    public async Task<Result<Ingredient>> ReadIngredientById(Guid id)
     {
         Ingredient? ingredient = await _ctx.Ingredients.FindAsync(id);
         if (ingredient is null)
         {
-            throw new IngredientNotFoundException($"No ingredient found with id {id}");
+            return Result<Ingredient>.Failure($"No ingredient found with id {id}", ResultFailureType.NotFound);
         }
-        return ingredient;
+        return Result<Ingredient>.Success(ingredient);
     }
     
     // used to update grocery list, needs to be tracked
-    public async Task<IngredientQuantity> ReadIngredientQuantityById(Guid id)
+    public async Task<Result<IngredientQuantity>> ReadIngredientQuantityById(Guid id)
     {
         IngredientQuantity? ingredientQuantity = await _ctx.IngredientQuantities.FindAsync(id);
         if (ingredientQuantity is null)
         {
-            throw new IngredientQuantityNotFoundException($"No ingredientQuantity found with id {id}");
+            return Result<IngredientQuantity>.Failure($"No ingredientQuantity found with id {id}", ResultFailureType.NotFound);
         }
-        return ingredientQuantity;
-    }
-    
-    // used to add item to grocery list, needs to be tracked
-    public async Task<Ingredient?> ReadPossibleIngredientByNameAndMeasurement(string name, MeasurementType measurementType)
-    {
-        return await _ctx.Ingredients.FirstOrDefaultAsync(i => i.IngredientName == name && i.Measurement == measurementType);
-
+        return Result<IngredientQuantity>.Success(ingredientQuantity);
     }
 
     // used to create new recipes, needs to be tracked
-    public async Task<Ingredient> ReadIngredientByNameAndMeasurementType(string name, MeasurementType measurementType)
+    public async Task<Result<Ingredient>> ReadIngredientByNameAndMeasurementType(string name, MeasurementType measurementType)
     {
         Ingredient? ingredient = await _ctx.Ingredients.FirstOrDefaultAsync(i =>
             i.IngredientName == name && i.Measurement == measurementType);
         if (ingredient is null)
         {
-            throw new IngredientNotFoundException($"No ingredient found with name {name} and measurement type {measurementType}");
+            return Result<Ingredient>.Failure($"No ingredient found with name {name} and measurement type {measurementType}", ResultFailureType.NotFound);
+
         }
-        return ingredient;
+        return Result<Ingredient>.Success(ingredient);
     }
 
-    public async Task CreateIngredient(Ingredient ingredient)
+    public async Task<Result<Unit>> CreateIngredient(Ingredient ingredient)
     {
         await _ctx.Ingredients.AddAsync(ingredient);
         await _ctx.SaveChangesAsync();
+        return Result<Unit>.Success(new Unit());
     }
     
 
-    public async Task DeleteIngredientQuantity(Guid userId, Guid ingredientQuantityId)
+    public async Task<Result<Unit>> DeleteIngredientQuantity(Guid userId, Guid ingredientQuantityId)
     {
         var ingredientQuantity = await _ctx.IngredientQuantities
             .Include(i => i.GroceryList)
@@ -76,40 +71,34 @@ public class IngredientRepository : IIngredientRepository
 
         if (ingredientQuantity == null)
         {
-            throw new IngredientQuantityNotFoundException($"No ingredientQuantity found with id {ingredientQuantityId}");
+            return Result<Unit>.Failure($"No ingredientQuantity found with id {ingredientQuantityId}", ResultFailureType.NotFound);
         }
 
         if (ingredientQuantity.GroceryList != null)
         {
-            if (ingredientQuantity.GroceryList.Account!.AccountId == userId)
-            {
-                _ctx.IngredientQuantities.Remove(ingredientQuantity);
-                await _ctx.SaveChangesAsync();
-            }
-            else
-            {
-                throw new AccountMismatchException(
-                    "The ingredient quantity you are trying to remove belongs to another account");
-            }
+            if (ingredientQuantity.GroceryList.Account!.AccountId != userId)
+                return Result<Unit>.Failure(
+                    "The ingredient quantity you are trying to remove belongs to another account",
+                    ResultFailureType.Error);
             
-        }else if (ingredientQuantity.PlannedMeal != null)
-        {
-            if(ingredientQuantity.PlannedMeal.NextWeekMealPlanner!.Account!.AccountId == userId)
-            {
-                _ctx.IngredientQuantities.Remove(ingredientQuantity);
-                await _ctx.SaveChangesAsync();
-            }
-            else
-            {
-                throw new AccountMismatchException(
-                    "The ingredient quantity you are trying to remove belongs to another account");
-            }
+            _ctx.IngredientQuantities.Remove(ingredientQuantity);
+            await _ctx.SaveChangesAsync();
+            return Result<Unit>.Success(new Unit());
+
         }
-        else
+        if (ingredientQuantity.PlannedMeal != null)
         {
-            throw new IngredientQuantityNotFoundException(
-                "The ingredient quantity you are trying to remove belongs to a recipe");
+            if (ingredientQuantity.PlannedMeal.NextWeekMealPlanner!.Account!.AccountId != userId)
+                return Result<Unit>.Failure(
+                    "The ingredient quantity you are trying to remove belongs to another account",
+                    ResultFailureType.Error);
+            
+            _ctx.IngredientQuantities.Remove(ingredientQuantity);
+            await _ctx.SaveChangesAsync();
+            return Result<Unit>.Success(new Unit());
         }
-        
+
+        // if it has no planned meal or grocery list, it has to be an ingredient quantity from a recipe
+        return Result<Unit>.Failure("The ingredient quantity you are trying to remove belongs to a recipe", ResultFailureType.Error);
     }
 }

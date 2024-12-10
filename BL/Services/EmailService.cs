@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Mail;
 using Configuration.Options;
+using DOM.Results;
 using Microsoft.Extensions.Options;
 
 namespace BL.Services;
@@ -20,7 +21,7 @@ public class EmailService : IEmailService
         _smtpPassword = emailServiceOptions.SmtpPassword;
     }
     
-    public async Task SendInvitationEmailAsync(string email, string token, string invitedUser, string inviterName)
+    public async Task<Result<Unit>> SendInvitationEmailAsync(string email, string token, string invitedUser, string inviterName)
     {
         var smtpClient = new SmtpClient(_smtpClient)
         {
@@ -140,5 +141,6 @@ public class EmailService : IEmailService
         
         mailMessage.To.Add(email);
         await smtpClient.SendMailAsync(mailMessage);
+        return Result<Unit>.Success(new Unit());
     }
 }

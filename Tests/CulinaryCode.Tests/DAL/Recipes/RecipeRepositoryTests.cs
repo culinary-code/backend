@@ -4,9 +4,9 @@ using CulinaryCode.Tests.Util;
 using DAL.EF;
 using DAL.Recipes;
 using DOM.Accounts;
-using DOM.Exceptions;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
+using DOM.Results;
 using Microsoft.EntityFrameworkCore;
 
 namespace CulinaryCode.Tests.DAL.Recipes;
@@ -47,9 +47,9 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         var result = await _recipeRepository.ReadRecipeWithRelatedInformationByIdNoTracking(recipe.RecipeId);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(recipe.RecipeId, result.RecipeId);
-        Assert.Equal(recipe.RecipeName, result.RecipeName);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(recipe.RecipeId, result.Value!.RecipeId);
+        Assert.Equal(recipe.RecipeName, result.Value.RecipeName);
     }
 
     [Fact]
@@ -58,8 +58,12 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         // Arrange
         var recipeId = Guid.NewGuid();
 
-        // Act & Assert
-        await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _recipeRepository.ReadRecipeWithRelatedInformationByIdNoTracking(recipeId));
+        // Act 
+        var result = await _recipeRepository.ReadRecipeWithRelatedInformationByIdNoTracking(recipeId);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
 
     [Fact]
@@ -74,9 +78,9 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         var result = await _recipeRepository.ReadRecipeByNameNoTracking(recipe.RecipeName);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(recipe.RecipeId, result.RecipeId);
-        Assert.Equal(recipe.RecipeName, result.RecipeName);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(recipe.RecipeId, result.Value!.RecipeId);
+        Assert.Equal(recipe.RecipeName, result.Value.RecipeName);
     }
 
     [Fact]
@@ -85,8 +89,12 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         // Arrange
         var recipeName = "Test Recipe";
 
-        // Act & Assert
-        await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _recipeRepository.ReadRecipeByNameNoTracking(recipeName));
+        // Act 
+        var result = await _recipeRepository.ReadRecipeByNameNoTracking(recipeName);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
 
     [Fact]
@@ -103,8 +111,8 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         var result = await _recipeRepository.ReadRecipesCollectionByNameNoTracking("Test Recipe");
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(2, result.Count);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, result.Value!.Count);
     }
 
     [Fact]
@@ -113,8 +121,12 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
         // Arrange
         var recipeName = "Test Recipe";
 
-        // Act & Assert
-        await Assert.ThrowsAsync<RecipeNotFoundException>(async () => await _recipeRepository.ReadRecipesCollectionByNameNoTracking(recipeName));
+        // Act 
+        var result = await _recipeRepository.ReadRecipesCollectionByNameNoTracking(recipeName);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
 
     [Fact]
@@ -168,10 +180,10 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
             RecipeType.NotAvailable, 0, new List<string>());
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(2, result.Count);
-        Assert.Contains(result, r => r.RecipeName == "Spaghetti Bolognese");
-        Assert.Contains(result, r => r.RecipeName == "Spaghetti Carbonara");
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, result.Value!.Count);
+        Assert.Contains(result.Value, r => r.RecipeName == "Spaghetti Bolognese");
+        Assert.Contains(result.Value, r => r.RecipeName == "Spaghetti Carbonara");
     }
 
     [Fact]
@@ -192,9 +204,9 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
             0, new List<string>());
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal("Easy Dish", result.First().RecipeName);
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!);
+        Assert.Equal("Easy Dish", result.Value!.First().RecipeName);
     }
 
     [Fact]
@@ -215,9 +227,9 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
             0, new List<string>());
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal("Soup", result.First().RecipeName);
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!);
+        Assert.Equal("Soup", result.Value!.First().RecipeName);
     }
 
 
@@ -237,9 +249,9 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
             RecipeType.NotAvailable, 30, new List<string>());
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal("Quick Dish", result.First().RecipeName);
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!);
+        Assert.Equal("Quick Dish", result.Value!.First().RecipeName);
     }
 
     [Fact]
@@ -273,9 +285,9 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
             RecipeType.NotAvailable, 0, new List<string> { "Tomato", "Basil" });
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal("Tomato Soup", result.First().RecipeName);
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!);
+        Assert.Equal("Tomato Soup", result.Value!.First().RecipeName);
     }
 
 
@@ -290,8 +302,8 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
             RecipeType.NotAvailable, 0, new List<string>());
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Empty(result);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
     }
 
     [Fact]
@@ -323,9 +335,9 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
             RecipeType.NotAvailable, 30, new List<string>());
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal("Quick Tomato Pasta", result.First().RecipeName);
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!);
+        Assert.Equal("Quick Tomato Pasta", result.Value!.First().RecipeName);
     }
 
     [Fact]
@@ -359,9 +371,9 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
             RecipeType.NotAvailable, 0, new List<string> { "Chicken", "Garlic" });
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal("Garlic Chicken", result.First().RecipeName);
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!);
+        Assert.Equal("Garlic Chicken", result.Value!.First().RecipeName);
     }
 
     [Fact]
@@ -384,9 +396,9 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
             RecipeType.Dinner, 25, new List<string>());
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal("Vegan Salad", result.First().RecipeName);
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!);
+        Assert.Equal("Vegan Salad", result.Value!.First().RecipeName);
     }
 
 
@@ -422,9 +434,9 @@ public class RecipeRepositoryTests : IClassFixture<TestPostgresContainerFixture>
             RecipeType.Dinner, 25, new List<string> { "Rice", "Chicken" });
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal("Chicken Fried Rice", result.First().RecipeName);
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!);
+        Assert.Equal("Chicken Fried Rice", result.Value!.First().RecipeName);
     }
     
     [Fact]
