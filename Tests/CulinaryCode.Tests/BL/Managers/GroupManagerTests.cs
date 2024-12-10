@@ -10,7 +10,6 @@ public class GroupManagerTests
 {
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly Mock<IGroupRepository> _groupRepositoryMock;
-    private readonly Mock<IAccountManager> _accountManagerMock;
     private readonly Mock<IAccountRepository> _accountRepositoryMock;
     private readonly GroupManager _groupManager;
 
@@ -18,9 +17,8 @@ public class GroupManagerTests
     {
         _testOutputHelper = testOutputHelper;
         _groupRepositoryMock = new Mock<IGroupRepository>();
-        _accountManagerMock = new Mock<IAccountManager>();
         _accountRepositoryMock = new Mock<IAccountRepository>();
-        _groupManager = new GroupManager(_groupRepositoryMock.Object, _accountManagerMock.Object, _accountRepositoryMock.Object);
+        _groupManager = new GroupManager(_groupRepositoryMock.Object, _accountRepositoryMock.Object);
     }
     
     [Fact]

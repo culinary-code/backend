@@ -6,13 +6,11 @@ namespace BL.Managers.Accounts;
 public class GroupManager : IGroupManager
 {
     private readonly IGroupRepository _groupRepository;
-    private readonly IAccountManager _accountManager;
     private readonly IAccountRepository _accountRepository;
 
-    public GroupManager(IGroupRepository groupRepository, IAccountManager accountManager, IAccountRepository accountRepository)
+    public GroupManager(IGroupRepository groupRepository, IAccountRepository accountRepository)
     {
         _groupRepository = groupRepository;
-        _accountManager = accountManager;
         _accountRepository = accountRepository;
     }
 
