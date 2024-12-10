@@ -112,21 +112,25 @@ public class CulinaryCodeDbContext : DbContext
             entity.HasKey(r => r.AccountId);
             entity.HasMany(a => a.Reviews)
                 .WithOne(r => r.Account)
-                .HasForeignKey(r => r.AccountId);
+                .HasForeignKey(r => r.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasMany(a => a.FavoriteRecipes)
                 .WithOne(f => f.Account)
-                .HasForeignKey(f => f.AccountId);
+                .HasForeignKey(f => f.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Account>()
             .HasOne(a => a.Planner)
             .WithOne(m => m.Account)
-            .HasForeignKey<Account>(a => a.PlannerId);
+            .HasForeignKey<Account>(a => a.PlannerId)
+            .OnDelete(DeleteBehavior.Cascade);
         
         modelBuilder.Entity<Account>()
             .HasOne(a => a.GroceryList)
             .WithOne(g => g.Account)
-            .HasForeignKey<Account>(a => a.GroceryListId);
+            .HasForeignKey<Account>(a => a.GroceryListId)
+            .OnDelete(DeleteBehavior.Cascade);
         
         modelBuilder.Entity<Account>()
             .HasMany(a => a.Groups)
