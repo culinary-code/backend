@@ -6,8 +6,8 @@ public class Invitation
 {
     [Key]
     public Guid InvitationId { get; set; }
-    public Guid GroupId { get; set; }
-    public Guid InviterId { get; set; }
+    public Group Group { get; set; }
+    public Account Inviter { get; set; }
     public string InviterName { get; set; }
     public string InvitedUserName { get; set; }
     public string Email { get; set; }
@@ -18,6 +18,6 @@ public class Invitation
     
     
     // Navigation Properties
-    public Group Group { get; set; }
-    public Account Inviter { get; set; }
+    public Guid GroupId { get; set; }
+    public Guid InviterId { get; set; }
 }
