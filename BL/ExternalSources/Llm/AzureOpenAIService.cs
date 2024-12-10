@@ -6,7 +6,6 @@ using Azure.AI.OpenAI;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Configuration.Options;
-using DOM.Exceptions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenAI.Chat;

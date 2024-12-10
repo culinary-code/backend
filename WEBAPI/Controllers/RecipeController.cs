@@ -5,7 +5,6 @@ using BL.DTOs.Recipes;
 using BL.Managers.Accounts;
 using BL.Managers.Recipes;
 using BL.Services;
-using DOM.Exceptions;
 using DOM.Recipes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,7 +1,7 @@
 ﻿using BL.Managers.Accounts;
 using DAL.Accounts;
 using DOM.Accounts;
-using DOM.Exceptions;
+using DOM.Results;
 using Moq;
 using Xunit.Abstractions;
 

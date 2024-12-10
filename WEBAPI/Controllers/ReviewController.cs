@@ -2,7 +2,6 @@
 using BL.DTOs.Accounts;
 using BL.Managers.Recipes;
 using BL.Services;
-using DOM.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WEBAPI.ResultExtension;

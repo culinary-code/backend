@@ -4,7 +4,6 @@ using BL.DTOs.MealPlanning;
 using BL.DTOs.Recipes.Ingredients;
 using BL.Managers.Groceries;
 using BL.Services;
-using DOM.Exceptions;
 using DOM.MealPlanning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

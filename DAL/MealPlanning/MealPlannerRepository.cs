@@ -1,6 +1,6 @@
 ﻿using DAL.EF;
-using DOM.Exceptions;
 using DOM.MealPlanning;
+using DOM.Results;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.MealPlanning;

@@ -1,7 +1,7 @@
 ﻿using DAL.Accounts;
 using DAL.EF;
 using DOM.Accounts;
-using DOM.Exceptions;
+using DOM.Results;
 using Microsoft.EntityFrameworkCore;
 
 namespace CulinaryCode.Tests.DAL.Accounts;

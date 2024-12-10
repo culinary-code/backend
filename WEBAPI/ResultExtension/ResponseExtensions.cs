@@ -1,4 +1,4 @@
-﻿using DOM.Exceptions;
+﻿using DOM.Results;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WEBAPI.ResultExtension;

@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Mail;
 using Configuration.Options;
-using DOM.Exceptions;
+using DOM.Results;
 using Microsoft.Extensions.Options;
 
 namespace BL.Services;

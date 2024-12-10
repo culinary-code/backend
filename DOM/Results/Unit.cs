@@ -1,4 +1,4 @@
-﻿namespace DOM.Exceptions;
+﻿namespace DOM.Results;
 
 public struct Unit
 {

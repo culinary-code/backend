@@ -6,7 +6,7 @@ using BL.DTOs.Accounts;
 using BL.Managers.Accounts;
 using Configuration.Options;
 using Microsoft.Extensions.Configuration;
-using DOM.Exceptions;
+using DOM.Results;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 

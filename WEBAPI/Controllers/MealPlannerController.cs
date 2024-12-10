@@ -1,7 +1,6 @@
 ﻿using BL.DTOs.MealPlanning;
 using BL.Managers.MealPlanning;
 using BL.Services;
-using DOM.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;

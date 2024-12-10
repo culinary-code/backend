@@ -2,8 +2,8 @@
 using DAL.EF;
 using DAL.Recipes;
 using DOM.Accounts;
-using DOM.Exceptions;
 using DOM.Recipes;
+using DOM.Results;
 
 namespace CulinaryCode.Tests.DAL.Recipes;
 
