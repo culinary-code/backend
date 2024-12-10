@@ -112,7 +112,7 @@ export Keycloak__FrontendUrl=http://localhost:8180;                # Keycloak fr
 export Keycloak__Realm={YOUR_REALM};                               # Keycloak realm
 export LocalLlmServer__ServerUrl=http://localhost:4891;            # Local LLM server URL
 export RecipeJob__CronSchedule=0 0 2 * * ?;                        # Cron schedule for recipe generation job
-export RecipeJob__MinAmount=5                                      # Minimum amount of recipes to maintain in the database, if the amount is lower, the recipe generation job will be triggered
+export RecipeJob__MinAmount=5                                      # Minimum amount of recipes to maintain in the database, if the amount is lower, the recipe generation job will be triggered at the scheduled time
 ```
 
 ```bash
