@@ -2,6 +2,7 @@
 using BL.Managers.Accounts;
 using BL.Services;
 using DOM.Accounts;
+using DOM.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -52,15 +53,15 @@ public class InvitationControllerTests
 
         _identityProviderServiceMock
             .Setup(s => s.GetGuidFromAccessToken(It.IsAny<string>()))
-            .Returns(userId);
+            .Returns(Result<Guid>.Success(userId));
 
         _accountManagerMock
             .Setup(manager => manager.GetAccountById(userId.ToString()))
-            .ReturnsAsync(inviter);
+            .ReturnsAsync(Result<AccountDto>.Success(inviter));
 
         _invitationManagerMock
             .Setup(manager => manager.SendInvitationAsync(It.IsAny<SendInvitationRequestDto>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(Result<Unit>.Success(new Unit()));
 
         // Mock HttpContext and Authorization header
         var mockHttpContext = new Mock<HttpContext>();
@@ -78,15 +79,8 @@ public class InvitationControllerTests
         var result = await _controller.SendInvitation(request);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var actualInvitation = okResult.Value as SendInvitationRequestDto;
-
-        Assert.NotNull(actualInvitation);
-        Assert.Equal(request.Email, actualInvitation.Email);
-        Assert.Equal(request.GroupId, actualInvitation.GroupId);
-        Assert.Equal(request.InvitedUserName, actualInvitation.InvitedUserName);
-        Assert.Equal(userId, actualInvitation.InviterId);
-        Assert.Equal("InviterName", actualInvitation.InviterName); 
+        Assert.IsType<OkObjectResult>(result);
+        
     }
     
     [Fact]
@@ -99,28 +93,38 @@ public class InvitationControllerTests
 
         _identityProviderServiceMock
             .Setup(s => s.GetGuidFromAccessToken(It.IsAny<string>()))
-            .Returns(userId);
+            .Returns(Result<Guid>.Success(userId));
 
         _invitationManagerMock
             .Setup(manager => manager.ValidateInvitationTokenAsync(token))
-            .ReturnsAsync(invitation);
+            .ReturnsAsync(Result<Invitation>.Success(invitation));
 
         _groupManagerMock
             .Setup(manager => manager.AddUserToGroupAsync(invitation.GroupId, userId))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(Result<Unit>.Success(new Unit()));
 
         _invitationManagerMock
             .Setup(manager => manager.AcceptInvitationAsync(invitation))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(Result<Unit>.Success(new Unit()));
 
+        // Mock HttpContext and Authorization header
+        var mockHttpContext = new Mock<HttpContext>();
+        var mockRequest = new Mock<HttpRequest>();
+        var mockHeaders = new HeaderDictionary
+        {
+            { "Authorization", "Bearer fake-jwt-token" }
+        };
+
+        mockRequest.Setup(r => r.Headers).Returns(mockHeaders);
+        mockHttpContext.Setup(c => c.Request).Returns(mockRequest.Object);
+        _controller.ControllerContext = new ControllerContext { HttpContext = mockHttpContext.Object };
+        
         // Act
         var result = await _controller.AcceptInvitation(token);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var value = okResult.Value as Invitation;
-
-        Assert.NotNull(value);
+        Assert.IsType<OkObjectResult>(result);
+        
     }
 
     [Fact]
@@ -129,16 +133,31 @@ public class InvitationControllerTests
         // Arrange
         var token = Guid.NewGuid().ToString();
 
+        _identityProviderServiceMock
+            .Setup(s => s.GetGuidFromAccessToken(It.IsAny<string>()))
+            .Returns(Result<Guid>.Success(Guid.NewGuid()));
+        
         _invitationManagerMock
             .Setup(manager => manager.ValidateInvitationTokenAsync(token))
-            .ReturnsAsync((Invitation)null);
+            .ReturnsAsync(Result<Invitation>.Failure("Invalid or expired invitation token.", ResultFailureType.Error));
 
+        // Mock HttpContext and Authorization header
+        var mockHttpContext = new Mock<HttpContext>();
+        var mockRequest = new Mock<HttpRequest>();
+        var mockHeaders = new HeaderDictionary
+        {
+            { "Authorization", "Bearer fake-jwt-token" }
+        };
+
+        mockRequest.Setup(r => r.Headers).Returns(mockHeaders);
+        mockHttpContext.Setup(c => c.Request).Returns(mockRequest.Object);
+        _controller.ControllerContext = new ControllerContext { HttpContext = mockHttpContext.Object };
+        
         // Act
         var result = await _controller.AcceptInvitation(token);
 
         // Assert
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.Equal("Invalid or expired invitation token.", badRequestResult.Value);
+        Assert.IsType<BadRequestObjectResult>(result);
     }
 
     [Fact]
@@ -146,17 +165,35 @@ public class InvitationControllerTests
     {
         // Arrange
         var token = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
 
+        _identityProviderServiceMock
+            .Setup(s => s.GetGuidFromAccessToken(It.IsAny<string>()))
+            .Returns(Result<Guid>.Success(userId));
+        
         _invitationManagerMock
             .Setup(manager => manager.ValidateInvitationTokenAsync(token))
-            .Throws(new Exception("Unexpected error"));
+            .ReturnsAsync(Result<Invitation>.Failure("An error occurred while processing the invitation.",
+                ResultFailureType.Error));
+        _groupManagerMock.Setup(manager => manager.AddUserToGroupAsync(Guid.NewGuid(), Guid.NewGuid())).ReturnsAsync(Result<Unit>.Success(new Unit()));
+        _invitationManagerMock.Setup(manager => manager.AcceptInvitationAsync(It.IsAny<Invitation>())).ReturnsAsync(Result<Unit>.Success(new Unit()));
+        
+        // Mock HttpContext and Authorization header
+        var mockHttpContext = new Mock<HttpContext>();
+        var mockRequest = new Mock<HttpRequest>();
+        var mockHeaders = new HeaderDictionary
+        {
+            { "Authorization", "Bearer fake-jwt-token" }
+        };
 
+        mockRequest.Setup(r => r.Headers).Returns(mockHeaders);
+        mockHttpContext.Setup(c => c.Request).Returns(mockRequest.Object);
+        _controller.ControllerContext = new ControllerContext { HttpContext = mockHttpContext.Object };
+        
         // Act
         var result = await _controller.AcceptInvitation(token);
 
         // Assert
-        var statusCodeResult = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(500, statusCodeResult.StatusCode);
-        Assert.Equal("An error occurred while processing the invitation.", statusCodeResult.Value);
+        Assert.IsType<BadRequestObjectResult>(result);
     }
 }

@@ -3,6 +3,7 @@ using BL.Managers.Accounts;
 using BL.Services;
 using DAL.Accounts;
 using DOM.Accounts;
+using DOM.Exceptions;
 using Moq;
 
 namespace CulinaryCode.Tests.BL.Managers
@@ -43,9 +44,9 @@ namespace CulinaryCode.Tests.BL.Managers
             };
 
             var group = new Group { GroupId = request.GroupId, GroupName = "Nis's group" };
-            _mockGroupRepository.Setup(repo => repo.ReadGroupById(request.GroupId)).ReturnsAsync(group);
-            _mockInvitationRepository.Setup(repo => repo.SaveInvitationAsync(It.IsAny<Invitation>())).Returns(Task.CompletedTask);
-            _mockEmailService.Setup(service => service.SendInvitationEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+            _mockGroupRepository.Setup(repo => repo.ReadGroupById(request.GroupId)).ReturnsAsync(Result<Group>.Success(group));
+            _mockInvitationRepository.Setup(repo => repo.SaveInvitationAsync(It.IsAny<Invitation>())).ReturnsAsync(Result<Unit>.Success(new Unit()));
+            _mockEmailService.Setup(service => service.SendInvitationEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(Result<Unit>.Success(new Unit()));
 
             // Act
             await _invitationManager.SendInvitationAsync(request);
@@ -66,14 +67,14 @@ namespace CulinaryCode.Tests.BL.Managers
                 ExpirationDate = DateTime.UtcNow.AddDays(1)
             };
 
-            _mockInvitationRepository.Setup(repo => repo.ReadInvitationByTokenAsync(token)).ReturnsAsync(invitation);
+            _mockInvitationRepository.Setup(repo => repo.ReadInvitationByTokenAsync(token)).ReturnsAsync(Result<Invitation>.Success(invitation));
 
             // Act
             var result = await _invitationManager.ValidateInvitationTokenAsync(token);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(token, result.Token);
+            Assert.True(result.IsSuccess);
+            Assert.Equal(token, result.Value!.Token);
         }
     }
 }

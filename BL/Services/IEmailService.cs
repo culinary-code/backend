@@ -1,6 +1,8 @@
-﻿namespace BL.Services;
+﻿using DOM.Exceptions;
+
+namespace BL.Services;
 
 public interface IEmailService
 {
-    Task SendInvitationEmailAsync(string email, string token, string invitedUser, string inviterName);
+    Task<Result<Unit>> SendInvitationEmailAsync(string email, string token, string invitedUser, string inviterName);
 }

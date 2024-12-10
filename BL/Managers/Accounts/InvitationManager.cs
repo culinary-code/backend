@@ -2,6 +2,7 @@
 using BL.Services;
 using DAL.Accounts;
 using DOM.Accounts;
+using DOM.Exceptions;
 
 namespace BL.Managers.Accounts;
 
@@ -20,7 +21,7 @@ public class InvitationManager : IInvitationManager
         _emailService = emailService;
     }
 
-    public async Task SendInvitationAsync(SendInvitationRequestDto request)
+    public async Task<Result<Unit>> SendInvitationAsync(SendInvitationRequestDto request)
     {
         var invitation = new Invitation
         {
@@ -33,24 +34,33 @@ public class InvitationManager : IInvitationManager
             ExpirationDate = DateTime.UtcNow.AddDays(7),
             isAccepted = false
         };
-        await _invitationRepository.SaveInvitationAsync(invitation);
-        await _emailService.SendInvitationEmailAsync(request.Email, invitation.Token, invitation.InvitedUserName, invitation.InviterName);
+        var saveInvitationResult = await _invitationRepository.SaveInvitationAsync(invitation);
+        if (!saveInvitationResult.IsSuccess) return saveInvitationResult;
+        var sendInvitationResult = await _emailService.SendInvitationEmailAsync(request.Email, invitation.Token, invitation.InvitedUserName, invitation.InviterName);
+        return sendInvitationResult;
     }
 
-    public async Task<Invitation> ValidateInvitationTokenAsync(string token)
+    public async Task<Result<Invitation>> ValidateInvitationTokenAsync(string token)
     {
-        var invitation = await _invitationRepository.ReadInvitationByTokenAsync(token);
+        var invitationResult = await _invitationRepository.ReadInvitationByTokenAsync(token);
+        if (!invitationResult.IsSuccess)
+        {
+            return invitationResult;
+        }
+        var invitation = invitationResult.Value!;
+        
         if (invitation.ExpirationDate < DateTime.UtcNow)
         {
-            await _invitationRepository.DeleteInvitationAsync(invitation);
+            var deleteInvitationResult = await _invitationRepository.DeleteInvitationAsync(invitation);
+            if (!deleteInvitationResult.IsSuccess) return Result<Invitation>.Failure(deleteInvitationResult.ErrorMessage!, deleteInvitationResult.FailureType);
         }
-
-        return invitation;
+        return Result<Invitation>.Success(invitation);
     }
 
-    public async Task AcceptInvitationAsync(Invitation invitation)
+    public async Task<Result<Unit>> AcceptInvitationAsync(Invitation invitation)
     {
         invitation.isAccepted = true;
-        await _invitationRepository.DeleteInvitationAsync(invitation);
+        var deleteInvitationResult = await _invitationRepository.DeleteInvitationAsync(invitation);
+        return deleteInvitationResult;
     }
 }
