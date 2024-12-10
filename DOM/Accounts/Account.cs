@@ -18,9 +18,9 @@ public class Account
     public GroceryList? GroceryList { get; set; } = new GroceryList();
     public IEnumerable<Review> Reviews { get; set; } = new List<Review>();
     public ICollection<Group> Groups { get; set; } = new List<Group>();
+    public Guid? ChosenGroupId { get; set; }
     
     //navigation properties
     public Guid? PlannerId { get; set; }
     public Guid? GroceryListId { get; set; }
-    public Guid? ChosenGroupId { get; set; }
 }

@@ -124,6 +124,7 @@ public class EmailService : IEmailService
                                     <p>Je bent uitgenodigd om deel te nemen aan de Culinary Code groep van {inviterName}! Om je uitnodiging te accepteren, klik je op de onderstaande knop:</p>
                                     
                                     <!-- Button Section -->
+                                    <a href='https://localhost:7098/api/Invitation/acceptInvitation/{token}' class='button'>Uitnodiging Accepteren</a>
                                     <a href='com.culinarycode://accept-invitation/{token}' class='button'>Uitnodiging Accepteren</a>
                                     
                                     <!-- Footer Section -->

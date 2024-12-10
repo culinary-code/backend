@@ -9,9 +9,9 @@ public class Group
     public string GroupName { get; set; } = "Default groupname";
     public MealPlanner? MealPlanner { get; set; } = new MealPlanner();
     public GroceryList? GroceryList { get; set; } = new GroceryList();
+    public ICollection<Account> Accounts { get; set; } = new List<Account>();
     
     // Navigation Property
-    public ICollection<Account> Accounts { get; set; } = new List<Account>();
     public Guid? PlannerId { get; set; }
     public Guid? GroceryListId { get; set; }
 }
