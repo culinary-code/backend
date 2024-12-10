@@ -8,14 +8,12 @@ namespace CulinaryCode.Tests.BL.Managers;
 
 public class GroupManagerTests
 {
-    private readonly ITestOutputHelper _testOutputHelper;
     private readonly Mock<IGroupRepository> _groupRepositoryMock;
     private readonly Mock<IAccountRepository> _accountRepositoryMock;
     private readonly GroupManager _groupManager;
 
-    public GroupManagerTests(ITestOutputHelper testOutputHelper)
+    public GroupManagerTests()
     {
-        _testOutputHelper = testOutputHelper;
         _groupRepositoryMock = new Mock<IGroupRepository>();
         _accountRepositoryMock = new Mock<IAccountRepository>();
         _groupManager = new GroupManager(_groupRepositoryMock.Object, _accountRepositoryMock.Object);
@@ -33,7 +31,6 @@ public class GroupManagerTests
         
         // Act
         await _groupManager.CreateGroupAsync(groupName, ownerId);
-        _testOutputHelper.WriteLine(groupName);
 
         // Assert
         _groupRepositoryMock.Verify(repo => repo.CreateGroupAsync(It.Is<Group>(g => g.GroupName == groupName && g.Accounts.Contains(ownerAccount))), Times.Once);
@@ -53,10 +50,7 @@ public class GroupManagerTests
 
         // Act
         await _groupManager.AddUserToGroupAsync(groupId, userId);
-        _testOutputHelper.WriteLine(group.Accounts.Count.ToString());
-        _testOutputHelper.WriteLine(group.GroupId.ToString());
-        _testOutputHelper.WriteLine(group.GroupName);
-
+        
         // Assert
         _groupRepositoryMock.Verify(repo => repo.AddUserToGroupAsync(groupId, userId), Times.Once);
     }
