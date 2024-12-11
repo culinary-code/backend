@@ -9,19 +9,13 @@ namespace BL.Managers.Accounts;
 public class InvitationManager : IInvitationManager
 {
     private readonly IInvitationRepository _invitationRepository;
-    private readonly IAccountRepository _accountRepository;
-    private readonly IGroupRepository _groupRepository;
-    private readonly IEmailService _emailService;
 
-    public InvitationManager(IInvitationRepository invitationRepository, IAccountRepository accountRepository, IGroupRepository groupRepository, IEmailService emailService)
+    public InvitationManager(IInvitationRepository invitationRepository)
     {
         _invitationRepository = invitationRepository;
-        _accountRepository = accountRepository;
-        _groupRepository = groupRepository;
-        _emailService = emailService;
     }
-
-    public async Task<Result<Unit>> SendInvitationAsync(SendInvitationRequestDto request)
+    
+    public async Task<Result<string>> SendInvitationAsync(SendInvitationRequestDto request)
     {
         var invitation = new Invitation
         {
@@ -29,17 +23,17 @@ public class InvitationManager : IInvitationManager
             InviterId = request.InviterId,
             InviterName = request.InviterName,
             InvitedUserName = request.InvitedUserName,
-            Email = request.Email,
             Token = Guid.NewGuid().ToString(),
             ExpirationDate = DateTime.UtcNow.AddDays(7),
             isAccepted = false
         };
-        var saveInvitationResult = await _invitationRepository.SaveInvitationAsync(invitation);
-        if (!saveInvitationResult.IsSuccess) return saveInvitationResult;
-        var sendInvitationResult = await _emailService.SendInvitationEmailAsync(request.Email, invitation.Token, invitation.InvitedUserName, invitation.InviterName);
-        return sendInvitationResult;
-    }
 
+        var saveInvitationResult = await _invitationRepository.SaveInvitationAsync(invitation);
+        if (!saveInvitationResult.IsSuccess) return Result<string>.Failure(saveInvitationResult.ErrorMessage!, saveInvitationResult.FailureType);
+        var invitationLink = $"com.culinarycode://accept-invitation/{invitation.Token}";
+        return Result<string>.Success(invitationLink);
+    }
+    
     public async Task<Result<Invitation>> ValidateInvitationTokenAsync(string token)
     {
         var invitationResult = await _invitationRepository.ReadInvitationByTokenAsync(token);
