@@ -88,7 +88,7 @@ public class InvitationController : ControllerBase
         var addUserResult = await _groupManager.AddUserToGroupAsync(invitation.GroupId, userId);
         if (!addUserResult.IsSuccess) return addUserResult.ToActionResult();
 
-        var acceptInvitationResult = await _invitationManager.AcceptInvitationAsync(invitation);
+        var acceptInvitationResult = await _invitationManager.RemoveInvitationAsync(invitation);
         return acceptInvitationResult.ToActionResult();
     }
 }

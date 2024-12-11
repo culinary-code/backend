@@ -50,9 +50,8 @@ public class InvitationManager : IInvitationManager
         return Result<Invitation>.Success(invitation);
     }
 
-    public async Task<Result<Unit>> AcceptInvitationAsync(Invitation invitation)
+    public async Task<Result<Unit>> RemoveInvitationAsync(Invitation invitation)
     {
-        invitation.isAccepted = true;
         var deleteInvitationResult = await _invitationRepository.DeleteInvitationAsync(invitation);
         return deleteInvitationResult;
     }
