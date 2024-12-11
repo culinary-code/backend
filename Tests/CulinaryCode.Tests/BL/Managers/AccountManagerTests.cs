@@ -139,6 +139,21 @@ public class AccountManagerTests
     }
     
     [Fact]
+    public async Task DeleteAccount_DeletesAccount_WhenAccountExists()
+    {
+        // Arrange
+        var accountId = Guid.NewGuid();
+        _mockRepository.Setup(manager => manager.DeleteAccount(accountId)).ReturnsAsync(Result<Unit>.Success(new Unit()));
+
+        // Act
+        var result = await _accountManager.DeleteAccount(accountId);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _mockRepository.Verify(manager => manager.DeleteAccount(accountId), Times.Once);
+    }
+    
+    [Fact]
     public async Task GetPreferencesByUserId_ReturnsMappedPreferences_WhenPreferencesExist()
     {
         // Arrange

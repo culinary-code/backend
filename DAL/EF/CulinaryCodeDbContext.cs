@@ -25,6 +25,7 @@ public class CulinaryCodeDbContext : DbContext
     public DbSet<ItemQuantity> ItemQuantities { get; set; }
     public DbSet<Group> Groups { get; set; }
     public DbSet<Invitation> Invitations { get; set; }
+    public DbSet<AccountPreference> AccountPreferences { get; set; }
 
     public CulinaryCodeDbContext(DbContextOptions options) : base(options)
     {

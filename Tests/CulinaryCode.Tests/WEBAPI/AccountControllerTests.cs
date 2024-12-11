@@ -201,4 +201,41 @@ public class AccountControllerTests
             Times.Once
         );
     }
+    
+    [Fact]
+    public async Task DeleteAccount_ReturnsOk_WhenAccountIsDeletedSuccessfully()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var expectedUnit = new Unit();
+
+        _identityProviderServiceMock
+            .Setup(s => s.GetGuidFromAccessToken(It.IsAny<string>()))
+            .Returns(Result<Guid>.Success(userId));
+
+        _accountManagerMock.Setup(manager => manager.DeleteAccount(userId)).ReturnsAsync(Result<Unit>.Success(expectedUnit));
+
+        // Mock the HttpContext and Authorization header
+        var mockHttpContext = new Mock<HttpContext>();
+        var mockRequest = new Mock<HttpRequest>();
+        var mockHeaders = new HeaderDictionary
+        {
+            { "Authorization", "Bearer fake-jwt-token" }  // Simulate a valid authorization header
+        };
+    
+        mockRequest.Setup(r => r.Headers).Returns(mockHeaders);
+        mockHttpContext.Setup(c => c.Request).Returns(mockRequest.Object);
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = mockHttpContext.Object
+        };
+
+        // Act
+        var result = await _controller.DeleteAccount();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.Equal(expectedUnit, okResult.Value);
+    }
 }
