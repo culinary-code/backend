@@ -91,6 +91,22 @@ public class AccountController : ControllerBase
             return BadRequest("Failed to update account.");
         }
     }
+    
+    [HttpDelete("deleteAccount")]
+    public async Task<IActionResult> DeleteAccount()
+    {
+        var userIdResult =
+            _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+        if (!userIdResult.IsSuccess)
+        {
+            return BadRequest(userIdResult.ErrorMessage);
+        }
+
+        var userId = userIdResult.Value;
+
+        var deleteResult = await _accountManager.DeleteAccount(userId);
+        return deleteResult.ToActionResult();
+    }
 
     [HttpGet("getPreferences")]
     public async Task<IActionResult> GetUserPreferences()

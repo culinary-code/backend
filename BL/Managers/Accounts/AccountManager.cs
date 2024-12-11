@@ -82,6 +82,11 @@ public class AccountManager : IAccountManager
         return Result<AccountDto>.Success(_mapper.Map<AccountDto>(account));
     }
 
+    public Task<Result<Unit>> DeleteAccount(Guid userId)
+    {
+        return _accountRepository.DeleteAccount(userId);
+    }
+
     public async Task<Result<AccountDto>> UpdateFamilySize(AccountDto updatedAccount)
     {
         var accountResult = await _accountRepository.ReadAccount(updatedAccount.AccountId);

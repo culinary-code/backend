@@ -13,6 +13,7 @@ public interface IAccountRepository
     Task<Result<List<Recipe?>>> ReadFavoriteRecipesByUserIdNoTracking(Guid userId);
     Task<Result<Unit>> UpdateAccount(Account account);
     Task<Result<Unit>> CreateAccount(Account account);
+    Task<Result<Unit>> DeleteAccount(Guid id);
     Task<Result<Unit>> DeletePreferenceFromAccount(Guid accountId, Guid preferenceId);
     Task<Result<Unit>> DeleteFavoriteRecipeByUserId(Guid userId, Guid recipeId);
 }

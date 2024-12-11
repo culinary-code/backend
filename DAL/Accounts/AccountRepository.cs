@@ -105,6 +105,21 @@ public class AccountRepository : IAccountRepository
 
     }
 
+    public async Task<Result<Unit>> DeleteAccount(Guid id)
+    {
+        var accountResult = await ReadAccount(id);
+        if (!accountResult.IsSuccess)
+        {
+            return Result<Unit>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
+        }
+        
+        var account = accountResult.Value;
+        _ctx.Accounts.Remove(account!);
+        await _ctx.SaveChangesAsync();
+        
+        return Result<Unit>.Success(new Unit());
+    }
+
     public async Task<Result<Unit>> DeletePreferenceFromAccount(Guid accountId, Guid preferenceId)
     {
         var accountResult = await ReadAccountWithPreferencesByAccountId(accountId);
