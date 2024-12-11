@@ -7,7 +7,7 @@ namespace BL.Managers.Accounts;
 
 public interface IAccountManager
 {
-    Task<Result<AccountDto>> GetAccountById(string id);
+    Task<Result<AccountDto>> GetAccountById(Guid id);
     Task<Result<List<PreferenceDto>>> GetPreferencesByUserId(Guid userId);
     Task<Result<List<RecipeDto>>> GetFavoriteRecipesByUserId(Guid userId);
     Task<Result<AccountDto>> UpdateAccount(AccountDto account);

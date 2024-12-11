@@ -25,10 +25,18 @@ public class AccountController : ControllerBase
         _identityProviderService = identityProviderService;
     }
 
-    [HttpGet("{accountId}")]
-    public async Task<IActionResult> GetUserById(string accountId)
+    [HttpGet]
+    public async Task<IActionResult> GetUserById()
     {
-        var user = await _accountManager.GetAccountById(accountId);
+        var userIdResult =
+            _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+        if (!userIdResult.IsSuccess)
+        {
+            return BadRequest(userIdResult.ErrorMessage);
+        }
+
+        var userId = userIdResult.Value;
+        var user = await _accountManager.GetAccountById(userId);
 
         return user.ToActionResult();
     }

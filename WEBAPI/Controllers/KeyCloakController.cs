@@ -72,7 +72,7 @@ public class KeyCloakController : ControllerBase, IIdentityProviderController
         var userId = userIdResult.Value;
 
         // Check if user exists in our database
-        var accountResult = await _accountManager.GetAccountById(userId.ToString());
+        var accountResult = await _accountManager.GetAccountById(userId);
         if (accountResult.IsSuccess)
         {
             return accountResult.ToActionResult();

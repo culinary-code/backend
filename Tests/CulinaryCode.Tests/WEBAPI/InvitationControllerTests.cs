@@ -56,7 +56,7 @@ public class InvitationControllerTests
             .Returns(Result<Guid>.Success(userId));
 
         _accountManagerMock
-            .Setup(manager => manager.GetAccountById(userId.ToString()))
+            .Setup(manager => manager.GetAccountById(userId))
             .ReturnsAsync(Result<AccountDto>.Success(inviter));
 
         _invitationManagerMock

@@ -30,12 +30,32 @@ public class AccountControllerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var userIdString = userId.ToString();
         var expectedUser = new AccountDto() { AccountId = userId, Name = "JohnDoe" };
-        _accountManagerMock.Setup(manager => manager.GetAccountById(userIdString)).ReturnsAsync(Result<AccountDto>.Success(expectedUser));
+        
+        _identityProviderServiceMock
+            .Setup(s => s.GetGuidFromAccessToken(It.IsAny<string>()))
+            .Returns(Result<Guid>.Success(userId));
+        
+        _accountManagerMock.Setup(manager => manager.GetAccountById(userId)).ReturnsAsync(Result<AccountDto>.Success(expectedUser));
 
+        // Mock the HttpContext and Authorization header
+        var mockHttpContext = new Mock<HttpContext>();
+        var mockRequest = new Mock<HttpRequest>();
+        var mockHeaders = new HeaderDictionary
+        {
+            { "Authorization", "Bearer fake-jwt-token" }  // Simulate a valid authorization header
+        };
+    
+        mockRequest.Setup(r => r.Headers).Returns(mockHeaders);
+        mockHttpContext.Setup(c => c.Request).Returns(mockRequest.Object);
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = mockHttpContext.Object
+        };
+        
         // Act
-        var result = await _controller.GetUserById(userIdString);
+        var result = await _controller.GetUserById();
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -46,14 +66,34 @@ public class AccountControllerTests
     public async Task GetUserById_ReturnsNotFound_WhenNoUserExists()
     {
         // Arrange
-        const string userId = "2";
-        const string expectedErrorMessage = $"User with ID {userId} not found.";
+        var userId = Guid.NewGuid();
+        var expectedErrorMessage = $"User with ID {userId} not found.";
     
+        _identityProviderServiceMock
+            .Setup(s => s.GetGuidFromAccessToken(It.IsAny<string>()))
+            .Returns(Result<Guid>.Success(userId));
+        
         _accountManagerMock.Setup(manager => manager.GetAccountById(userId))
             .ReturnsAsync(Result<AccountDto>.Failure(expectedErrorMessage, ResultFailureType.NotFound));
+        
+        // Mock the HttpContext and Authorization header
+        var mockHttpContext = new Mock<HttpContext>();
+        var mockRequest = new Mock<HttpRequest>();
+        var mockHeaders = new HeaderDictionary
+        {
+            { "Authorization", "Bearer fake-jwt-token" }  // Simulate a valid authorization header
+        };
+    
+        mockRequest.Setup(r => r.Headers).Returns(mockHeaders);
+        mockHttpContext.Setup(c => c.Request).Returns(mockRequest.Object);
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = mockHttpContext.Object
+        };
 
         // Act
-        var result = await _controller.GetUserById(userId);
+        var result = await _controller.GetUserById();
 
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
