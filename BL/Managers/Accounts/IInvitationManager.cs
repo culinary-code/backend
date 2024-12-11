@@ -6,7 +6,7 @@ namespace BL.Managers.Accounts;
 
 public interface IInvitationManager
 {
-    Task<Result<Unit>> SendInvitationAsync(SendInvitationRequestDto request);
+    Task<Result<string>> SendInvitationAsync(SendInvitationRequestDto request);
     Task<Result<Invitation>> ValidateInvitationTokenAsync(string token);
-    Task<Result<Unit>> AcceptInvitationAsync(Invitation invitation);
+    Task<Result<Unit>> RemoveInvitationAsync(Invitation invitation);
 }

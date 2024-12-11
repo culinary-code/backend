@@ -28,10 +28,15 @@ public class InvitationController : ControllerBase
         _groupManager = groupManager;
         _accountManager = accountManager;
     }
-
+    
     [HttpPost("sendInvitation")]
     public async Task<IActionResult> SendInvitation([FromBody] SendInvitationRequestDto request)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var userIdResult =
             _identityProviderService.GetGuidFromAccessToken(
                 Request.Headers["Authorization"].ToString().Substring(7));
@@ -41,29 +46,24 @@ public class InvitationController : ControllerBase
         }
 
         var userId = userIdResult.Value;
-        var groupId = request.GroupId;
-
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
 
         var inviterResult = await _accountManager.GetAccountById(userId);
         if (!inviterResult.IsSuccess) return inviterResult.ToActionResult();
         var inviter = inviterResult.Value!;
-        var invitation = new SendInvitationRequestDto
+
+        var invitationRequest = new SendInvitationRequestDto
         {
-            GroupId = groupId,
+            GroupId = request.GroupId,
             InviterId = userId,
-            Email = request.Email,
             InviterName = inviter.Name,
-            InvitedUserName = request.InvitedUserName
         };
 
-        var result = await _invitationManager.SendInvitationAsync(invitation);
-        return result.ToActionResult();
-    }
+        var result = await _invitationManager.SendInvitationAsync(invitationRequest);
+        if (!result.IsSuccess) return result.ToActionResult();
 
+        return Ok(new { Link = result.Value });
+    }
+    
     [HttpGet("acceptInvitation/{token}")]
     public async Task<IActionResult> AcceptInvitation(string token)
     {
@@ -88,7 +88,7 @@ public class InvitationController : ControllerBase
         var addUserResult = await _groupManager.AddUserToGroupAsync(invitation.GroupId, userId);
         if (!addUserResult.IsSuccess) return addUserResult.ToActionResult();
 
-        var acceptInvitationResult = await _invitationManager.AcceptInvitationAsync(invitation);
+        var acceptInvitationResult = await _invitationManager.RemoveInvitationAsync(invitation);
         return acceptInvitationResult.ToActionResult();
     }
 }

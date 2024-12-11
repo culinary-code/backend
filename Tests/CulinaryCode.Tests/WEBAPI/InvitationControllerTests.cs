@@ -45,8 +45,6 @@ public class InvitationControllerTests
         var request = new SendInvitationRequestDto
         {
             GroupId = groupId,
-            Email = "test@example.com",
-            InvitedUserName = "TestUser"
         };
 
         var inviter = new AccountDto { AccountId = userId, Name = "InviterName" };
@@ -61,7 +59,7 @@ public class InvitationControllerTests
 
         _invitationManagerMock
             .Setup(manager => manager.SendInvitationAsync(It.IsAny<SendInvitationRequestDto>()))
-            .ReturnsAsync(Result<Unit>.Success(new Unit()));
+            .ReturnsAsync(Result<string>.Success(string.Empty));
 
         // Mock HttpContext and Authorization header
         var mockHttpContext = new Mock<HttpContext>();
@@ -104,7 +102,7 @@ public class InvitationControllerTests
             .ReturnsAsync(Result<Unit>.Success(new Unit()));
 
         _invitationManagerMock
-            .Setup(manager => manager.AcceptInvitationAsync(invitation))
+            .Setup(manager => manager.RemoveInvitationAsync(invitation))
             .ReturnsAsync(Result<Unit>.Success(new Unit()));
 
         // Mock HttpContext and Authorization header
@@ -176,7 +174,7 @@ public class InvitationControllerTests
             .ReturnsAsync(Result<Invitation>.Failure("An error occurred while processing the invitation.",
                 ResultFailureType.Error));
         _groupManagerMock.Setup(manager => manager.AddUserToGroupAsync(Guid.NewGuid(), Guid.NewGuid())).ReturnsAsync(Result<Unit>.Success(new Unit()));
-        _invitationManagerMock.Setup(manager => manager.AcceptInvitationAsync(It.IsAny<Invitation>())).ReturnsAsync(Result<Unit>.Success(new Unit()));
+        _invitationManagerMock.Setup(manager => manager.RemoveInvitationAsync(It.IsAny<Invitation>())).ReturnsAsync(Result<Unit>.Success(new Unit()));
         
         // Mock HttpContext and Authorization header
         var mockHttpContext = new Mock<HttpContext>();
