@@ -56,7 +56,6 @@ public class InvitationController : ControllerBase
             GroupId = request.GroupId,
             InviterId = userId,
             InviterName = inviter.Name,
-            InvitedUserName = request.InvitedUserName
         };
 
         var result = await _invitationManager.SendInvitationAsync(invitationRequest);

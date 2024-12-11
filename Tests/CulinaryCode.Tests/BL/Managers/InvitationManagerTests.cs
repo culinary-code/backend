@@ -23,10 +23,7 @@ namespace CulinaryCode.Tests.BL.Managers
             _mockGroupRepository = new Mock<IGroupRepository>();
             _mockEmailService = new Mock<IEmailService>();
             _invitationManager = new InvitationManager(
-                _mockInvitationRepository.Object,
-                _mockAccountRepository.Object,
-                _mockGroupRepository.Object,
-                _mockEmailService.Object
+                _mockInvitationRepository.Object
             );
         }
 
@@ -39,8 +36,6 @@ namespace CulinaryCode.Tests.BL.Managers
                 GroupId = Guid.NewGuid(),
                 InviterId = Guid.NewGuid(),
                 InviterName = "Nis",
-                InvitedUserName = "Sin",
-                Email = "Sin@example.com"
             };
 
             var group = new Group { GroupId = request.GroupId, GroupName = "Nis's group" };
@@ -53,7 +48,6 @@ namespace CulinaryCode.Tests.BL.Managers
 
             // Assert
             _mockInvitationRepository.Verify(repo => repo.SaveInvitationAsync(It.IsAny<Invitation>()), Times.Once); 
-            _mockEmailService.Verify(service => service.SendInvitationEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
         [Fact]

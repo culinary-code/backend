@@ -22,7 +22,6 @@ public class InvitationManager : IInvitationManager
             GroupId = request.GroupId,
             InviterId = request.InviterId,
             InviterName = request.InviterName,
-            InvitedUserName = request.InvitedUserName,
             Token = Guid.NewGuid().ToString(),
             ExpirationDate = DateTime.UtcNow.AddDays(7),
             isAccepted = false
