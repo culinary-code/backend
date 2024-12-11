@@ -28,10 +28,9 @@ public class AccountManager : IAccountManager
         _recipeRepository = recipeRepository;
     }
 
-    public async Task<Result<AccountDto>> GetAccountById(string id)
+    public async Task<Result<AccountDto>> GetAccountById(Guid id)
     {
-        Guid parsedGuid = Guid.Parse(id);
-        var accountResult = await _accountRepository.ReadAccount(parsedGuid);
+        var accountResult = await _accountRepository.ReadAccount(id);
         if (!accountResult.IsSuccess)
         {
             return Result<AccountDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
@@ -81,6 +80,11 @@ public class AccountManager : IAccountManager
         _logger.LogInformation($"Updating user: {updatedAccount.AccountId}, new username: {updatedAccount.Name}");
 
         return Result<AccountDto>.Success(_mapper.Map<AccountDto>(account));
+    }
+
+    public Task<Result<Unit>> DeleteAccount(Guid userId)
+    {
+        return _accountRepository.DeleteAccount(userId);
     }
 
     public async Task<Result<AccountDto>> UpdateFamilySize(AccountDto updatedAccount)

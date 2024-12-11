@@ -47,7 +47,7 @@ public class InvitationController : ControllerBase
 
         var userId = userIdResult.Value;
 
-        var inviterResult = await _accountManager.GetAccountById(userId.ToString());
+        var inviterResult = await _accountManager.GetAccountById(userId);
         if (!inviterResult.IsSuccess) return inviterResult.ToActionResult();
         var inviter = inviterResult.Value!;
 
