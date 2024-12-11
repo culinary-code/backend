@@ -38,13 +38,12 @@ public class AccountManagerTests
     {
         // Arrange
         var accountId = Guid.NewGuid();
-        var accountIdString = accountId.ToString();
         var expectedAccount = new AccountDto { AccountId = accountId, Name = "JohnDoe" };
         _mockRepository.Setup(manager => manager.ReadAccount(accountId)).ReturnsAsync(Result<Account>.Success(new Account()));
         _mockMapper.Setup(mapper => mapper.Map<AccountDto>(It.IsAny<Account>())).Returns(expectedAccount);
 
         // Act
-        var result = await _accountManager.GetAccountById(accountIdString);
+        var result = await _accountManager.GetAccountById(accountId);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -55,7 +54,7 @@ public class AccountManagerTests
     public async Task GetAccountById_ReturnsNull_WhenAccountDoesNotExist()
     {
         // Arrange
-        var accountId = Guid.NewGuid().ToString();
+        var accountId = Guid.NewGuid();
         _mockRepository.Setup(manager => manager.ReadAccount(It.IsAny<Guid>())).ReturnsAsync(Result<Account>.Failure("", ResultFailureType.NotFound));
 
         // Act

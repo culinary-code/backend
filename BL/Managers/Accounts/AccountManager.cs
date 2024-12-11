@@ -28,10 +28,9 @@ public class AccountManager : IAccountManager
         _recipeRepository = recipeRepository;
     }
 
-    public async Task<Result<AccountDto>> GetAccountById(string id)
+    public async Task<Result<AccountDto>> GetAccountById(Guid id)
     {
-        Guid parsedGuid = Guid.Parse(id);
-        var accountResult = await _accountRepository.ReadAccount(parsedGuid);
+        var accountResult = await _accountRepository.ReadAccount(id);
         if (!accountResult.IsSuccess)
         {
             return Result<AccountDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
