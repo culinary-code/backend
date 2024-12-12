@@ -172,7 +172,7 @@ public class KeyCloakService : IIdentityProviderService
         return Result<(string, string)>.Failure("Failed to get username and email from account token", ResultFailureType.Error);
     }
 
-    public Result<Unit> DeleteUser(Guid accountId)
+    public async Task<Result<Unit>> DeleteUser(Guid accountId)
     {
         string accessToken = "";
 
@@ -196,7 +196,8 @@ public class KeyCloakService : IIdentityProviderService
             var errorContent = response.Content.ReadAsStringAsync().Result;
             return Result<Unit>.Failure($"Failed to delete user: {errorContent}", ResultFailureType.Error);
         }
-        return Result<Unit>.Success(new Unit());
+        
+        return await _accountManager.DeleteAccount(accountId);
     }
 
     public async Task<Result<Unit>> UpdateUsername(AccountDto account, string newUsername)

@@ -104,7 +104,7 @@ public class AccountController : ControllerBase
 
         var userId = userIdResult.Value;
 
-        var deleteResult = await _accountManager.DeleteAccount(userId);
+        var deleteResult = await _identityProviderService.DeleteUser(userId);
         return deleteResult.ToActionResult();
     }
 

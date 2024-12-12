@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BL.DTOs.Accounts;
 using BL.DTOs.Recipes;
+using BL.Services;
 using DAL.Accounts;
 using DAL.Recipes;
 using DOM.Accounts;
@@ -82,16 +83,9 @@ public class AccountManager : IAccountManager
         return Result<AccountDto>.Success(_mapper.Map<AccountDto>(account));
     }
 
-    public async Task<Result<Unit>> DeleteAccount(Guid userId)
+    public async Task<Result<Unit>> DeleteAccount(Guid accountId)
     {
-        
-        // TODO: Call to delete Keycloak user
-        
-        
-        
-        
-        
-        return _accountRepository.DeleteAccount(userId);
+        return await _accountRepository.DeleteAccount(accountId);
     }
 
     public async Task<Result<AccountDto>> UpdateFamilySize(AccountDto updatedAccount)
