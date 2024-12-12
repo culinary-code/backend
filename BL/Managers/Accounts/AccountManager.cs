@@ -82,8 +82,15 @@ public class AccountManager : IAccountManager
         return Result<AccountDto>.Success(_mapper.Map<AccountDto>(account));
     }
 
-    public Task<Result<Unit>> DeleteAccount(Guid userId)
+    public async Task<Result<Unit>> DeleteAccount(Guid userId)
     {
+        
+        // TODO: Call to delete Keycloak user
+        
+        
+        
+        
+        
         return _accountRepository.DeleteAccount(userId);
     }
 
