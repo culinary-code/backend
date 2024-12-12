@@ -37,6 +37,17 @@ public class GroceryManager : IGroceryManager
             return Result<GroceryListDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
         }
         var account = accountResult.Value;
+
+        // Check if user is in group-mode
+        if (account!.ChosenGroupId.HasValue)
+        {
+            var groupResult = await _groceryRepository.ReadGroceryListByGroupId(account.ChosenGroupId.Value);
+            if (!groupResult.IsSuccess)
+            {
+                return Result<GroceryListDto>.Failure(groupResult.ErrorMessage!, groupResult.FailureType);
+            }
+            return Result<GroceryListDto>.Success(_mapper.Map<GroceryListDto>(groupResult.Value));
+        }
         
         var completeGroceryList = account!.GroceryList;
 

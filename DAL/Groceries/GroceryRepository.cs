@@ -65,6 +65,24 @@ public class GroceryRepository : IGroceryRepository
         return Result<GroceryList>.Success(groceryList);
     }
 
+    public async Task<Result<GroceryList>> ReadGroceryListByGroupId(Guid groupId)
+    {
+        var groceryList = await _ctx.GroceryLists
+            .Include(gl => gl.Ingredients)
+            .ThenInclude(i => i.Ingredient)
+            .Include(gl => gl.Items)
+            .ThenInclude(i => i.GroceryItem)
+            .Include(gl => gl.Account)
+            .FirstOrDefaultAsync(gl => gl.Group.GroupId == groupId);
+
+        if (groceryList == null)
+        {
+            return Result<GroceryList>.Failure($"No grocery list found for group with id {groupId}", ResultFailureType.NotFound);
+        }
+        
+        return Result<GroceryList>.Success(groceryList);
+    }
+
     // used to update groceryList, needs to be tracked
     public async Task<Result<GroceryItem>> ReadGroceryItemByNameAndMeasurement(string name, MeasurementType measurementType)
     {
