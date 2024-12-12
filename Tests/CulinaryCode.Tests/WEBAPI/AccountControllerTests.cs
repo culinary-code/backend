@@ -213,7 +213,7 @@ public class AccountControllerTests
             .Setup(s => s.GetGuidFromAccessToken(It.IsAny<string>()))
             .Returns(Result<Guid>.Success(userId));
 
-        _accountManagerMock.Setup(manager => manager.DeleteAccount(userId)).ReturnsAsync(Result<Unit>.Success(expectedUnit));
+        _identityProviderServiceMock.Setup(manager => manager.DeleteUser(userId)).ReturnsAsync(Result<Unit>.Success(expectedUnit));
 
         // Mock the HttpContext and Authorization header
         var mockHttpContext = new Mock<HttpContext>();

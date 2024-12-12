@@ -10,4 +10,5 @@ public interface IIdentityProviderService
     Task<Result<Unit>> UpdateUsername(AccountDto account, string username);
     Result<Guid> GetGuidFromAccessToken(string accessToken);
     Result<(string, string)> GetUsernameAndEmailFromAccessToken(string accessToken);
+    Task<Result<Unit>> DeleteUser(Guid accountId);
 }

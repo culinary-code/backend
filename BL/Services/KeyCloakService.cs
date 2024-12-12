@@ -172,6 +172,34 @@ public class KeyCloakService : IIdentityProviderService
         return Result<(string, string)>.Failure("Failed to get username and email from account token", ResultFailureType.Error);
     }
 
+    public async Task<Result<Unit>> DeleteUser(Guid accountId)
+    {
+        string accessToken = "";
+
+        var accessTokenResult = LoginAsync(_adminUsername, _adminPassword).Result;
+        if (!accessTokenResult.IsSuccess)
+            return Result<Unit>.Failure(accessTokenResult.ErrorMessage!, accessTokenResult.FailureType);
+        accessToken = accessTokenResult.Value!;
+
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/admin/realms/{_realm}/users/{accountId}")
+        {
+            Headers =
+            {
+                Authorization = new AuthenticationHeaderValue("Bearer", accessToken)
+            }
+        };
+
+        var response = _httpClient.SendAsync(request).Result;
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = response.Content.ReadAsStringAsync().Result;
+            return Result<Unit>.Failure($"Failed to delete user: {errorContent}", ResultFailureType.Error);
+        }
+        
+        return await _accountManager.DeleteAccount(accountId);
+    }
+
     public async Task<Result<Unit>> UpdateUsername(AccountDto account, string newUsername)
     {
         string accessToken = "";

@@ -100,11 +100,13 @@ public class CulinaryCodeDbContext : DbContext
             entity.HasKey(r => r.MealPlannerId);
             entity.HasMany(m => m.NextWeek)
                 .WithOne(p => p.NextWeekMealPlanner)
-                .HasForeignKey(p => p.NextWeekMealPlannerId);
+                .HasForeignKey(p => p.NextWeekMealPlannerId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasMany(m => m.History)
                 .WithOne(p => p.HistoryMealPlanner)
-                .HasForeignKey(p => p.HistoryMealPlannerId);
+                .HasForeignKey(p => p.HistoryMealPlannerId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Account Entity Configuration
