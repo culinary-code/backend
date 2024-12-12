@@ -211,11 +211,13 @@ public class CulinaryCodeDbContext : DbContext
             entity.HasKey(r => r.GroceryListId);
             entity.HasMany(g => g.Ingredients)
                 .WithOne(i => i.GroceryList)
-                .HasForeignKey(i => i.GroceryListId);
+                .HasForeignKey(i => i.GroceryListId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasMany(g => g.Items)
                 .WithOne(i => i.GroceryList)
-                .HasForeignKey(i => i.GroceryListId);
+                .HasForeignKey(i => i.GroceryListId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // IngredientQuantity Entity Configuration
