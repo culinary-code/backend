@@ -21,7 +21,7 @@ public class ConnectionController : ControllerBase
     public IActionResult Get()
     {
         _logger.LogInformation("Connection request received.");
-        string keycloakUrl = _keycloakOptions.BaseUrl;
+        string keycloakUrl = _keycloakOptions.FrontendUrl;
         return Ok(new { keycloakUrl, verifier = "Culinary Code" });
     }
 }
