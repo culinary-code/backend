@@ -46,6 +46,36 @@ public class GroupRepository : IGroupRepository
         return Result<List<Group>>.Success(groups);
     }
 
+    public async Task<Result<Group>> ReadGroupWithMealPlannerNextWeekAndWithGroceryListNoTracking(Guid id)
+    {
+        var group = await _ctx.Groups
+            .Include(g => g.GroceryList)
+            .ThenInclude(gl => gl!.Ingredients)
+            .ThenInclude(iq => iq.Ingredient)
+            .Include(g => g.GroceryList)
+            .ThenInclude(gl => gl!.Ingredients)
+            .ThenInclude(iq => iq.PlannedMeal)
+            .ThenInclude(p => p.Recipe )
+            .Include(a => a.GroceryList)
+            .ThenInclude(gl => gl!.Items)
+            .ThenInclude(i => i.GroceryItem)
+            .Include(a => a.MealPlanner)
+            .ThenInclude(p => p!.NextWeek)
+            .ThenInclude(n => n.Ingredients)
+            .ThenInclude(iq => iq.Ingredient)
+            .Include(g => g.MealPlanner)
+            .ThenInclude(p => p!.NextWeek)
+            .ThenInclude(p => p.Recipe)
+            .AsNoTrackingWithIdentityResolution()
+            .FirstOrDefaultAsync(g => g.GroupId == id);
+
+        if (group == null)
+        {
+            return Result<Group>.Failure("Group not found", ResultFailureType.NotFound);
+        }
+        return Result<Group>.Success(group);
+    }
+
     public async Task<Result<Group>> AddUserToGroupAsync(Guid groupId, Guid userId)
     {
         var groupResult = await ReadGroupById(groupId);

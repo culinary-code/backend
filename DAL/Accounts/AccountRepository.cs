@@ -49,7 +49,7 @@ public class AccountRepository : IAccountRepository
             .Include(a => a.GroceryList)
                 .ThenInclude(gl => gl!.Ingredients)
                 .ThenInclude(iq => iq.Ingredient)
-            .Include(a => a.GroceryList)
+            .Include(a => a.GroceryList)    
                 .ThenInclude(gl => gl!.Ingredients)
                 .ThenInclude(iq => iq.PlannedMeal)
                 .ThenInclude(p => p.Recipe )

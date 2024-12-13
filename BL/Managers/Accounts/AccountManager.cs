@@ -83,6 +83,21 @@ public class AccountManager : IAccountManager
         return Result<AccountDto>.Success(_mapper.Map<AccountDto>(account));
     }
 
+    public async Task<Result<AccountDto>> UpdateChosenGroup(Guid userId, Guid? chosenGroupId)
+    {
+        var accountResult = await _accountRepository.ReadAccount(userId);
+        if (!accountResult.IsSuccess)
+        {
+            return Result<AccountDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
+        }
+        
+        var account = accountResult.Value;
+        account.ChosenGroupId = chosenGroupId;
+        await _accountRepository.UpdateAccount(account);
+        
+        return Result<AccountDto>.Success(_mapper.Map<AccountDto>(account));
+    }
+
     public async Task<Result<Unit>> DeleteAccount(Guid accountId)
     {
         return await _accountRepository.DeleteAccount(accountId);

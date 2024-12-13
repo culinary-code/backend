@@ -17,30 +17,65 @@ public class MealPlannerManager : IMealPlannerManager
     private readonly IRecipeRepository _recipeRepository;
     private readonly IIngredientRepository _ingredientRepository;
     private readonly IGroceryRepository _groceryRepository;
+    private readonly IAccountRepository _accountRepository;
     private readonly IMapper _mapper;
 
     public MealPlannerManager(IMealPlannerRepository mealPlannerRepository, IMapper mapper,
         IRecipeRepository recipeRepository, IIngredientRepository ingredientRepository,
-        IGroceryRepository groceryRepository)
+        IGroceryRepository groceryRepository, IAccountRepository accountRepository)
     {
         _mealPlannerRepository = mealPlannerRepository;
         _mapper = mapper;
         _recipeRepository = recipeRepository;
         _ingredientRepository = ingredientRepository;
         _groceryRepository = groceryRepository;
+        _accountRepository = accountRepository;
     }
 
     public async Task<Result<Unit>> CreateNewPlannedMeal(Guid userId, PlannedMealDto plannedMealDto)
     {
-        // get mealplanner for user with userid
-
-        var mealPlannerResult = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeekNoTracking(userId);
-        if (!mealPlannerResult.IsSuccess)
+        // Retrieve the user's account
+        var accountResult = await _accountRepository.ReadAccount(userId);
+        if (!accountResult.IsSuccess)
         {
-            return Result<Unit>.Failure(mealPlannerResult.ErrorMessage!, mealPlannerResult.FailureType);
+            return Result<Unit>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
         }
+        var account = accountResult.Value!;
 
-        var mealPlanner = mealPlannerResult.Value!;
+        MealPlanner mealPlanner;
+
+        // Check if the user is in group mode
+        if (account.ChosenGroupId.HasValue)
+        {
+            // Retrieve the group's grocery list
+            var groupMealPlanner = await _mealPlannerRepository.ReadMealPlannerByGroupIdWithNextWeekNoTracking(account.ChosenGroupId.Value);
+            if (!groupMealPlanner.IsSuccess)
+            {
+                return Result<Unit>.Failure(groupMealPlanner.ErrorMessage!, groupMealPlanner.FailureType);
+            }
+            mealPlanner = groupMealPlanner.Value!;
+        }
+        else
+        {
+            // Retrieve the user's personal grocery list
+            var mealPlannerResult = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeekNoTracking(userId);
+            if (!mealPlannerResult.IsSuccess)
+            {
+                return Result<Unit>.Failure(mealPlannerResult.ErrorMessage!, mealPlannerResult.FailureType);
+            }
+            mealPlanner = mealPlannerResult.Value!;
+        }
+        // get mealplanner for user with userid
+        
+        
+        
+        //var mealPlannerResult = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeekNoTracking(userId);
+        //if (!mealPlannerResult.IsSuccess)
+      //  {
+      //      return Result<Unit>.Failure(mealPlannerResult.ErrorMessage!, mealPlannerResult.FailureType);
+       // }
+
+        //var mealPlanner = mealPlannerResult.Value!;
 
         // check if planned meal exists for date
         var alreadyPlannedMeal = mealPlanner.NextWeek.FirstOrDefault(pm =>
@@ -105,24 +140,56 @@ public class MealPlannerManager : IMealPlannerManager
 
     public async Task<Result<List<PlannedMealDto>>> GetPlannedMealsFromUserAfterDate(DateTime dateTime, Guid userId)
     {
+        // Retrieve the user's account
+        var accountResult = await _accountRepository.ReadAccount(userId);
+        if (!accountResult.IsSuccess)
+        {
+            return Result<List<PlannedMealDto>>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
+        }
+        var account = accountResult.Value!;
+        
         List<PlannedMeal> plannedMeals;
         if (dateTime.Date == DateTime.Now.Date)
         {
-            var plannedMealsResult = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTracking(userId);
-            if (!plannedMealsResult.IsSuccess)
+            if (account.ChosenGroupId.HasValue)
             {
-                return Result<List<PlannedMealDto>>.Failure(plannedMealsResult.ErrorMessage!, plannedMealsResult.FailureType);
+                var plannedMealsResultGroup = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTrackingByGroupId(account.ChosenGroupId.Value);
+                if (!plannedMealsResultGroup.IsSuccess)
+                {
+                    return Result<List<PlannedMealDto>>.Failure(plannedMealsResultGroup.ErrorMessage!, plannedMealsResultGroup.FailureType);
+                }
+                plannedMeals = plannedMealsResultGroup.Value!;
             }
-            plannedMeals = plannedMealsResult.Value!;
+            else
+            {
+                var plannedMealsResult = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTracking(userId);
+                if (!plannedMealsResult.IsSuccess)
+                {
+                    return Result<List<PlannedMealDto>>.Failure(plannedMealsResult.ErrorMessage!, plannedMealsResult.FailureType);
+                }
+                plannedMeals = plannedMealsResult.Value!;
+            }
         }
         else
         {
-            var plannedMealsResult = await _mealPlannerRepository.ReadPlannedMealsAfterDateNoTracking(dateTime, userId);
-            if (!plannedMealsResult.IsSuccess)
+            if (account.ChosenGroupId.HasValue)
             {
-                return Result<List<PlannedMealDto>>.Failure(plannedMealsResult.ErrorMessage!, plannedMealsResult.FailureType);
+                var plannedMealsResultGroup = await _mealPlannerRepository.ReadPlannedMealsAfterDateNoTrackingByGroupId(dateTime, account.ChosenGroupId.Value);
+                if (!plannedMealsResultGroup.IsSuccess)
+                {
+                    return Result<List<PlannedMealDto>>.Failure(plannedMealsResultGroup.ErrorMessage!, plannedMealsResultGroup.FailureType);
+                }
+                plannedMeals = plannedMealsResultGroup.Value!;
             }
-            plannedMeals = plannedMealsResult.Value!;
+            else
+            {
+                var plannedMealsResult = await _mealPlannerRepository.ReadPlannedMealsAfterDateNoTracking(dateTime, userId);
+                if (!plannedMealsResult.IsSuccess)
+                {
+                    return Result<List<PlannedMealDto>>.Failure(plannedMealsResult.ErrorMessage!, plannedMealsResult.FailureType);
+                }
+                plannedMeals = plannedMealsResult.Value!;
+            }
         }
 
         return Result<List<PlannedMealDto>>.Success(_mapper.Map<List<PlannedMealDto>>(plannedMeals));

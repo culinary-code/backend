@@ -16,50 +16,65 @@ public class GroceryManager : IGroceryManager
     private readonly IGroceryRepository _groceryRepository;
     private readonly IAccountRepository _accountRepository;
     private readonly IIngredientRepository _ingredientRepository;
+    private readonly IGroupRepository _groupRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<GroceryManager> _logger;
 
     public GroceryManager(IGroceryRepository groceryRepository, IMapper mapper, ILogger<GroceryManager> logger,
-        IAccountRepository accountRepository, IIngredientRepository ingredientRepository)
+        IAccountRepository accountRepository, IIngredientRepository ingredientRepository, IGroupRepository groupRepository)
     {
         _groceryRepository = groceryRepository;
         _mapper = mapper;
         _logger = logger;
         _accountRepository = accountRepository;
         _ingredientRepository = ingredientRepository;
+        _groupRepository = groupRepository;
     }
 
     public async Task<Result<GroceryListDto>> GetGroceryListWithNextWeek(Guid accountId)
     {
-        var accountResult = await _accountRepository.ReadAccountWithMealPlannerNextWeekAndWithGroceryListNoTracking(accountId);
+        var accountResult = await _accountRepository.ReadAccountWithMealPlannerNextWeekAndWithGroceryListNoTracking(accountId); // TODO kijk of je hier methode moet maken vr groupid
         if (!accountResult.IsSuccess)
         {
             return Result<GroceryListDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
         }
         var account = accountResult.Value;
-
+        
         // Check if user is in group-mode
         if (account!.ChosenGroupId.HasValue)
         {
-            var groupResult = await _groceryRepository.ReadGroceryListByGroupId(account.ChosenGroupId.Value);
+            var groupResult = await _groupRepository.ReadGroupWithMealPlannerNextWeekAndWithGroceryListNoTracking(account.ChosenGroupId.Value);
             if (!groupResult.IsSuccess)
             {
                 return Result<GroceryListDto>.Failure(groupResult.ErrorMessage!, groupResult.FailureType);
             }
-            return Result<GroceryListDto>.Success(_mapper.Map<GroceryListDto>(groupResult.Value));
-        }
-        
-        var completeGroceryList = account!.GroceryList;
+            var group = groupResult.Value;
+            var completeGroceryList = group!.GroceryList;
 
-        foreach (var plannedMeal in account.Planner!.NextWeek)
-        {
-            foreach (var ingredient in plannedMeal.Ingredients)
+            foreach (var plannedMeal in group.MealPlanner!.NextWeek)
             {
-                completeGroceryList!.Ingredients.Add(ingredient);
+                foreach (var ingredient in plannedMeal.Ingredients)
+                {
+                    completeGroceryList!.Ingredients.Add(ingredient);
+                }
             }
-        }
         
-        return  Result<GroceryListDto>.Success(_mapper.Map<GroceryListDto>(completeGroceryList));
+            return  Result<GroceryListDto>.Success(_mapper.Map<GroceryListDto>(completeGroceryList));
+        }
+        else
+        {
+            var completeGroceryList = account!.GroceryList;
+            
+                    foreach (var plannedMeal in account.Planner!.NextWeek)
+                    {
+                        foreach (var ingredient in plannedMeal.Ingredients)
+                        {
+                            completeGroceryList!.Ingredients.Add(ingredient);
+                        }
+                    }
+                    
+                    return  Result<GroceryListDto>.Success(_mapper.Map<GroceryListDto>(completeGroceryList));
+        }
     }
 
     public async Task<Result<GroceryListDto>> GetGroceryListByAccountId(string accountId)
@@ -77,12 +92,41 @@ public class GroceryManager : IGroceryManager
 
     public async Task<Result<Unit>> AddItemToGroceryList(Guid userId, ItemQuantityDto newListItem)
     {
-        var groceryListResult = await _groceryRepository.ReadGroceryListByAccountId(userId);
-        if (!groceryListResult.IsSuccess)
+        var accountResult = await _accountRepository.ReadAccount(userId);
+        if (!accountResult.IsSuccess)
         {
-            return Result<Unit>.Failure(groceryListResult.ErrorMessage!, groceryListResult.FailureType);
+            return Result<Unit>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
         }
-        var groceryList = groceryListResult.Value!;
+        var account = accountResult.Value!;
+
+        GroceryList groceryList;
+        
+        if (account.ChosenGroupId.HasValue)
+        {
+            var groupGroceryListResult = await _groceryRepository.ReadGroceryListByGroupId(account.ChosenGroupId.Value);
+            if (!groupGroceryListResult.IsSuccess)
+            {
+                return Result<Unit>.Failure(groupGroceryListResult.ErrorMessage!, groupGroceryListResult.FailureType);
+            }
+            groceryList = groupGroceryListResult.Value!;
+        }
+        else
+        {
+            // Retrieve the user's personal grocery list
+            var groceryListResult = await _groceryRepository.ReadGroceryListByAccountId(userId);
+            if (!groceryListResult.IsSuccess)
+            {
+                return Result<Unit>.Failure(groceryListResult.ErrorMessage!, groceryListResult.FailureType);
+            }
+            groceryList = groceryListResult.Value!;
+        }
+
+        //var groceryListResult = await _groceryRepository.ReadGroceryListByAccountId(userId);
+        //if (!groceryListResult.IsSuccess)
+        //{
+        //    return Result<Unit>.Failure(groceryListResult.ErrorMessage!, groceryListResult.FailureType);
+        //}
+        //var groceryList = groceryListResult.Value!;
         
         // if newListItem has quantityId: add item to gl, else update existing row
         // when a new item is passed into the endpoint, it will not have an existing ItemQuantity, thus its Guid will be 00000000-0000-0000-0000-000000000000
@@ -116,7 +160,7 @@ public class GroceryManager : IGroceryManager
         
         return Result<Unit>.Success(new Unit());
     }
-    
+
     public async Task<Result<Unit>> RemoveItemFromGroceryList(Guid userId, ItemQuantityDto removeItem)
     {
         if (removeItem.IsIngredient)
