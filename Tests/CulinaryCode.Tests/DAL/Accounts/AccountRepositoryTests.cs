@@ -1,4 +1,5 @@
-﻿using DAL.Accounts;
+﻿using CulinaryCode.Tests.util;
+using DAL.Accounts;
 using DAL.EF;
 using DOM.Accounts;
 using DOM.MealPlanning;
@@ -9,20 +10,28 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CulinaryCode.Tests.DAL.Accounts;
 
-public class AccountRepositoryTests
+public class AccountRepositoryTests : IClassFixture<TestPostgresContainerFixture>, IAsyncLifetime
 {
     private readonly CulinaryCodeDbContext _dbContext;
     private readonly IAccountRepository _accountRepository;
+    private readonly TestPostgresContainerFixture _fixture;
 
-    public AccountRepositoryTests()
+    public AccountRepositoryTests(TestPostgresContainerFixture fixture)
     {
-        var options = new DbContextOptionsBuilder<CulinaryCodeDbContext>()
-            // force unique database for each test so data is isolated
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        _dbContext = new CulinaryCodeDbContext(options);
+        _dbContext = fixture.DbContext;
         _accountRepository = new AccountRepository(_dbContext);
+        _fixture = fixture;
+    }
+
+    // Ensure the database is reset before each test
+    public async Task InitializeAsync()
+    {
+        await _fixture.ResetDatabaseAsync();
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 
     [Fact]
