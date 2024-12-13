@@ -40,9 +40,9 @@ internal static class CulinaryCodeDbInitializer
         // Add Ingredients
         var ingredients = new List<Ingredient>
         {
-            new Ingredient { IngredientName = "Wortel" },
-            new Ingredient { IngredientName = "Appel" },
-            new Ingredient { IngredientName = "Radijs" }
+            new() { IngredientName = "Wortel" },
+            new() { IngredientName = "Appel" },
+            new() { IngredientName = "Radijs" }
         };
         context.Ingredients.AddRange(ingredients);
         context.SaveChanges(); // Save changes after adding ingredients
@@ -53,12 +53,12 @@ internal static class CulinaryCodeDbInitializer
         // Add Preferences
         var preferences = new List<Preference>
         {
-            new Preference { PreferenceName = "Veel wortels", StandardPreference = false },
-            new Preference { PreferenceName = "Weinig wortels", StandardPreference = false },
-            new Preference { PreferenceName = "Noten allergie", StandardPreference = true },
-            new Preference { PreferenceName = "Vegan", StandardPreference = true },
-            new Preference { PreferenceName = "Vegetarisch", StandardPreference = true },
-            new Preference { PreferenceName = "Lactose Intolerant", StandardPreference = true }
+            new() { PreferenceName = "Veel wortels", StandardPreference = false },
+            new() { PreferenceName = "Weinig wortels", StandardPreference = false },
+            new() { PreferenceName = "Noten allergie", StandardPreference = true },
+            new() { PreferenceName = "Vegan", StandardPreference = true },
+            new() { PreferenceName = "Vegetarisch", StandardPreference = true },
+            new() { PreferenceName = "Lactose Intolerant", StandardPreference = true }
         };
         context.Preferences.AddRange(preferences);
         context.SaveChanges(); // Save changes after adding preferences
@@ -69,14 +69,14 @@ internal static class CulinaryCodeDbInitializer
         // Add InstructionSteps
         var instructionSteps = new List<InstructionStep>
         {
-            new InstructionStep { Instruction = "Voeg water toe", StepNumber = 1 },
-            new InstructionStep { Instruction = "Breng het water aan de kook", StepNumber = 2 },
-            new InstructionStep { Instruction = "Voeg de pasta toe en roer goed door", StepNumber = 3 },
-            new InstructionStep { Instruction = "Laat de pasta 10 minuten koken tot hij beetgaar is", StepNumber = 4 },
-            new InstructionStep { Instruction = "Giet de pasta af en spoel af met koud water", StepNumber = 5 },
-            new InstructionStep { Instruction = "Verhit olie in een pan op middelhoog vuur", StepNumber = 6 },
-            new InstructionStep { Instruction = "Voeg knoflook en ui toe en bak tot ze glazig zijn", StepNumber = 7 },
-            new InstructionStep { Instruction = "Voeg de tomatensaus toe en laat 5 minuten sudderen", StepNumber = 8 }
+            new() { Instruction = "Voeg water toe", StepNumber = 1 },
+            new() { Instruction = "Breng het water aan de kook", StepNumber = 2 },
+            new() { Instruction = "Voeg de pasta toe en roer goed door", StepNumber = 3 },
+            new() { Instruction = "Laat de pasta 10 minuten koken tot hij beetgaar is", StepNumber = 4 },
+            new() { Instruction = "Giet de pasta af en spoel af met koud water", StepNumber = 5 },
+            new() { Instruction = "Verhit olie in een pan op middelhoog vuur", StepNumber = 6 },
+            new() { Instruction = "Voeg knoflook en ui toe en bak tot ze glazig zijn", StepNumber = 7 },
+            new() { Instruction = "Voeg de tomatensaus toe en laat 5 minuten sudderen", StepNumber = 8 }
         };
         context.InstructionSteps.AddRange(instructionSteps);
         context.SaveChanges(); // Save changes after adding instruction steps
@@ -87,19 +87,19 @@ internal static class CulinaryCodeDbInitializer
         // Add Reviews
         var reviews = new List<Review>
         {
-            new Review { AmountOfStars = 1, Description = "Slechte pasta, heel vies", CreatedAt = DateTime.UtcNow },
-            new Review
+            new() { AmountOfStars = 1, Description = "Slechte pasta, heel vies", CreatedAt = DateTime.UtcNow },
+            new()
             {
                 AmountOfStars = 3, Description = "Redelijke pasta, smaakte oké maar niet bijzonder.",
                 CreatedAt = DateTime.UtcNow
             },
-            new Review
+            new()
             {
                 AmountOfStars = 5,
                 Description = "Heerlijke pasta! Perfecte smaak en goede textuur. Zeker voor herhaling vatbaar!",
                 CreatedAt = DateTime.UtcNow
             },
-            new Review
+            new()
             {
                 AmountOfStars = 2, Description = "Niet zo lekker als verwacht, saus was te waterig en pasta was wat klef.",
                 CreatedAt = DateTime.UtcNow
@@ -114,17 +114,14 @@ internal static class CulinaryCodeDbInitializer
         // Add Recipes
         var recipes = new List<Recipe>
         {
-            new Recipe
+            new()
             {
                 RecipeName = "Test Recept 1",
                 Ingredients = new List<IngredientQuantity>
                 {
-                    new IngredientQuantity
-                        { Ingredient = context.Ingredients.First(i => i.IngredientName == "Wortel"), Quantity = 1 },
-                    new IngredientQuantity
-                        { Ingredient = context.Ingredients.First(i => i.IngredientName == "Wortel"), Quantity = 2 },
-                    new IngredientQuantity
-                        { Ingredient = context.Ingredients.First(i => i.IngredientName == "Wortel"), Quantity = 3 }
+                    new() { Ingredient = context.Ingredients.First(i => i.IngredientName == "Wortel"), Quantity = 1 },
+                    new() { Ingredient = context.Ingredients.First(i => i.IngredientName == "Wortel"), Quantity = 2 },
+                    new() { Ingredient = context.Ingredients.First(i => i.IngredientName == "Wortel"), Quantity = 3 }
                 },
                 Preferences = new List<Preference>
                 {
@@ -160,13 +157,12 @@ internal static class CulinaryCodeDbInitializer
                                  context.Reviews.First(r => r.AmountOfStars == 3).AmountOfStars +
                                  context.Reviews.First(r => r.AmountOfStars == 2).AmountOfStars) / 3.0
             },
-            new Recipe
+            new()
             {
                 RecipeName = "Test Recept 2",
                 Ingredients = new List<IngredientQuantity>
                 {
-                    new IngredientQuantity
-                        { Ingredient = context.Ingredients.First(i => i.IngredientName == "Appel"), Quantity = 100 }
+                    new() { Ingredient = context.Ingredients.First(i => i.IngredientName == "Appel"), Quantity = 100 }
                 },
                 Preferences = new List<Preference>
                 {
@@ -191,7 +187,7 @@ internal static class CulinaryCodeDbInitializer
                 AmountOfRatings = 1,
                 AverageRating = context.Reviews.First(r => r.AmountOfStars == 5).AmountOfStars
             },
-            new Recipe
+            new()
             {
                 RecipeName = "Test Recept 3",
                 RecipeType = RecipeType.Dinner,
@@ -205,6 +201,156 @@ internal static class CulinaryCodeDbInitializer
             }
         };
         context.Recipes.AddRange(recipes);
+        context.SaveChanges(); // Save changes after adding recipes
+    }
+
+    if (!context.PlannedMeals.Any())
+    {
+        var recipe2 = context.Recipes.FirstOrDefault(r => r.RecipeName == "Test Recept 2");
+
+        var meal1 = new PlannedMeal
+        {
+            Recipe = recipe2,
+            Ingredients = new List<IngredientQuantity>
+            {
+                new IngredientQuantity { Ingredient = context.Ingredients.First(i => i.IngredientName == "Wortel"), Quantity = 1 },
+                new IngredientQuantity { Ingredient = context.Ingredients.First(i => i.IngredientName == "Appel"), Quantity = 150 }
+            }
+        };
+
+        var meal2 = new PlannedMeal
+        {
+            Ingredients = new List<IngredientQuantity>
+            {
+                new IngredientQuantity { Ingredient = context.Ingredients.First(i => i.IngredientName == "Wortel"), Quantity = 2 },
+                new IngredientQuantity { Ingredient = context.Ingredients.First(i => i.IngredientName == "Appel"), Quantity = 100 }
+            }
+        };
+
+        context.PlannedMeals.Add(meal1);
+        context.PlannedMeals.Add(meal2);
+        context.SaveChanges();
+    }
+
+    if (!context.GroceryLists.Any())
+    {
+        var meal1 = context.PlannedMeals.FirstOrDefault();
+        var groceryList = new GroceryList
+        {
+            GroceryListId = Guid.NewGuid(),
+            Ingredients = meal1.Ingredients,
+        };
+
+        context.GroceryLists.Add(groceryList);
+        context.SaveChanges();
+    }
+
+    if (!context.Accounts.Any(a => a.Email == "nis@n.n"))
+    {
+        var groceryList = context.GroceryLists.FirstOrDefault();
+        var account1 = new Account
+        {
+            AccountId = Guid.Parse("d1ec841b-9646-4ca7-a1ef-eda7354547f3"),
+            Name = "nis",
+            Email = "nis@n.n",
+            FamilySize = 4,
+            GroceryList = groceryList
+        };
+
+        context.Accounts.Add(account1);
+        context.SaveChanges();
+    }
+
+    if (!context.MealPlanners.Any())
+    {
+        var account1 = context.Accounts.FirstOrDefault(a => a.Email == "nis@n.n");
+        var meal1 = context.PlannedMeals.FirstOrDefault();
+        var meal2 = context.PlannedMeals.Skip(1).FirstOrDefault();
+
+        var mealPlanner = new MealPlanner
+        {
+            MealPlannerId = Guid.NewGuid(),
+            NextWeek = new List<PlannedMeal> { meal1, meal2 },
+            Account = account1,
+        };
+
+        context.MealPlanners.Add(mealPlanner);
+        context.SaveChanges();
+    }
+
+    if (!context.ItemQuantities.Any())
+    {
+        var groceryList = context.GroceryLists.FirstOrDefault();
+        var ingredient = context.Ingredients.First(i => i.IngredientName == "Appel");
+        var newIngredient = new Ingredient { IngredientId = Guid.NewGuid(), IngredientName = "Aardappel", Measurement = MeasurementType.Kilogram };
+        var newItem = new GroceryItem { GroceryItemId = Guid.NewGuid(), GroceryItemName = "Waspoeder" };
+
+        var addItem = new ItemQuantity
+        {
+            GroceryItem = new GroceryItem
+            {
+                GroceryItemId = ingredient.IngredientId,
+                GroceryItemName = ingredient.IngredientName,
+            },
+            GroceryList = groceryList,
+            Quantity = 2
+        };
+
+        var addNewItem = new ItemQuantity
+        {
+            GroceryItem = new GroceryItem
+            {
+                GroceryItemId = newIngredient.IngredientId,
+                GroceryItemName = newIngredient.IngredientName,
+            },
+            GroceryList = groceryList,
+            Quantity = 2
+        };
+
+        var addNewItem2 = new ItemQuantity
+        {
+            GroceryItem = new GroceryItem
+            {
+                GroceryItemId = newItem.GroceryItemId,
+                GroceryItemName = newItem.GroceryItemName,
+            },
+            GroceryList = groceryList,
+            Quantity = 7
+        };
+
+        context.ItemQuantities.Add(addItem);
+        context.ItemQuantities.Add(addNewItem);
+        context.ItemQuantities.Add(addNewItem2);
+        context.SaveChanges();
+    }
+
+    if (!context.Accounts.Any(a => a.Email == "nisko@n.n"))
+    {
+        var account2 = new Account
+        {
+            AccountId = Guid.Parse("718a1b80-7ae4-4ae0-a26c-87770f54d517"),
+            Name = "nikl",
+            Email = "nisko@n.n",
+            FamilySize = 4,
+        };
+
+        context.Accounts.Add(account2);
+        context.SaveChanges();
+    }
+
+    if (!context.Groups.Any(g => g.GroupName == "nisso"))
+    {
+        var group1 = new Group
+        {
+            GroupId = Guid.Parse("1bde5dcd-816f-4d97-bb0f-e3d60cceb200"),
+            GroupName = "nisso",
+        };
+
+        var account1 = context.Accounts.FirstOrDefault(a => a.Email == "nis@n.n");
+        group1.Accounts.Add(account1);
+
+        context.Groups.Add(group1);
+        context.SaveChanges();
     }
 
     // Save changes
