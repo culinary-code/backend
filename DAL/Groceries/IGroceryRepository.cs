@@ -15,4 +15,5 @@ public interface IGroceryRepository
     Task<Result<Unit>> UpdateGroceryList(GroceryList groceryList);
     Task<Result<Unit>> AddGroceryListItem(GroceryList groceryList, ItemQuantity newItem);
     Task<Result<Unit>> DeleteItemQuantity(Guid userId, Guid itemId);
+    Task<Result<Unit>> DeleteItemQuantityByGroup(Guid groupId, Guid itemId);
 }

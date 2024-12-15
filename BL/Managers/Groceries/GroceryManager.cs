@@ -163,6 +163,23 @@ public class GroceryManager : IGroceryManager
 
     public async Task<Result<Unit>> RemoveItemFromGroceryList(Guid userId, ItemQuantityDto removeItem)
     {
+        var accountResult = await _accountRepository.ReadAccount(userId);
+        if (!accountResult.IsSuccess)
+        {
+            return Result<Unit>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
+        }
+        var account = accountResult.Value!;
+
+        if (account.ChosenGroupId.HasValue)
+        {
+            if (removeItem.IsIngredient)
+            {
+                return await _ingredientRepository.DeleteIngredientQuantityFromGroup(account.ChosenGroupId.Value, removeItem.ItemQuantityId);
+            }
+
+            return await _groceryRepository.DeleteItemQuantityByGroup(account.ChosenGroupId.Value, removeItem.ItemQuantityId);
+        }
+        
         if (removeItem.IsIngredient)
         {
             return await _ingredientRepository.DeleteIngredientQuantity(userId, removeItem.ItemQuantityId);

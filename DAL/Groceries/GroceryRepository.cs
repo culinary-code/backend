@@ -140,4 +140,25 @@ public class GroceryRepository : IGroceryRepository
         return Result<Unit>.Failure($"No itemquantity does not belong to user with id: {userId}", ResultFailureType.Error);
 
     }
+
+    public async Task<Result<Unit>> DeleteItemQuantityByGroup(Guid groupId, Guid itemId)
+    {
+        var itemQuantity = await _ctx.ItemQuantities
+            .Include(i => i.GroceryList)
+            .ThenInclude(i => i.Group)
+            .FirstOrDefaultAsync(g => g.ItemQuantityId == itemId);
+        if (itemQuantity == null)
+        {
+            return Result<Unit>.Failure($"No itemquantity found with id: {itemId}", ResultFailureType.NotFound);
+        }
+        
+        if (itemQuantity.GroceryList!.Group!.GroupId == groupId)
+        {
+            _ctx.ItemQuantities.Remove(itemQuantity);
+            await _ctx.SaveChangesAsync();
+            return Result<Unit>.Success(new Unit());
+        }
+        return Result<Unit>.Failure($"No itemquantity does not belong to group with id: {groupId}", ResultFailureType.Error);
+
+    }
 }
