@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using DAL.Accounts;
 using DAL.EF;
 using DOM.Recipes.Ingredients;
 using DOM.Results;
@@ -120,7 +121,7 @@ public class IngredientRepository : IIngredientRepository
         {
             if (ingredientQuantity.GroceryList.Group!.GroupId != groupId)
                 return Result<Unit>.Failure(
-                    "The ingredient quantity you are trying to remove belongs to another account",
+                    "The ingredient quantity you are trying to remove belongs to another group",
                     ResultFailureType.Error);
             
             _ctx.IngredientQuantities.Remove(ingredientQuantity);
@@ -128,18 +129,19 @@ public class IngredientRepository : IIngredientRepository
             return Result<Unit>.Success(new Unit());
 
         }
+        
         if (ingredientQuantity.PlannedMeal != null)
         {
             if (ingredientQuantity.PlannedMeal.NextWeekMealPlanner!.Group!.GroupId != groupId)
                 return Result<Unit>.Failure(
-                    "The ingredient quantity you are trying to remove belongs to another account",
+                    "The ingredient quantity you are trying to remove belongs to another group",
                     ResultFailureType.Error);
             
             _ctx.IngredientQuantities.Remove(ingredientQuantity);
             await _ctx.SaveChangesAsync();
             return Result<Unit>.Success(new Unit());
         }
-
+        
         // if it has no planned meal or grocery list, it has to be an ingredient quantity from a recipe
         return Result<Unit>.Failure("The ingredient quantity you are trying to remove belongs to a recipe", ResultFailureType.Error);
 
