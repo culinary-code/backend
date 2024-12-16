@@ -400,7 +400,7 @@ namespace DAL.Migrations
                     b.Property<Guid?>("RecipeId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("StepNumbers")
+                    b.Property<int>("StepNumber")
                         .HasColumnType("integer");
 
                     b.HasKey("InstructionStepId");
