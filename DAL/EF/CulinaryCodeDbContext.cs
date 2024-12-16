@@ -29,7 +29,7 @@ public class CulinaryCodeDbContext : DbContext
 
     public CulinaryCodeDbContext(DbContextOptions options) : base(options)
     {
-        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: true);
+        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: false);
     }
 
 
