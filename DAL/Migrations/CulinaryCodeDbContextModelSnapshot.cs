@@ -56,12 +56,12 @@ namespace DAL.Migrations
                     b.Property<Guid?>("GroceryListId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("PlannerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Username")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<Guid?>("PlannerId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("AccountId");
 
@@ -181,15 +181,15 @@ namespace DAL.Migrations
                     b.Property<Guid?>("AccountId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("AmountOfStars")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("integer");
 
                     b.Property<Guid?>("RecipeId")
                         .HasColumnType("uuid");

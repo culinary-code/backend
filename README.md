@@ -86,6 +86,58 @@ running the application.
 
 - When starting up the application, the database will be created and seeded with initial data by Entity Framework Core.
 
+### Database Migrations
+
+When making changes to the domain, follow these steps to create, verify, and apply a database migration in the project.
+
+#### 1. **Creating a New Migration**
+
+To add a new migration, use the following command. Be sure to provide a meaningful name for the migration based on the changes made, such as renaming or adding columns:
+
+```bash
+dotnet ef migrations add <MigrationName> --project DAL --startup-project WEBAPI
+```
+
+Example:
+```bash
+dotnet ef migrations add RenameRecipeStepInstructionStepNumberToStepNumbers --project DAL --startup-project WEBAPI
+```
+
+#### 2. **Review the Generated Migration**
+
+Always review the generated migration code to ensure it accurately reflects the intended changes. If the automatically generated migration is incorrect or incomplete, modify it manually to match the desired database schema changes.
+
+#### 3. **Apply the Migration to the Local Database**
+
+Once the migration has been verified, apply it to the local database using the following command:
+
+```bash
+dotnet ef database update --project DAL --startup-project WEBAPI
+```
+
+This will update the database schema to reflect the new migration.
+
+#### 4. **Reverting a Migration**
+
+If you need to discard a migration, first revert the database to a previous state by specifying the migration that should be reapplied. Replace `InitialCreate` with the name of the target migration:
+
+```bash
+dotnet ef database update <TargetMigration> --project DAL --startup-project WEBAPI
+```
+
+Example:
+```bash
+dotnet ef database update InitialCreate --project DAL --startup-project WEBAPI
+```
+
+After reverting, remove the migration using this command:
+
+```bash
+dotnet ef migrations remove --project DAL --startup-project WEBAPI
+```
+
+This command removes the latest migration without applying any changes to the database.
+
 ## Running the Application
 
 To start the application, run:
