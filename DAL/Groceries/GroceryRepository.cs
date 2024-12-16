@@ -120,7 +120,7 @@ public class GroceryRepository : IGroceryRepository
         return Result<Unit>.Success(new Unit());
     }
 
-    public async Task<Result<Unit>> DeleteItemQuantity(Guid userId, Guid itemId)
+    public async Task<Result<Unit>> DeleteItemQuantityByUserId(Guid userId, Guid itemId)
     {
         var itemQuantity = await _ctx.ItemQuantities
                 .Include(i => i.GroceryList)
@@ -141,7 +141,7 @@ public class GroceryRepository : IGroceryRepository
 
     }
 
-    public async Task<Result<Unit>> DeleteItemQuantityByGroup(Guid groupId, Guid itemId)
+    public async Task<Result<Unit>> DeleteItemQuantityByGroupId(Guid groupId, Guid itemId)
     {
         var itemQuantity = await _ctx.ItemQuantities
             .Include(i => i.GroceryList)

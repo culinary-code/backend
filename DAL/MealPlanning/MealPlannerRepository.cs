@@ -15,7 +15,7 @@ public class MealPlannerRepository : IMealPlannerRepository
     }
 
     // used to create a new planned meal, needs to be tracked
-    public async Task<Result<MealPlanner>> ReadMealPlannerByIdWithNextWeekNoTracking(Guid accountId)
+    public async Task<Result<MealPlanner>> ReadMealPlannerByUserIdWithNextWeekNoTracking(Guid accountId)
     {
         var mealPlanner = await _ctx.MealPlanners
             .Include(planner => planner.NextWeek)
@@ -126,7 +126,7 @@ public class MealPlannerRepository : IMealPlannerRepository
     }
 
     // used to return dto, doesn't need to be tracked
-    public async Task<Result<List<PlannedMeal>>> ReadNextWeekPlannedMealsNoTracking(Guid userId)
+    public async Task<Result<List<PlannedMeal>>> ReadNextWeekPlannedMealsNoTrackingByUserId(Guid userId)
     {
         var mealPlannerResult = await ReadMealPlannerByIdWithNextWeekWithRecipeNoTracking(userId);
         if (!mealPlannerResult.IsSuccess)
@@ -151,7 +151,7 @@ public class MealPlannerRepository : IMealPlannerRepository
     }
 
     // used to return a dto, doesn't need to be tracked
-    public async Task<Result<List<PlannedMeal>>> ReadPlannedMealsAfterDateNoTracking(DateTime dateTime, Guid userId)
+    public async Task<Result<List<PlannedMeal>>> ReadPlannedMealsAfterDateNoTrackingByUserId(DateTime dateTime, Guid userId)
     {
         var mealPlannerResult = await ReadMealPlannerByIdWithNextWeekAndHistoryWithRecipeNoTracking(userId);
         if (!mealPlannerResult.IsSuccess)

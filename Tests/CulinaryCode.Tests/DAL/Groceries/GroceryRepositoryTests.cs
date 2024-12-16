@@ -152,7 +152,7 @@ public class GroceryRepositoryTests : IClassFixture<TestPostgresContainerFixture
         await _dbContext.SaveChangesAsync();
 
         // Act
-        await _groceryRepository.DeleteItemQuantity(groceryList.Account.AccountId, itemQuantity.ItemQuantityId);
+        await _groceryRepository.DeleteItemQuantityByUserId(groceryList.Account.AccountId, itemQuantity.ItemQuantityId);
 
         // Assert
         var result = await _dbContext.ItemQuantities.FindAsync(itemQuantity.ItemQuantityId);

@@ -553,7 +553,7 @@ public class GroceryManagerTests
 
         // Assert
         _mockIngredientRepository.Verify(repo => repo.DeleteIngredientQuantity(userId, ingredientId), Times.Once);
-        _mockGroceryRepository.Verify(repo => repo.DeleteItemQuantity(It.IsAny<Guid>(), It.IsAny<Guid>()), Times.Never);
+        _mockGroceryRepository.Verify(repo => repo.DeleteItemQuantityByUserId(It.IsAny<Guid>(), It.IsAny<Guid>()), Times.Never);
     }
 
     [Fact]
@@ -576,7 +576,7 @@ public class GroceryManagerTests
         await _groceryManager.RemoveItemFromGroceryList(userId, removeItemDto);
 
         // Assert
-        _mockGroceryRepository.Verify(repo => repo.DeleteItemQuantity(userId, itemId), Times.Once);
+        _mockGroceryRepository.Verify(repo => repo.DeleteItemQuantityByUserId(userId, itemId), Times.Once);
         _mockIngredientRepository.Verify(repo => repo.DeleteIngredientQuantity(It.IsAny<Guid>(), It.IsAny<Guid>()), Times.Never);
     }
 
@@ -599,14 +599,14 @@ public class GroceryManagerTests
 
         _mockAccountRepository.Setup(repo => repo.ReadAccount(userId))
             .ReturnsAsync(Result<Account>.Success(account));
-        _mockGroceryRepository.Setup(repo => repo.DeleteItemQuantityByGroup(groupId, itemId))
+        _mockGroceryRepository.Setup(repo => repo.DeleteItemQuantityByGroupId(groupId, itemId))
             .ReturnsAsync(Result<Unit>.Success(new Unit()));
 
         // Act
         await _groceryManager.RemoveItemFromGroceryList(userId, removeItemDto);
 
         // Assert
-        _mockGroceryRepository.Verify(repo => repo.DeleteItemQuantityByGroup(groupId, itemId), Times.Once);
+        _mockGroceryRepository.Verify(repo => repo.DeleteItemQuantityByGroupId(groupId, itemId), Times.Once);
     }
 
 }

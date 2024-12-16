@@ -77,7 +77,7 @@ public class MealPlannerManagerTests
         var recipe = new Recipe { RecipeId = plannedMealDto.Recipe.RecipeId };
 
         _mealPlannerRepositoryMock
-            .Setup(repo => repo.ReadMealPlannerByIdWithNextWeekNoTracking(userId))
+            .Setup(repo => repo.ReadMealPlannerByUserIdWithNextWeekNoTracking(userId))
             .ReturnsAsync(Result<MealPlanner>.Success(mealPlanner));
 
         _mealPlannerRepositoryMock
@@ -123,7 +123,7 @@ public class MealPlannerManagerTests
         };
 
         _mealPlannerRepositoryMock
-            .Setup(repo => repo.ReadNextWeekPlannedMealsNoTracking(userId))
+            .Setup(repo => repo.ReadNextWeekPlannedMealsNoTrackingByUserId(userId))
             .ReturnsAsync(Result<List<PlannedMeal>>.Success(plannedMeals));
 
         _mapperMock
@@ -140,7 +140,7 @@ public class MealPlannerManagerTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(plannedMealDtos.Count, result.Value!.Count);
-        _mealPlannerRepositoryMock.Verify(repo => repo.ReadNextWeekPlannedMealsNoTracking(userId), Times.Once);
+        _mealPlannerRepositoryMock.Verify(repo => repo.ReadNextWeekPlannedMealsNoTrackingByUserId(userId), Times.Once);
         _mapperMock.Verify(mapper => mapper.Map<List<PlannedMealDto>>(plannedMeals), Times.Once);
     }
 
@@ -160,7 +160,7 @@ public class MealPlannerManagerTests
         };
 
         _mealPlannerRepositoryMock
-            .Setup(repo => repo.ReadPlannedMealsAfterDateNoTracking(dateTime, userId))
+            .Setup(repo => repo.ReadPlannedMealsAfterDateNoTrackingByUserId(dateTime, userId))
             .ReturnsAsync(Result<List<PlannedMeal>>.Success(plannedMeals));
 
         _mapperMock
@@ -177,7 +177,7 @@ public class MealPlannerManagerTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(plannedMealDtos.Count, result.Value!.Count);
-        _mealPlannerRepositoryMock.Verify(repo => repo.ReadPlannedMealsAfterDateNoTracking(dateTime, userId), Times.Once);
+        _mealPlannerRepositoryMock.Verify(repo => repo.ReadPlannedMealsAfterDateNoTrackingByUserId(dateTime, userId), Times.Once);
         _mapperMock.Verify(mapper => mapper.Map<List<PlannedMealDto>>(plannedMeals), Times.Once);
     }
 }

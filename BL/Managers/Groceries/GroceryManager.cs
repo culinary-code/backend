@@ -170,7 +170,7 @@ public class GroceryManager : IGroceryManager
                 return await _ingredientRepository.DeleteIngredientQuantityFromGroup(account.ChosenGroupId.Value, removeItem.ItemQuantityId);
             }
 
-            return await _groceryRepository.DeleteItemQuantityByGroup(account.ChosenGroupId.Value, removeItem.ItemQuantityId);
+            return await _groceryRepository.DeleteItemQuantityByGroupId(account.ChosenGroupId.Value, removeItem.ItemQuantityId);
         }
         
         if (removeItem.IsIngredient)
@@ -178,7 +178,7 @@ public class GroceryManager : IGroceryManager
             return await _ingredientRepository.DeleteIngredientQuantity(userId, removeItem.ItemQuantityId);
         }
 
-        return await _groceryRepository.DeleteItemQuantity(userId, removeItem.ItemQuantityId);
+        return await _groceryRepository.DeleteItemQuantityByUserId(userId, removeItem.ItemQuantityId);
     }
 
     private async Task<Result<Unit>> CreateNewItemInGroceryList(GroceryList groceryList, string name, ItemQuantityDto newListItem)

@@ -46,7 +46,7 @@ public class MealPlannerRepositoryTests : IClassFixture<TestPostgresContainerFix
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeekNoTracking(accountId);
+        var result = await _mealPlannerRepository.ReadMealPlannerByUserIdWithNextWeekNoTracking(accountId);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -102,7 +102,7 @@ public class MealPlannerRepositoryTests : IClassFixture<TestPostgresContainerFix
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTracking(userId);
+        var result = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTrackingByUserId(userId);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -134,7 +134,7 @@ public class MealPlannerRepositoryTests : IClassFixture<TestPostgresContainerFix
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _mealPlannerRepository.ReadPlannedMealsAfterDateNoTracking(DateTime.UtcNow, userId);
+        var result = await _mealPlannerRepository.ReadPlannedMealsAfterDateNoTrackingByUserId(DateTime.UtcNow, userId);
 
         // Assert
         Assert.True(result.IsSuccess);

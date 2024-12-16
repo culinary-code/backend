@@ -56,7 +56,7 @@ public class MealPlannerManager : IMealPlannerManager
         else
         {
             // get mealplanner for user with userid
-            var mealPlannerResult = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeekNoTracking(userId);
+            var mealPlannerResult = await _mealPlannerRepository.ReadMealPlannerByUserIdWithNextWeekNoTracking(userId);
             if (!mealPlannerResult.IsSuccess)
             {
                 return Result<Unit>.Failure(mealPlannerResult.ErrorMessage!, mealPlannerResult.FailureType);
@@ -149,7 +149,7 @@ public class MealPlannerManager : IMealPlannerManager
             }
             else
             {
-                var plannedMealsResult = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTracking(userId);
+                var plannedMealsResult = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTrackingByUserId(userId);
                 if (!plannedMealsResult.IsSuccess)
                 {
                     return Result<List<PlannedMealDto>>.Failure(plannedMealsResult.ErrorMessage!, plannedMealsResult.FailureType);
@@ -170,7 +170,7 @@ public class MealPlannerManager : IMealPlannerManager
             }
             else
             {
-                var plannedMealsResult = await _mealPlannerRepository.ReadPlannedMealsAfterDateNoTracking(dateTime, userId);
+                var plannedMealsResult = await _mealPlannerRepository.ReadPlannedMealsAfterDateNoTrackingByUserId(dateTime, userId);
                 if (!plannedMealsResult.IsSuccess)
                 {
                     return Result<List<PlannedMealDto>>.Failure(plannedMealsResult.ErrorMessage!, plannedMealsResult.FailureType);
@@ -185,7 +185,7 @@ public class MealPlannerManager : IMealPlannerManager
     public async Task<Result<List<IngredientQuantityDto>>> GetNextWeekIngredients(Guid userId)
     {
         // Get all planned meals for next week
-        var plannedMealsResult = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTracking(userId);
+        var plannedMealsResult = await _mealPlannerRepository.ReadNextWeekPlannedMealsNoTrackingByUserId(userId);
         if (!plannedMealsResult.IsSuccess)
         {
             return Result<List<IngredientQuantityDto>>.Failure(plannedMealsResult.ErrorMessage!, plannedMealsResult.FailureType);
