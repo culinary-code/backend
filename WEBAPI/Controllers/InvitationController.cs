@@ -91,4 +91,11 @@ public class InvitationController : ControllerBase
         var acceptInvitationResult = await _invitationManager.RemoveInvitationAsync(invitation);
         return acceptInvitationResult.ToActionResult();
     }
+    
+    [HttpGet("validateInvitation/{token}")]
+    public async Task<IActionResult> ValidateInvitation(string token)
+    {
+        var invitationResult = await _invitationManager.ValidateInvitationTokenAsync(token);
+        return Ok(invitationResult.ToActionResult());
+    }
 }
