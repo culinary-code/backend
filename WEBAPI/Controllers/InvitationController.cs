@@ -96,10 +96,6 @@ public class InvitationController : ControllerBase
     public async Task<IActionResult> ValidateInvitation(string token)
     {
         var invitationResult = await _invitationManager.ValidateInvitationTokenAsync(token);
-        if (!invitationResult.IsSuccess)
-        {
-            return BadRequest(invitationResult.ErrorMessage);
-        }
-        return Ok();
+        return Ok(invitationResult.ToActionResult());
     }
 }
