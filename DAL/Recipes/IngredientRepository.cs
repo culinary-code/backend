@@ -58,7 +58,7 @@ public class IngredientRepository : IIngredientRepository
         return Result<Unit>.Success(new Unit());
     }
     
-    public async Task<Result<Unit>> DeleteIngredientQuantity(Guid userId, Guid ingredientQuantityId)
+    public async Task<Result<Unit>> DeleteIngredientQuantityByUserId(Guid userId, Guid ingredientQuantityId)
     {
         var ingredientQuantity = await _ctx.IngredientQuantities
             .Include(i => i.GroceryList)
@@ -101,7 +101,7 @@ public class IngredientRepository : IIngredientRepository
         return Result<Unit>.Failure("The ingredient quantity you are trying to remove belongs to a recipe", ResultFailureType.Error);
     }
 
-    public async Task<Result<Unit>> DeleteIngredientQuantityFromGroup(Guid groupId, Guid ingredientQuantityId)
+    public async Task<Result<Unit>> DeleteIngredientQuantityByGroupId(Guid groupId, Guid ingredientQuantityId)
     {
         var ingredientQuantity = await _ctx.IngredientQuantities
             .Include(i => i.GroceryList)

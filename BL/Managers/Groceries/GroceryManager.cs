@@ -167,7 +167,7 @@ public class GroceryManager : IGroceryManager
         {
             if (removeItem.IsIngredient)
             {
-                return await _ingredientRepository.DeleteIngredientQuantityFromGroup(account.ChosenGroupId.Value, removeItem.ItemQuantityId);
+                return await _ingredientRepository.DeleteIngredientQuantityByGroupId(account.ChosenGroupId.Value, removeItem.ItemQuantityId);
             }
 
             return await _groceryRepository.DeleteItemQuantityByGroupId(account.ChosenGroupId.Value, removeItem.ItemQuantityId);
@@ -175,7 +175,7 @@ public class GroceryManager : IGroceryManager
         
         if (removeItem.IsIngredient)
         {
-            return await _ingredientRepository.DeleteIngredientQuantity(userId, removeItem.ItemQuantityId);
+            return await _ingredientRepository.DeleteIngredientQuantityByUserId(userId, removeItem.ItemQuantityId);
         }
 
         return await _groceryRepository.DeleteItemQuantityByUserId(userId, removeItem.ItemQuantityId);
