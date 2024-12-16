@@ -237,7 +237,7 @@ public class AccountController : ControllerBase
             _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
         if (!userIdResult.IsSuccess)
         {
-            return BadRequest(userIdResult.ErrorMessage);
+            return userIdResult.ToActionResult();
         }
 
         var userId = userIdResult.Value;

@@ -1,30 +1,38 @@
-﻿using DAL.Accounts;
+﻿using CulinaryCode.Tests.util;
+using DAL.Accounts;
 using DAL.EF;
 using DOM.Accounts;
 using DOM.MealPlanning;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 
 namespace CulinaryCode.Tests.DAL.Accounts;
 
-public class GroupRepositoryTests
+public class GroupRepositoryTests : IClassFixture<TestPostgresContainerFixture>, IAsyncLifetime
 {
     private readonly CulinaryCodeDbContext _dbContext;
     private readonly GroupRepository _groupRepository;
     private readonly Mock<IAccountRepository> _accountRepository;
+    private readonly TestPostgresContainerFixture _fixture;
     
-    public GroupRepositoryTests()
+    public GroupRepositoryTests(TestPostgresContainerFixture fixture)
     {
-        var options = new DbContextOptionsBuilder<CulinaryCodeDbContext>()
-            // force unique database for each test so data is isolated
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        _dbContext = new CulinaryCodeDbContext(options);
+        _dbContext = fixture.DbContext;
         _accountRepository = new Mock<IAccountRepository>();
         _groupRepository = new GroupRepository(_dbContext, _accountRepository.Object);
+        _fixture = fixture;
+    }
+    
+    // Ensure the database is reset before each test
+    public async Task InitializeAsync()
+    {
+        await _fixture.ResetDatabaseAsync();
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
     
     [Fact]
