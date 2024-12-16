@@ -3,9 +3,11 @@ using BL.DTOs.MealPlanning;
 using BL.DTOs.Recipes;
 using BL.DTOs.Recipes.Ingredients;
 using BL.Managers.MealPlanning;
+using DAL.Accounts;
 using DAL.Groceries;
 using DAL.MealPlanning;
 using DAL.Recipes;
+using DOM.Accounts;
 using DOM.MealPlanning;
 using DOM.Recipes;
 using DOM.Recipes.Ingredients;
@@ -21,14 +23,14 @@ public class MealPlannerManagerTests
     private readonly Mock<IIngredientRepository> _ingredientRepositoryMock;
     private readonly Mock<IMapper> _mapperMock;
     private readonly MealPlannerManager _mealPlannerManager;
-    private readonly Mock<IGroceryRepository> _groceryRepositoryMock;
+    private readonly Mock<IAccountRepository> _accountRepositoryMock;
 
     public MealPlannerManagerTests()
     {
         _mealPlannerRepositoryMock = new Mock<IMealPlannerRepository>();
         _recipeRepositoryMock = new Mock<IRecipeRepository>();
         _ingredientRepositoryMock = new Mock<IIngredientRepository>();
-        _groceryRepositoryMock = new Mock<IGroceryRepository>();
+        _accountRepositoryMock = new Mock<IAccountRepository>();
         _mapperMock = new Mock<IMapper>();
 
         _mealPlannerManager = new MealPlannerManager(
@@ -36,7 +38,7 @@ public class MealPlannerManagerTests
             _mapperMock.Object,
             _recipeRepositoryMock.Object,
             _ingredientRepositoryMock.Object,
-            _groceryRepositoryMock.Object
+            _accountRepositoryMock.Object
         );
     }
 
@@ -93,6 +95,9 @@ public class MealPlannerManagerTests
         _mealPlannerRepositoryMock
             .Setup(repo => repo.CreatePlannedMeal(It.IsAny<PlannedMeal>()))
             .ReturnsAsync(Result<PlannedMeal>.Success(new PlannedMeal()));
+        _accountRepositoryMock
+            .Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(new Account()));
 
         // Act
         await _mealPlannerManager.CreateNewPlannedMeal(userId, plannedMealDto);
@@ -124,6 +129,10 @@ public class MealPlannerManagerTests
         _mapperMock
             .Setup(mapper => mapper.Map<List<PlannedMealDto>>(plannedMeals))
             .Returns(plannedMealDtos);
+        
+        _accountRepositoryMock
+            .Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(new Account()));
 
         // Act
         var result = await _mealPlannerManager.GetPlannedMealsFromUserAfterDate(dateTime, userId);
@@ -157,6 +166,10 @@ public class MealPlannerManagerTests
         _mapperMock
             .Setup(mapper => mapper.Map<List<PlannedMealDto>>(plannedMeals))
             .Returns(plannedMealDtos);
+        
+        _accountRepositoryMock
+            .Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(new Account()));
 
         // Act
         var result = await _mealPlannerManager.GetPlannedMealsFromUserAfterDate(dateTime, userId);

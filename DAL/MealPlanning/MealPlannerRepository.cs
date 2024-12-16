@@ -33,7 +33,6 @@ public class MealPlannerRepository : IMealPlannerRepository
         var mealPlanner = await _ctx.MealPlanners
             .Include(planner => planner.NextWeek)
             .FirstOrDefaultAsync(m => m.Group.GroupId == groupId);
-            //.FirstOrDefaultAsync(m => m.Account.ChosenGroupId == groupId);
         if (mealPlanner == null)
         {
             return Result<MealPlanner>.Failure($"No mealplanner found for group with id {groupId}", ResultFailureType.NotFound);
@@ -77,7 +76,7 @@ public class MealPlannerRepository : IMealPlannerRepository
         return Result<MealPlanner>.Success(mealPlanner);
     }
 
-    // used to return a dto, doesn't need to be tracked   ---> deze nodig // DONE
+    // used to return a dto, doesn't need to be tracked 
     private async Task<Result<MealPlanner>> ReadMealPlannerByIdWithNextWeekWithRecipeNoTracking(Guid accountId)
     {
         var mealPlanner = await _ctx.MealPlanners
@@ -93,7 +92,7 @@ public class MealPlannerRepository : IMealPlannerRepository
         return Result<MealPlanner>.Success(mealPlanner);
     }
     
-    // used to return a dto, doesn't need to be tracked  ---> deze nodig // DONE
+    // used to return a dto, doesn't need to be tracked
     private async Task<Result<MealPlanner>> ReadMealPlannerByIdWithNextWeekAndHistoryWithRecipeNoTracking(Guid accountId)
     {
         var mealPlanner = await _ctx.MealPlanners
@@ -151,7 +150,7 @@ public class MealPlannerRepository : IMealPlannerRepository
         return Result<List<PlannedMeal>>.Success(mealPlanner!.NextWeek.ToList());
     }
 
-    // used to return a dto, doesn't need to be tracked  ---> deze nodig // DONE
+    // used to return a dto, doesn't need to be tracked
     public async Task<Result<List<PlannedMeal>>> ReadPlannedMealsAfterDateNoTracking(DateTime dateTime, Guid userId)
     {
         var mealPlannerResult = await ReadMealPlannerByIdWithNextWeekAndHistoryWithRecipeNoTracking(userId);
@@ -175,7 +174,6 @@ public class MealPlannerRepository : IMealPlannerRepository
         return Result<List<PlannedMeal>>.Success(plannedMeals);
     }
 
-    // TODO: kijk of je deze kan samenvoegen en gwn id meegeeft als parameter ipv specifiek userid
     public async Task<Result<List<PlannedMeal>>> ReadPlannedMealsAfterDateNoTrackingByGroupId(DateTime dateTime, Guid groupId)
     {
         var mealPlannerResult = await ReadMealPlannerByGroupIdWithNextWeekAndHistoryWithRecipeNoTracking(groupId);

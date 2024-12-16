@@ -23,6 +23,7 @@ public class GroceryManagerTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly GroceryManager _groceryManager;
     private readonly Mock<ILogger<GroceryManager>> _mockLogger;
+    private readonly Mock<IGroupRepository> _mockGroupRepository;
 
     public GroceryManagerTests()
     {
@@ -30,6 +31,7 @@ public class GroceryManagerTests
         _mockGroceryRepository = new Mock<IGroceryRepository>();
         _mockAccountRepository = new Mock<IAccountRepository>();
         _mockIngredientRepository = new Mock<IIngredientRepository>();
+        _mockGroupRepository = new Mock<IGroupRepository>();
         _mockMapper = new Mock<IMapper>();
 
         _groceryManager = new GroceryManager(
@@ -37,7 +39,8 @@ public class GroceryManagerTests
             _mockMapper.Object,
             _mockLogger.Object,
             _mockAccountRepository.Object,
-            _mockIngredientRepository.Object
+            _mockIngredientRepository.Object,
+            _mockGroupRepository.Object
         );
     }
 
@@ -161,6 +164,92 @@ public class GroceryManagerTests
     }
 
     [Fact]
+    public async Task AddItemToGroceryList_ShouldAddItemToGroupGroceryList_WhenUserIsInGroupMode()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var groupId = Guid.NewGuid();
+        var groupGroceryList = new GroceryList
+        {
+            GroceryListId = Guid.NewGuid(),
+            Ingredients = new List<IngredientQuantity>(),
+            Items = new List<ItemQuantity>()
+        };
+        var newItemDto = new ItemQuantityDto
+        {
+            ItemQuantityId = Guid.Empty,
+            GroceryItem = new GroceryItemDto
+            {
+                GroceryItemName = "Bread",
+                Measurement = MeasurementType.Piece
+            },
+            Quantity = 5,
+            IsIngredient = false
+        };
+
+        var account = new Account
+        {
+            ChosenGroupId = groupId
+        };
+
+        _mockAccountRepository.Setup(repo => repo.ReadAccount(userId)).ReturnsAsync(Result<Account>.Success(account));
+        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListByGroupId(groupId))
+            .ReturnsAsync(Result<GroceryList>.Success(groupGroceryList));
+        _mockIngredientRepository.Setup(repo => repo.ReadIngredientByNameAndMeasurementType(It.IsAny<string>(), It.IsAny<MeasurementType>()))
+            .ReturnsAsync(Result<Ingredient>.Failure("", ResultFailureType.NotFound));
+        _mockGroceryRepository.Setup(repo => repo.ReadGroceryItemByNameAndMeasurement(It.IsAny<string>(), It.IsAny<MeasurementType>()))
+            .ReturnsAsync(Result<GroceryItem>.Failure("", ResultFailureType.NotFound));
+        _mockGroceryRepository.Setup(repo => repo.UpdateGroceryList(groupGroceryList))
+            .ReturnsAsync(Result<Unit>.Success(new Unit()));
+
+        // Act
+        await _groceryManager.AddItemToGroceryList(userId, newItemDto);
+
+        // Assert
+        var addedItem = groupGroceryList.Items.FirstOrDefault(i => i.GroceryItem.GroceryItemName == "Bread");
+        Assert.NotNull(addedItem);
+        Assert.Equal(5, addedItem.Quantity);
+    }
+    
+    [Fact]
+    public async Task AddItemToGroceryList_ShouldReturnFailure_WhenGroupGroceryListNotFound()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var groupId = Guid.NewGuid();
+        var newItemDto = new ItemQuantityDto
+        {
+            ItemQuantityId = Guid.Empty,
+            GroceryItem = new GroceryItemDto
+            {
+                GroceryItemName = "Juice",
+                Measurement = MeasurementType.Litre
+            },
+            Quantity = 3,
+            IsIngredient = false
+        };
+
+        var account = new Account
+        {
+            ChosenGroupId = groupId
+        };
+
+        _mockAccountRepository.Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(account));
+        _mockGroceryRepository.Setup(repo => repo.ReadGroceryListByGroupId(groupId))
+            .ReturnsAsync(Result<GroceryList>.Failure("Group grocery list not found", ResultFailureType.NotFound));
+
+        // Act
+        var result = await _groceryManager.AddItemToGroceryList(userId, newItemDto);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ResultFailureType.NotFound, result.FailureType);
+        Assert.Equal("Group grocery list not found", result.ErrorMessage);
+    }
+
+    
+    [Fact]
     public async Task AddItemToGroceryList_ShouldAddNewItem_WhenNewItemIsProvided()
     {
         // Arrange
@@ -190,6 +279,10 @@ public class GroceryManagerTests
         _mockGroceryRepository
             .Setup(repo => repo.UpdateGroceryList(groceryList))
             .ReturnsAsync(Result<Unit>.Success(new Unit()));
+        _mockAccountRepository
+            .Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(new Account()));
+        
         // Act
         await _groceryManager.AddItemToGroceryList(userId, newItemDto);
 
@@ -238,6 +331,10 @@ public class GroceryManagerTests
         _mockIngredientRepository
             .Setup(repo => repo.ReadIngredientByNameAndMeasurementType("Tomato", MeasurementType.Kilogram))
             .ReturnsAsync(Result<Ingredient>.Success(existingIngredient));
+        
+        _mockAccountRepository
+            .Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(new Account()));
 
         // Act
         await _groceryManager.AddItemToGroceryList(userId, newListItem);
@@ -293,6 +390,10 @@ public class GroceryManagerTests
         _mockGroceryRepository
             .Setup(repo => repo.ReadGroceryItemByNameAndMeasurement("Milk", MeasurementType.Litre))
             .ReturnsAsync(Result<GroceryItem>.Success(existingGroceryItem));
+        
+        _mockAccountRepository
+            .Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(new Account()));
 
         // Act
         await _groceryManager.AddItemToGroceryList(userId, newListItem);
@@ -339,6 +440,9 @@ public class GroceryManagerTests
         _mockGroceryRepository
             .Setup(repo => repo.UpdateGroceryList(groceryList))
             .ReturnsAsync(Result<Unit>.Success(new Unit()));
+        _mockAccountRepository
+            .Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(new Account()));
 
         // Act
         await _groceryManager.AddItemToGroceryList(userId, updateItemDto);
@@ -382,6 +486,9 @@ public class GroceryManagerTests
         _mockGroceryRepository
             .Setup(repo => repo.UpdateGroceryList(groceryList))
             .ReturnsAsync(Result<Unit>.Success(new Unit()));
+        _mockAccountRepository
+            .Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(new Account()));
 
         // Act
         await _groceryManager.AddItemToGroceryList(userId, updateIngredientDto);
@@ -410,7 +517,13 @@ public class GroceryManagerTests
         };
 
         _mockGroceryRepository.Setup(repo => repo.ReadGroceryListByAccountId(userId)).ReturnsAsync(Result<GroceryList>.Success(groceryList));
-
+        _mockAccountRepository
+            .Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(new Account()));
+        _mockAccountRepository
+            .Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(new Account()));
+        
         // Act
         var result = await _groceryManager.AddItemToGroceryList(userId, newItemDto);
         
@@ -430,6 +543,10 @@ public class GroceryManagerTests
             ItemQuantityId = ingredientId,
             IsIngredient = true
         };
+        
+        _mockAccountRepository
+            .Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(new Account()));
 
         // Act
         await _groceryManager.RemoveItemFromGroceryList(userId, removeItemDto);
@@ -450,6 +567,10 @@ public class GroceryManagerTests
             ItemQuantityId = itemId,
             IsIngredient = false
         };
+        
+        _mockAccountRepository
+            .Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(new Account()));
 
         // Act
         await _groceryManager.RemoveItemFromGroceryList(userId, removeItemDto);
@@ -457,6 +578,35 @@ public class GroceryManagerTests
         // Assert
         _mockGroceryRepository.Verify(repo => repo.DeleteItemQuantity(userId, itemId), Times.Once);
         _mockIngredientRepository.Verify(repo => repo.DeleteIngredientQuantity(It.IsAny<Guid>(), It.IsAny<Guid>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RemoveItemFromGroceryList_ShouldRemoveItemFromGroup_WhenUserIsInGroupMode()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var groupId = Guid.NewGuid();
+        var itemId = Guid.NewGuid();
+        var removeItemDto = new ItemQuantityDto
+        {
+            ItemQuantityId = itemId,
+            IsIngredient = false
+        };
+        var account = new Account
+        {
+            ChosenGroupId = groupId
+        };
+
+        _mockAccountRepository.Setup(repo => repo.ReadAccount(userId))
+            .ReturnsAsync(Result<Account>.Success(account));
+        _mockGroceryRepository.Setup(repo => repo.DeleteItemQuantityByGroup(groupId, itemId))
+            .ReturnsAsync(Result<Unit>.Success(new Unit()));
+
+        // Act
+        await _groceryManager.RemoveItemFromGroceryList(userId, removeItemDto);
+
+        // Assert
+        _mockGroceryRepository.Verify(repo => repo.DeleteItemQuantityByGroup(groupId, itemId), Times.Once);
     }
 
 }

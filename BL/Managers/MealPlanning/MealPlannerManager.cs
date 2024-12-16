@@ -16,25 +16,23 @@ public class MealPlannerManager : IMealPlannerManager
     private readonly IMealPlannerRepository _mealPlannerRepository;
     private readonly IRecipeRepository _recipeRepository;
     private readonly IIngredientRepository _ingredientRepository;
-    private readonly IGroceryRepository _groceryRepository;
     private readonly IAccountRepository _accountRepository;
     private readonly IMapper _mapper;
 
     public MealPlannerManager(IMealPlannerRepository mealPlannerRepository, IMapper mapper,
         IRecipeRepository recipeRepository, IIngredientRepository ingredientRepository,
-        IGroceryRepository groceryRepository, IAccountRepository accountRepository)
+        IAccountRepository accountRepository)
     {
         _mealPlannerRepository = mealPlannerRepository;
         _mapper = mapper;
         _recipeRepository = recipeRepository;
         _ingredientRepository = ingredientRepository;
-        _groceryRepository = groceryRepository;
         _accountRepository = accountRepository;
     }
 
     public async Task<Result<Unit>> CreateNewPlannedMeal(Guid userId, PlannedMealDto plannedMealDto)
     {
-        // Retrieve the user's account
+        // get the user's account
         var accountResult = await _accountRepository.ReadAccount(userId);
         if (!accountResult.IsSuccess)
         {
@@ -47,7 +45,7 @@ public class MealPlannerManager : IMealPlannerManager
         // Check if the user is in group mode
         if (account.ChosenGroupId.HasValue)
         {
-            // Retrieve the group's grocery list
+            // get the group's grocery list
             var groupMealPlanner = await _mealPlannerRepository.ReadMealPlannerByGroupIdWithNextWeekNoTracking(account.ChosenGroupId.Value);
             if (!groupMealPlanner.IsSuccess)
             {
@@ -57,7 +55,7 @@ public class MealPlannerManager : IMealPlannerManager
         }
         else
         {
-            // Retrieve the user's personal grocery list
+            // get mealplanner for user with userid
             var mealPlannerResult = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeekNoTracking(userId);
             if (!mealPlannerResult.IsSuccess)
             {
@@ -65,17 +63,6 @@ public class MealPlannerManager : IMealPlannerManager
             }
             mealPlanner = mealPlannerResult.Value!;
         }
-        // get mealplanner for user with userid
-        
-        
-        
-        //var mealPlannerResult = await _mealPlannerRepository.ReadMealPlannerByIdWithNextWeekNoTracking(userId);
-        //if (!mealPlannerResult.IsSuccess)
-      //  {
-      //      return Result<Unit>.Failure(mealPlannerResult.ErrorMessage!, mealPlannerResult.FailureType);
-       // }
-
-        //var mealPlanner = mealPlannerResult.Value!;
 
         // check if planned meal exists for date
         var alreadyPlannedMeal = mealPlanner.NextWeek.FirstOrDefault(pm =>
@@ -140,7 +127,7 @@ public class MealPlannerManager : IMealPlannerManager
 
     public async Task<Result<List<PlannedMealDto>>> GetPlannedMealsFromUserAfterDate(DateTime dateTime, Guid userId)
     {
-        // Retrieve the user's account
+        // get the user's account
         var accountResult = await _accountRepository.ReadAccount(userId);
         if (!accountResult.IsSuccess)
         {
