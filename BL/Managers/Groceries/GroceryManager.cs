@@ -33,7 +33,7 @@ public class GroceryManager : IGroceryManager
 
     public async Task<Result<GroceryListDto>> GetGroceryListWithNextWeek(Guid accountId)
     {
-        var accountResult = await _accountRepository.ReadAccountWithMealPlannerNextWeekAndWithGroceryListNoTracking(accountId); // TODO kijk of je hier methode moet maken vr groupid
+        var accountResult = await _accountRepository.ReadAccountWithMealPlannerNextWeekAndWithGroceryListNoTracking(accountId);
         if (!accountResult.IsSuccess)
         {
             return Result<GroceryListDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
