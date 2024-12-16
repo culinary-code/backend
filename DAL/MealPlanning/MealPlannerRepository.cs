@@ -125,7 +125,7 @@ public class MealPlannerRepository : IMealPlannerRepository
         return Result<PlannedMeal>.Success(plannedMeal);
     }
 
-    // used to return dto, doesn't need to be tracked --->  deze nodig // DONE
+    // used to return dto, doesn't need to be tracked
     public async Task<Result<List<PlannedMeal>>> ReadNextWeekPlannedMealsNoTracking(Guid userId)
     {
         var mealPlannerResult = await ReadMealPlannerByIdWithNextWeekWithRecipeNoTracking(userId);
