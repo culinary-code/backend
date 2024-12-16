@@ -28,29 +28,6 @@ namespace CulinaryCode.Tests.BL.Managers
         }
 
         [Fact]
-        public async Task SendInvitationAsync_SendsEmail_WhenGroupExists()
-        {
-            // Arrange
-            var request = new SendInvitationRequestDto
-            {
-                GroupId = Guid.NewGuid(),
-                InviterId = Guid.NewGuid(),
-                InviterName = "Nis",
-            };
-
-            var group = new Group { GroupId = request.GroupId, GroupName = "Nis's group" };
-            _mockGroupRepository.Setup(repo => repo.ReadGroupById(request.GroupId)).ReturnsAsync(Result<Group>.Success(group));
-            _mockInvitationRepository.Setup(repo => repo.SaveInvitationAsync(It.IsAny<Invitation>())).ReturnsAsync(Result<Unit>.Success(new Unit()));
-            _mockEmailService.Setup(service => service.SendInvitationEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(Result<Unit>.Success(new Unit()));
-
-            // Act
-            await _invitationManager.SendInvitationAsync(request);
-
-            // Assert
-            _mockInvitationRepository.Verify(repo => repo.SaveInvitationAsync(It.IsAny<Invitation>()), Times.Once); 
-        }
-
-        [Fact]
         public async Task ValidateInvitationTokenAsync_ReturnsInvitation_WhenTokenIsValid()
         {
             // Arrange

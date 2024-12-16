@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using DAL.Accounts;
 using DAL.EF;
 using DOM.Recipes.Ingredients;
 using DOM.Results;
@@ -58,8 +59,7 @@ public class IngredientRepository : IIngredientRepository
         return Result<Unit>.Success(new Unit());
     }
     
-
-    public async Task<Result<Unit>> DeleteIngredientQuantity(Guid userId, Guid ingredientQuantityId)
+    public async Task<Result<Unit>> DeleteIngredientQuantityByUserId(Guid userId, Guid ingredientQuantityId)
     {
         var ingredientQuantity = await _ctx.IngredientQuantities
             .Include(i => i.GroceryList)
@@ -100,5 +100,50 @@ public class IngredientRepository : IIngredientRepository
 
         // if it has no planned meal or grocery list, it has to be an ingredient quantity from a recipe
         return Result<Unit>.Failure("The ingredient quantity you are trying to remove belongs to a recipe", ResultFailureType.Error);
+    }
+
+    public async Task<Result<Unit>> DeleteIngredientQuantityByGroupId(Guid groupId, Guid ingredientQuantityId)
+    {
+        var ingredientQuantity = await _ctx.IngredientQuantities
+            .Include(i => i.GroceryList)
+            .ThenInclude(g => g.Group)
+            .Include(gr => gr.PlannedMeal)
+            .ThenInclude(p => p.NextWeekMealPlanner)
+            .ThenInclude(n => n.Group)
+            .FirstOrDefaultAsync(i => i.IngredientQuantityId == ingredientQuantityId);
+
+        if (ingredientQuantity == null)
+        {
+            return Result<Unit>.Failure($"No ingredientQuantity found with id {ingredientQuantityId}", ResultFailureType.NotFound);
+        }
+
+        if (ingredientQuantity.GroceryList != null)
+        {
+            if (ingredientQuantity.GroceryList.Group!.GroupId != groupId)
+                return Result<Unit>.Failure(
+                    "The ingredient quantity you are trying to remove belongs to another group",
+                    ResultFailureType.Error);
+            
+            _ctx.IngredientQuantities.Remove(ingredientQuantity);
+            await _ctx.SaveChangesAsync();
+            return Result<Unit>.Success(new Unit());
+
+        }
+        
+        if (ingredientQuantity.PlannedMeal != null)
+        {
+            if (ingredientQuantity.PlannedMeal.NextWeekMealPlanner!.Group!.GroupId != groupId)
+                return Result<Unit>.Failure(
+                    "The ingredient quantity you are trying to remove belongs to another group",
+                    ResultFailureType.Error);
+            
+            _ctx.IngredientQuantities.Remove(ingredientQuantity);
+            await _ctx.SaveChangesAsync();
+            return Result<Unit>.Success(new Unit());
+        }
+        
+        // if it has no planned meal or grocery list, it has to be an ingredient quantity from a recipe
+        return Result<Unit>.Failure("The ingredient quantity you are trying to remove belongs to a recipe", ResultFailureType.Error);
+
     }
 }

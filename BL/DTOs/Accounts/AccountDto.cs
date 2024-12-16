@@ -22,6 +22,7 @@ public class AccountDto
     public GroceryListDto? GroceryList { get; set; }
     
     public List<ReviewDto> Reviews { get; set; } = new List<ReviewDto>();
+    public Guid? ChosenGroupId { get; set; }
 
     
 }

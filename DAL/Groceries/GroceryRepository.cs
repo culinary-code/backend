@@ -65,6 +65,24 @@ public class GroceryRepository : IGroceryRepository
         return Result<GroceryList>.Success(groceryList);
     }
 
+    public async Task<Result<GroceryList>> ReadGroceryListByGroupId(Guid groupId)
+    {
+        var groceryList = await _ctx.GroceryLists
+            .Include(gl => gl.Ingredients)
+            .ThenInclude(i => i.Ingredient)
+            .Include(gl => gl.Items)
+            .ThenInclude(i => i.GroceryItem)
+            .Include(gl => gl.Account)
+            .FirstOrDefaultAsync(gl => gl.Group.GroupId == groupId);
+
+        if (groceryList == null)
+        {
+            return Result<GroceryList>.Failure($"No grocery list found for group with id {groupId}", ResultFailureType.NotFound);
+        }
+        
+        return Result<GroceryList>.Success(groceryList);
+    }
+
     // used to update groceryList, needs to be tracked
     public async Task<Result<GroceryItem>> ReadGroceryItemByNameAndMeasurement(string name, MeasurementType measurementType)
     {
@@ -102,7 +120,7 @@ public class GroceryRepository : IGroceryRepository
         return Result<Unit>.Success(new Unit());
     }
 
-    public async Task<Result<Unit>> DeleteItemQuantity(Guid userId, Guid itemId)
+    public async Task<Result<Unit>> DeleteItemQuantityByUserId(Guid userId, Guid itemId)
     {
         var itemQuantity = await _ctx.ItemQuantities
                 .Include(i => i.GroceryList)
@@ -120,6 +138,27 @@ public class GroceryRepository : IGroceryRepository
             return Result<Unit>.Success(new Unit());
         }
         return Result<Unit>.Failure($"No itemquantity does not belong to user with id: {userId}", ResultFailureType.Error);
+
+    }
+
+    public async Task<Result<Unit>> DeleteItemQuantityByGroupId(Guid groupId, Guid itemId)
+    {
+        var itemQuantity = await _ctx.ItemQuantities
+            .Include(i => i.GroceryList)
+            .ThenInclude(i => i.Group)
+            .FirstOrDefaultAsync(g => g.ItemQuantityId == itemId);
+        if (itemQuantity == null)
+        {
+            return Result<Unit>.Failure($"No itemquantity found with id: {itemId}", ResultFailureType.NotFound);
+        }
+        
+        if (itemQuantity.GroceryList!.Group!.GroupId == groupId)
+        {
+            _ctx.ItemQuantities.Remove(itemQuantity);
+            await _ctx.SaveChangesAsync();
+            return Result<Unit>.Success(new Unit());
+        }
+        return Result<Unit>.Failure($"No itemquantity does not belong to group with id: {groupId}", ResultFailureType.Error);
 
     }
 }

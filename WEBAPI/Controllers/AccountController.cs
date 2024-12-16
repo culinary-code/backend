@@ -229,4 +229,30 @@ public class AccountController : ControllerBase
 
         return removeFavoriteRecipeResult.ToActionResult();
     }
+    
+    [HttpPut("setChosenGroup")]
+    public async Task<IActionResult> SetChosenGroup([FromBody] AccountDto accountDto)
+    {
+        var userIdResult =
+            _identityProviderService.GetGuidFromAccessToken(Request.Headers["Authorization"].ToString().Substring(7));
+        if (!userIdResult.IsSuccess)
+        {
+            return userIdResult.ToActionResult();
+        }
+
+        var userId = userIdResult.Value;
+        
+        // Check if ChosenGroupId is null (for user mode)
+        Guid? chosenGroupId = accountDto.ChosenGroupId;
+
+        if (chosenGroupId == null)
+        {
+            // Handle logic when ChosenGroupId is null (back to user mode)
+            accountDto.ChosenGroupId = null;  // Explicitly set to null if needed
+        }
+        
+        var account = await _accountManager.UpdateChosenGroup(userId, accountDto.ChosenGroupId);
+        
+        return account.ToActionResult();
+    }
 }

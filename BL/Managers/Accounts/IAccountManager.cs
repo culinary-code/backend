@@ -11,6 +11,7 @@ public interface IAccountManager
     Task<Result<List<PreferenceDto>>> GetPreferencesByUserId(Guid userId);
     Task<Result<List<RecipeDto>>> GetFavoriteRecipesByUserId(Guid userId);
     Task<Result<AccountDto>> UpdateAccount(AccountDto account);
+    Task<Result<AccountDto>> UpdateChosenGroup(Guid userId, Guid? chosenGroupId);
     Task<Result<Unit>> DeleteAccount(Guid accountId);
     Task<Result<AccountDto>> UpdateFamilySize(AccountDto updatedAccount);
     Task<Result<Unit>> CreateAccount(string username, string email, Guid userId);
