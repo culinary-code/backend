@@ -16,7 +16,6 @@
       <PackageReference Include="Azure.AI.OpenAI" Version="2.0.0" />
       <PackageReference Include="AutoMapper" Version="13.0.1" />
       <PackageReference Include="Azure.Storage.Blobs" Version="12.22.2" />
-      <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
       <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
       <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />

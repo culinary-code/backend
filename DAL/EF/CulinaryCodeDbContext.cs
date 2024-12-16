@@ -29,7 +29,7 @@ public class CulinaryCodeDbContext : DbContext
 
     public CulinaryCodeDbContext(DbContextOptions options) : base(options)
     {
-        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: true);
+        CulinaryCodeDbInitializer.Initialize(this, dropCreateDatabase: false);
     }
 
 
@@ -211,11 +211,13 @@ public class CulinaryCodeDbContext : DbContext
             entity.HasKey(r => r.GroceryListId);
             entity.HasMany(g => g.Ingredients)
                 .WithOne(i => i.GroceryList)
-                .HasForeignKey(i => i.GroceryListId);
+                .HasForeignKey(i => i.GroceryListId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasMany(g => g.Items)
                 .WithOne(i => i.GroceryList)
-                .HasForeignKey(i => i.GroceryListId);
+                .HasForeignKey(i => i.GroceryListId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // IngredientQuantity Entity Configuration

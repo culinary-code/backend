@@ -220,7 +220,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<CulinaryCodeDbContext>();
-    dbContext.Database.EnsureCreated(); // Use only if you don't want to use migrations
+    // dbContext.Database.EnsureCreated(); // Use only if you don't want to use migrations
 }
 
 // Configure the HTTP request pipeline.
