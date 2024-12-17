@@ -111,7 +111,7 @@ public class AccountManager : IAccountManager
             return Result<AccountDto>.Failure(accountResult.ErrorMessage!, accountResult.FailureType);
         }
         var account = accountResult.Value;
-        
+        account!.FamilySize = updatedAccount.FamilySize;
         var updateResult = await _accountRepository.UpdateAccount(account!);
         if (!updateResult.IsSuccess)
         {
