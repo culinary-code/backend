@@ -1,6 +1,6 @@
 # Culinary Code
 
-Recipe app using ChatGPT to generate recipes.
+Recipe app using openAI to generate recipes.
 
 ## Table of Contents
 
@@ -32,6 +32,8 @@ Recipe app using ChatGPT to generate recipes.
 - [OpenAI DALL-E](https://openai.com/index/dall-e/) for recipe image generation
 - [Docker](https://www.docker.com/) for containerization
 - [GitHub Actions](https://github.com/features/actions) for CI/CD
+- [Quartz](https://www.quartz-scheduler.net/) for scheduling jobs
+- [NewtonSoft](https://www.newtonsoft.com/json) for handling json objects
 
 Visit the project wiki for more in-depth information about the technologies used.
 
@@ -79,8 +81,7 @@ running the application.
 
 ## Authentication
 
-- Describe the authentication mechanism (e.g., JWT, API keys).
-- Include any necessary steps to obtain tokens or credentials.
+Authentication works through Keycloak with JWT tokens. The application will automatically verify tokens based on the environment variables. These are explained below at "running the application".
 
 ## Database Setup
 
@@ -194,4 +195,4 @@ Access Swagger documentation at `https://localhost:7098/swagger` or `http://loca
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
