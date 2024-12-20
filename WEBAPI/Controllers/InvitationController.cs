@@ -29,6 +29,7 @@ public class InvitationController : ControllerBase
         _accountManager = accountManager;
     }
     
+    // Returns a link with an invitation token
     [HttpPost("sendInvitation")]
     public async Task<IActionResult> SendInvitation([FromBody] SendInvitationRequestDto request)
     {
@@ -64,6 +65,7 @@ public class InvitationController : ControllerBase
         return Ok(new { Link = result.Value });
     }
     
+    // Accepts a user into a group through the invitation token
     [HttpGet("acceptInvitation/{token}")]
     public async Task<IActionResult> AcceptInvitation(string token)
     {
@@ -92,6 +94,7 @@ public class InvitationController : ControllerBase
         return acceptInvitationResult.ToActionResult();
     }
     
+    // Validates the given token to see if it is used or outdated
     [HttpGet("validateInvitation/{token}")]
     public async Task<IActionResult> ValidateInvitation(string token)
     {

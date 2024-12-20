@@ -24,7 +24,7 @@ public class RefreshRecipeDatabaseJob : IJob
     
     public async Task Execute(IJobExecutionContext context)
     {
-        _logger.LogInformation($"DatabaseJob started at {DateTime.Now}");
+        _logger.LogInformation($"DatabaseJob Refreshing Recipes started at {DateTime.Now}");
         
         int minAmountInDatabase = _jobSettingsOptions.MinAmount;
 
@@ -39,7 +39,7 @@ public class RefreshRecipeDatabaseJob : IJob
         var countResult = await _recipeManager.GetAmountOfRecipes();
         if (!countResult.IsSuccess)
         {
-            _logger.LogError($"DatabaseJob failed to get amount from database: {countResult.ErrorMessage}");
+            _logger.LogError($"DatabaseJob Refreshing Recipes failed to get amount from database: {countResult.ErrorMessage}");
             return;
         }
         var count = countResult.Value;
@@ -49,10 +49,10 @@ public class RefreshRecipeDatabaseJob : IJob
         var createBatchRecipeResult = await _recipeManager.CreateBatchRandomRecipes(amountToCreate, null);
         if (!createBatchRecipeResult.IsSuccess)
         {
-            _logger.LogError($"DatabaseJob failed to create batch recipe: {createBatchRecipeResult.ErrorMessage}");
+            _logger.LogError($"DatabaseJob Refreshing Recipes failed to create batch recipe: {createBatchRecipeResult.ErrorMessage}");
             return;
         }
         
-        _logger.LogInformation($"DatabaseJob executed at {DateTime.Now}");
+        _logger.LogInformation($"DatabaseJob Refreshing Recipes executed at {DateTime.Now}");
     }
 }

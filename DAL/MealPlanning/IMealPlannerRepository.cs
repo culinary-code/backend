@@ -13,4 +13,5 @@ public interface IMealPlannerRepository
     Task<Result<List<PlannedMeal>>> ReadNextWeekPlannedMealsNoTrackingByGroupId(Guid groupId);
     Task<Result<List<PlannedMeal>>> ReadPlannedMealsAfterDateNoTrackingByUserId(DateTime dateTime, Guid userId); 
     Task<Result<List<PlannedMeal>>> ReadPlannedMealsAfterDateNoTrackingByGroupId(DateTime dateTime, Guid groupId);
+    Task<Result<Unit>> MoveAndDeleteOldPlannedMeals();
 }

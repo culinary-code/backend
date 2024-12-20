@@ -27,7 +27,7 @@ internal static class CulinaryCodeDbInitializer
                 context.Database.Migrate();
             }
 
-            Seed(context);
+            //Seed(context);
             _hasRunDuringAppExecution = true;
         }
     }

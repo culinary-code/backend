@@ -212,4 +212,73 @@ public class MealPlannerRepositoryTests : IClassFixture<TestPostgresContainerFix
         Assert.DoesNotContain("Another Old Meal", filteredMealNames);
     }
 
+    [Fact]
+    public async Task MoveAndDeleteOldPlannedMeals_ShouldUpdateAndRemoveMealsCorrectly()
+    {
+        // Arrange
+        var currentDate = DateTime.UtcNow;
+        var oneMonthAgo = currentDate.AddMonths(-1);
+        
+        var mealplannerId1 = Guid.NewGuid();
+        var mealplannerId2 = Guid.NewGuid();
+        
+        var mealPlanner1 = new MealPlanner
+        {
+            MealPlannerId = mealplannerId1
+        }; 
+        
+        var mealPlanner2 = new MealPlanner
+        {
+            MealPlannerId = mealplannerId2
+        }; 
+
+        var meal1 = new PlannedMeal
+        {
+            PlannedDate = oneMonthAgo.AddDays(-1), // Older than a month, should be deleted
+            NextWeekMealPlannerId = null
+        };
+
+        var meal2 = new PlannedMeal
+        {
+            PlannedDate = oneMonthAgo.AddDays(1), // Within the last month, should be updated
+            NextWeekMealPlannerId = mealplannerId1,
+            HistoryMealPlannerId = null
+        };
+
+        var meal3 = new PlannedMeal
+        {
+            PlannedDate = currentDate.AddDays(-1), // Within the last month, should be updated
+            NextWeekMealPlannerId = mealplannerId2,
+            HistoryMealPlannerId = null
+        };
+
+        var meal4 = new PlannedMeal
+        {
+            PlannedDate = currentDate.AddDays(1), // In the future, should remain untouched
+            NextWeekMealPlannerId = mealplannerId1
+        };
+
+        await _dbContext.MealPlanners.AddRangeAsync(mealPlanner1, mealPlanner2);
+        await _dbContext.PlannedMeals.AddRangeAsync(meal1, meal2, meal3, meal4);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _mealPlannerRepository.MoveAndDeleteOldPlannedMeals();
+
+        // Assert
+        Assert.True(result.IsSuccess);
+
+        var remainingMeals = await _dbContext.PlannedMeals.ToListAsync();
+        Assert.Equal(3, remainingMeals.Count); // meal1 should be deleted
+
+        var updatedMeal2 = remainingMeals.First(m => m.PlannedMealId == meal2.PlannedMealId);
+        Assert.Null(updatedMeal2.NextWeekMealPlannerId);
+        Assert.Equal(mealplannerId1, updatedMeal2.HistoryMealPlannerId);
+
+        var updatedMeal3 = remainingMeals.First(m => m.PlannedMealId == meal3.PlannedMealId);
+        Assert.Null(updatedMeal3.NextWeekMealPlannerId);
+        Assert.Equal(mealplannerId2, updatedMeal3.HistoryMealPlannerId);
+
+        Assert.Contains(remainingMeals, m => m.PlannedMealId == meal4.PlannedMealId); // meal4 remains untouched
+    }
 }

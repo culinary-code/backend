@@ -196,4 +196,29 @@ public class MealPlannerRepository : IMealPlannerRepository
 
         return Result<List<PlannedMeal>>.Success(plannedMeals);
     }
+
+    public async Task<Result<Unit>> MoveAndDeleteOldPlannedMeals()
+    {
+        var currentDate = DateTime.UtcNow;
+        var oneMonthAgo = currentDate.AddMonths(-1);
+
+        // Remove meals where the planned date is older than a month
+        await _ctx.PlannedMeals
+            .Where(pm => pm.PlannedDate < oneMonthAgo)
+            .ExecuteDeleteAsync();
+
+        // Update meals where the planned date has passed
+        await _ctx.PlannedMeals
+            .Where(pm => pm.PlannedDate >= oneMonthAgo && pm.PlannedDate < currentDate)
+            .ForEachAsync(meal =>
+            {
+                meal.HistoryMealPlannerId = meal.NextWeekMealPlannerId;
+                meal.NextWeekMealPlannerId = null;
+            });
+
+        // Save changes to the database
+        await _ctx.SaveChangesAsync();
+        return Result<Unit>.Success(new Unit());
+    }
+    
 }

@@ -24,6 +24,7 @@ public class KeyCloakController : ControllerBase, IIdentityProviderController
         _accountManager = accountManager;
     }
 
+    // Registers a user. Used in the development version of the back-end
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] UserRegistrationRequestDto request)
     {
@@ -58,6 +59,7 @@ public class KeyCloakController : ControllerBase, IIdentityProviderController
         return registerUserResult.ToActionResult();
     }
 
+    // Logs a user into their account. Checks if the user already has an account or creates a new one based on the access token
     [HttpPost("login")]
     [Authorize]
     public async Task<IActionResult> CheckIfUserAccountExistsOrCreate()

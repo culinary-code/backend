@@ -21,7 +21,6 @@ public class ChatController : ControllerBase
     private readonly IIdentityProviderService _identityProviderService;
     private readonly IAccountManager _accountManager;
     
-
     public ChatController(ILogger<ChatController> logger, ILlmService llmService, IIdentityProviderService identityProviderService, IAccountManager accountManager)
     {
         _logger = logger;
