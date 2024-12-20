@@ -31,6 +31,7 @@ public class RecipeController : ControllerBase
         _accountManager = accountManager;
     }
 
+    // Returns a recipe by the given recipeId
     [HttpGet("{id}")]
     public async Task<IActionResult> GetRecipeById(string id)
     {
@@ -38,6 +39,7 @@ public class RecipeController : ControllerBase
         return recipeResult.ToActionResult();
     }
 
+    // Returns the first recipe containing the given name
     [HttpGet("ByName/{name}")]
     public async Task<IActionResult> GetRecipeByName(string name)
     {
@@ -45,6 +47,7 @@ public class RecipeController : ControllerBase
         return recipeResult.ToActionResult();
     }
 
+    // Returns all recipes containing a given name
     [HttpGet("Collection/ByName/{name}")]
     public async Task<IActionResult> GetRecipeCollectionByName(string name)
     {
@@ -52,7 +55,7 @@ public class RecipeController : ControllerBase
         return recipesResult.ToActionResult();
     }
 
-
+    // Returns all recipes containing the given filter criteria
     [HttpPost("Collection/Filtered")]
     public async Task<IActionResult> GetFilteredRecipeCollection([FromBody] RecipeFilterDto filter)
     {
@@ -63,6 +66,7 @@ public class RecipeController : ControllerBase
         return recipesResult.ToActionResult();
     }
 
+    // Creates a new recipe with the given filter criteria. This will send a request to the openAI services
     [HttpPost("Create")]
     public async Task<IActionResult> CreateRecipe([FromBody] RecipeFilterDto request)
     {
@@ -83,7 +87,7 @@ public class RecipeController : ControllerBase
         return recipeResult.ToActionResult();
     }
 
-
+    // Returns a list of recipe suggestions based on the given filter criteria
     [HttpPost("GetSuggestions")]
     public async Task<IActionResult> GetRecipeSuggestions([FromBody] RecipeFilterDto request)
     {
@@ -107,6 +111,7 @@ public class RecipeController : ControllerBase
         return recipeSuggestionsResult.ToActionResult();
     }
     
+    // Creates recipes in the database based on the requestbody in json format. Used for development purposes and filling the database with a couple default recipes.
     [HttpPost("BatchCreate")]
     [AllowAnonymous]
     public async Task<IActionResult> BatchCreateRecipes()

@@ -25,6 +25,7 @@ public class ReviewController : ControllerBase
         _identityProviderService = identityProviderService;
     }
 
+    // Returns a review by an id
     [HttpGet("{id}")]
     public async Task<IActionResult> GetReviewById(string id)
     {
@@ -32,6 +33,7 @@ public class ReviewController : ControllerBase
         return reviewResult.ToActionResult();
     }
 
+    // Returns a collection of reviews from a given recipeId
     [HttpGet("ByRecipeId/{recipeId}")]
     public async Task<IActionResult> GetReviewsByRecipeId(string recipeId)
     {
@@ -39,6 +41,7 @@ public class ReviewController : ControllerBase
         return reviewsResult.ToActionResult();
     }
 
+    // Creates a new review for a recipe
     [HttpPost("CreateReview")]
     public async Task<IActionResult> CreateReview([FromBody] CreateReviewDto createReviewDto)
     {

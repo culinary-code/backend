@@ -203,6 +203,12 @@ builder.Services.AddQuartz(q =>
         .ForJob("RefreshRecipeDatabaseJob") // Link to the registered job
         .WithIdentity("RefreshRecipeDatabaseJob-trigger") // Name of the trigger
         .WithCronSchedule(cronSchedule)); // CRON trigger at 2am
+    
+    q.AddJob<ManagePlannedMealsJob>(opts => opts.WithIdentity("ManagePlannedMealsJob"));
+    q.AddTrigger(opts => opts
+        .ForJob("ManagePlannedMealsJob") // Link to the registered job
+        .WithIdentity("ManagePlannedMealsJob-trigger") // Name of the trigger
+        .WithCronSchedule("0 0 0 * * ?")); // CRON trigger at midnight
 });
 
 // Add the Quartz Hosted Service

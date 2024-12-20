@@ -25,6 +25,7 @@ public class AccountController : ControllerBase
         _identityProviderService = identityProviderService;
     }
 
+    // Returns a userdto
     [HttpGet]
     public async Task<IActionResult> GetUserById()
     {
@@ -41,6 +42,7 @@ public class AccountController : ControllerBase
         return user.ToActionResult();
     }
 
+    // Updates an account
     [HttpPut("updateAccount")]
     public async Task<IActionResult> UpdateAccount([FromBody] AccountDto accountDto, [FromQuery] string actionType)
     {
@@ -92,6 +94,7 @@ public class AccountController : ControllerBase
         }
     }
     
+    // Deletes an account
     [HttpDelete("deleteAccount")]
     public async Task<IActionResult> DeleteAccount()
     {
@@ -108,6 +111,7 @@ public class AccountController : ControllerBase
         return deleteResult.ToActionResult();
     }
 
+    // Returns preferences of a user
     [HttpGet("getPreferences")]
     public async Task<IActionResult> GetUserPreferences()
     {
@@ -132,7 +136,7 @@ public class AccountController : ControllerBase
         }
     }
 
-
+    // Adds a preference to a user
     [HttpPost("addPreference")]
     public async Task<IActionResult> AddPreference([FromBody] PreferenceDto preferenceDto)
     {
@@ -157,6 +161,7 @@ public class AccountController : ControllerBase
         }
     }
 
+    // Deletes a preference from a user
     [HttpDelete("deletePreference/{preferenceId}")]
     public async Task<IActionResult> DeletePreference(Guid preferenceId)
     {
@@ -181,6 +186,7 @@ public class AccountController : ControllerBase
         }
     }
 
+    // Returns favorite recipe list of a user
     [HttpGet("getFavoriteRecipes")]
     public async Task<IActionResult> GetFavoriteRecipes()
     {
@@ -197,6 +203,7 @@ public class AccountController : ControllerBase
         return favoriteRecipes.ToActionResult();
     }
 
+    // Adds a favorite recipe to a users favorite recipes
     [HttpPost("addFavoriteRecipe")]
     public async Task<IActionResult> AddFavoriteRecipeToUser([FromBody] RecipeDto recipeDto)
     {
@@ -213,6 +220,7 @@ public class AccountController : ControllerBase
         return updatedAccount.ToActionResult();
     }
 
+    // Deletes a favorite recipe from a users favorite recipes
     [HttpDelete("deleteFavoriteRecipe/{recipeId}")]
     public async Task<IActionResult> DeleteFavoriteRecipe(Guid recipeId)
     {
@@ -230,6 +238,7 @@ public class AccountController : ControllerBase
         return removeFavoriteRecipeResult.ToActionResult();
     }
     
+    // Updates a user object with a selected group GUID
     [HttpPut("setChosenGroup")]
     public async Task<IActionResult> SetChosenGroup([FromBody] AccountDto accountDto)
     {

@@ -17,6 +17,7 @@ public class PreferenceController : ControllerBase
         _preferenceManager = preferenceManager;
     }
 
+    // Returns all preferences that have been marked as standard preferences
     [HttpGet("getStandardPreference")]
     public async Task<IActionResult> GetStandardPreference()
     {

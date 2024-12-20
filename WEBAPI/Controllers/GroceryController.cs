@@ -28,6 +28,7 @@ public class GroceryController : ControllerBase
         _logger = logger;
     }
 
+    // Returns a grocery list with all objects
     [HttpGet("grocery-list")]
     public async Task<IActionResult> GetGroceryListById()
     {
@@ -43,6 +44,7 @@ public class GroceryController : ControllerBase
         return groceryList.ToActionResult();
     }
 
+    // Returns a grocery list with all objects pertaining to the selected group or user
     [HttpGet("account/grocery-list")]
     public async Task<IActionResult> GetGroceryListByAccessToken()
     {
@@ -58,6 +60,7 @@ public class GroceryController : ControllerBase
         return groceryListDto.ToActionResult();
     }
 
+    // Updates the grocery list with a new item
     [HttpPut("grocery-list/add-item")]
     public async Task<IActionResult> AddItemToGroceryList([FromBody] ItemQuantityDto newItem)
     {
@@ -75,6 +78,7 @@ public class GroceryController : ControllerBase
         return addItemToGroceryListResult.ToActionResult();
     }
 
+    // Deletes an item from the grocery list
     [HttpDelete("grocery-list/items")]
     public async Task<IActionResult> DeleteItemFromList([FromBody] ItemQuantityDto removeItem)
     {

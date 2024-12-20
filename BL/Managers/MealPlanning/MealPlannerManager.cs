@@ -222,4 +222,9 @@ public class MealPlannerManager : IMealPlannerManager
 
         return Result<List<IngredientQuantityDto>>.Success(aggregatedIngredients.Values.ToList());
     }
+
+    public async Task<Result<Unit>> MoveAndRemoveOldPlannedMeals()
+    {
+        return await _mealPlannerRepository.MoveAndDeleteOldPlannedMeals();
+    }
 }

@@ -25,6 +25,7 @@ public class MealPlannerController : ControllerBase
         _mealPlannerManager = mealPlannerManager;
     }
 
+    // Creates a new planned meal for a given date or overwrites an existing planned meal for that date
     [HttpPost("PlannedMeal/Create")]
     public async Task<IActionResult> CreateNewPlannedMeal([FromBody] PlannedMealDto plannedMealDto)
     {
@@ -42,6 +43,7 @@ public class MealPlannerController : ControllerBase
         return createPlannedMealResult.ToActionResult();
     }
 
+    // Returns a collection of planned meals based on a given datetime
     [HttpGet("{dateTime}")]
     public async Task<IActionResult> GetRecipeCollectionByName(DateTime dateTime)
     {
@@ -58,6 +60,7 @@ public class MealPlannerController : ControllerBase
         return plannedMealsResult.ToActionResult();
     }
 
+    // Returns the ingredients of the next week of planned meals
     [HttpGet("NextWeekIngredients")]
     public async Task<IActionResult> GetNextWeekIngredients()
     {

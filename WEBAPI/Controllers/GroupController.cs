@@ -26,6 +26,7 @@ public class GroupController : ControllerBase
         _identityProviderService = identityProviderService;
     }
 
+    // Creates a group with the user requesting this method in it
     [HttpPost("createGroup")]
     public async Task<IActionResult> CreateGroup([FromQuery] string groupName)
     {
@@ -42,6 +43,7 @@ public class GroupController : ControllerBase
         return result.ToActionResult();
     }
 
+    // Adds a user to the group with that groupId
     [HttpPost("{groupId}/addUserToGroup")]
     public async Task<IActionResult> AddUserToGroup(Guid groupId)
     {
@@ -59,6 +61,7 @@ public class GroupController : ControllerBase
         return result.ToActionResult();
     }
 
+    // Gets all groups the user is connected to
     [HttpGet("getGroups")]
     public async Task<IActionResult> GetGroups()
     {
@@ -75,6 +78,7 @@ public class GroupController : ControllerBase
         return groups.ToActionResult();
     }
 
+    // Removes a user from a group with that groupId
     [HttpPost("{groupId}/removeUser")]
     public async Task<IActionResult> RemoveUserFromGroup(Guid groupId)
     {

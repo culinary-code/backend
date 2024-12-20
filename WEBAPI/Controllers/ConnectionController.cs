@@ -17,6 +17,7 @@ public class ConnectionController : ControllerBase
         _keycloakOptions = keycloakOptions.Value;
     }
 
+    // Returns an ok object with a keycloak url that is linked to the back-end instance
     [HttpGet]
     public IActionResult Get()
     {
