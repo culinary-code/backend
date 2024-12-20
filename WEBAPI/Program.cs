@@ -220,9 +220,7 @@ builder.Services.AddQuartzHostedService(options =>
 
 var app = builder.Build();
 
-// TODO: remove the fragment below
-// currently in here to make sure the database works.
-// Since there is nothing calling upon the scoped dbContext at startup it would not function otherwise.
+// Starts up the migration when the program is started
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<CulinaryCodeDbContext>();
